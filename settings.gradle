@@ -1,0 +1,26 @@
+pluginManagement ***REMOVED***
+    repositories ***REMOVED***
+        google ***REMOVED***
+            content ***REMOVED***
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+          ***REMOVED***
+      ***REMOVED***
+        mavenCentral()
+        gradlePluginPortal()
+  ***REMOVED***
+}
+dependencyResolutionManagement ***REMOVED***
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories ***REMOVED***
+        google()
+        mavenCentral()
+        maven ***REMOVED***
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+      ***REMOVED***
+  ***REMOVED***
+}
+
+rootProject.name = "IVDemo"
+include ':app'

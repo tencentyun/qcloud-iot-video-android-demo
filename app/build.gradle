@@ -1,0 +1,61 @@
+plugins ***REMOVED***
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+}
+
+android ***REMOVED***
+    namespace 'com.tencent.iot.voipdemo'
+    compileSdk 34
+
+    defaultConfig ***REMOVED***
+        applicationId "com.tencent.iot.voipdemo"
+        minSdk 29
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables ***REMOVED***
+            useSupportLibrary true
+      ***REMOVED***
+  ***REMOVED***
+
+    buildTypes ***REMOVED***
+        release ***REMOVED***
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+      ***REMOVED***
+  ***REMOVED***
+    compileOptions ***REMOVED***
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+  ***REMOVED***
+    kotlinOptions ***REMOVED***
+        jvmTarget = '1.8'
+  ***REMOVED***
+    buildFeatures ***REMOVED***
+        viewBinding true
+  ***REMOVED***
+    composeOptions ***REMOVED***
+        kotlinCompilerExtensionVersion '1.5.1'
+  ***REMOVED***
+    packaging ***REMOVED***
+        resources ***REMOVED***
+            excludes += '/META-INF/***REMOVED***AL2.0,LGPL2.1}'
+      ***REMOVED***
+  ***REMOVED***
+}
+
+dependencies ***REMOVED***
+
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.activity
+    implementation libs.androidx.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+    implementation 'com.tencent.iot.voip:voip-device-android:1.0.2-SNAPSHOT'
+}

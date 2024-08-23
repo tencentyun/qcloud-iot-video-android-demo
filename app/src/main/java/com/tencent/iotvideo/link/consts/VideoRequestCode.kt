@@ -1,0 +1,15 @@
+package com.tencent.iotvideo.link.consts
+
+object VideoRequestCode ***REMOVED***
+
+    /*************video接口开始**************/
+    const val video_describe_devices = 20000
+    const val video_describe_date = 20001
+    const val video_describe_date_time = 20002
+    const val video_describe_url = 20003
+    const val video_describe_record_date = 20004
+    const val video_describe_snapshot = 20005
+    const val video_describe_video_url = 20006
+    const val video_describe_product = 20007
+    /*************video接口结束**************/
+}

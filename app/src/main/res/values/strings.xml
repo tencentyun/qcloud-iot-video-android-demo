@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">IVDemo</string>
+    <string name="title_voip">VOIP</string>
+
+    <string name="voip_welcome">Welcome: </string>
+    <string name="voip_login">LOGIN</string>
+    <string name="voip_wx_setting">WX SETTING</string>
+    <string name="voip_quality_setting">画质设置</string>
+    <string name="voip_openid">请输入Openid</string>
+
+    <string name="voip_video_call">视频通话</string>
+    <string name="voip_audio_call">音频通话</string>
+    <string name="voip_hangup">挂断</string>
+    <string name="conform">确定</string>
+    <string name="sn_ticket">SN Ticket</string>
+    <string name="title_ipc">IPC</string>
+    <string name="title_audio_video_call">双向音视频</string>
+    <string name="title_voip_lib_demo">VOIP LIB DEMO</string>
+    <string name="title_setting_device">配置设备</string>
+    <string name="model_id">Model ID</string>
+    <string name="sn">SN</string>
+    <string name="wx_app_id">AppID(小程序ID)</string>
+
+    <string name="voip_setting_json_input">可以按照***REMOVED***\"productId\":\"\",\"deviceName\":\"\",\"deviceKey\":\"\",\"voip_model_id\":\"\",\"voip_sn\":\"\",\"voip_sn_ticket\":\"\",\"voip_wxa_appid\":\"\",\"voip_openid1\":\"\",\"voip_openid2\":\"\",\"voip_openid3\":\"\"}
+json格式填充粘贴的数据到此输入框</string>
+    <string name="product_id">Product ID</string>
+    <string name="device_name">Device Name</string>
+    <string name="device_pwd">Device Key</string>
+
+    <string name="local_resolution">请选择本地分辨率</string>
+    <string name="local_frame_rate">请选择本地帧率</string>
+    <string name="local_frame_rate_tip">0fps</string>
+    <string name="local_bit_rate">请选择本地码率</string>
+    <string name="local_bit_rate_tip">0kbps</string>
+    <string name="wx_resolution">请选择要拉取小程序的分辨率</string>
+    <string name="wx_camera_setting">请选择视频通话默认小程序端摄像头开关</string>
+</resources>
