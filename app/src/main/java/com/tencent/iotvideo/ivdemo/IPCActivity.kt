@@ -6,8 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.TextureView
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.tencent.iot.voip.device.VoipNativeInterface
@@ -44,6 +42,8 @@ open class IPCActivity : AppCompatActivity(), IvAvtCallback ***REMOVED***
     protected val deviceKey: String? by lazy ***REMOVED*** intent.getStringExtra("deviceKey") }
 
     protected open fun initWidget() ***REMOVED***
+        setContentView(binding.root)
+
         //        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
         with(binding) ***REMOVED***
             // Find the TextureView in the layout
@@ -81,12 +81,7 @@ open class IPCActivity : AppCompatActivity(), IvAvtCallback ***REMOVED***
 
         // start run JNI iot_video_demo
         val info = SysInitInfo.createDefaultSysInitInfo(
-            DeviceInfo(
-                mProductId,
-                mDeviceName,
-                deviceKey,
-                region
-            )
+            DeviceInfo(mProductId, mDeviceName, deviceKey, region)
         )
         VoipNativeInterface.getInstance().initIvSystem(info, object : IvDeviceCallback ***REMOVED***
             override fun onOnline(netDateTime: Long) ***REMOVED***

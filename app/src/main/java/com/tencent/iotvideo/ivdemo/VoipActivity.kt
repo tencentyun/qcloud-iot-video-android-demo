@@ -64,6 +64,7 @@ class VoipActivity : IPCActivity(), TextureView.SurfaceTextureListener ***REMOVE
   ***REMOVED***
 
     override fun initWidget() ***REMOVED***
+        setContentView(binding.root)
         with(binding)***REMOVED***
             // 设置管理器
             val layoutManager = LinearLayoutManager(this@VoipActivity)
@@ -73,6 +74,7 @@ class VoipActivity : IPCActivity(), TextureView.SurfaceTextureListener ***REMOVE
             // 设置适配器，刷新展示用户列表
             val userListAdapter = UserListAdapter(this@VoipActivity, getUsersData())
             userListAdapter.setOnSelectedListener ***REMOVED*** position -> selectedPosition = position }
+            rvUserList.adapter = userListAdapter
             tvTips.isVisible = false
             ivAudio.isVisible = false
             textVoipIvDevinfo.isVisible = false
@@ -92,7 +94,7 @@ class VoipActivity : IPCActivity(), TextureView.SurfaceTextureListener ***REMOVE
         mMiniprogramVersion = intent.getIntExtra("miniprogramVersion", 0)
 
         try ***REMOVED***
-            val dir: File = File(Environment.getExternalStorageDirectory(), "ivdemo")
+            val dir = File(Environment.getExternalStorageDirectory(), "ivdemo")
             if (!dir.exists()) ***REMOVED***
                 dir.mkdir()
           ***REMOVED***
