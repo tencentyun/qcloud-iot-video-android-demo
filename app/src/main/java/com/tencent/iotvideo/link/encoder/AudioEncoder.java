@@ -78,7 +78,7 @@ public class AudioEncoder ***REMOVED***
   ***REMOVED***
 
     private void initAudio() ***REMOVED***
-        bufferSizeInBytes = 2 * AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
+        bufferSizeInBytes = 2*AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
         Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
         audioRecord = new AudioRecord(micParam.getAudioSource(), micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat(), bufferSizeInBytes);
         try ***REMOVED***
@@ -110,7 +110,7 @@ public class AudioEncoder ***REMOVED***
     private boolean initAEC(int audioSession) ***REMOVED***
 
         boolean isDevicesSupportAEC = isDevicesSupportAEC();
-        Log.e(TAG, "isDevicesSupportAEC: " + isDevicesSupportAEC);
+        Log.e(TAG, "isDevicesSupportAEC: "+isDevicesSupportAEC);
         if (!isDevicesSupportAEC) ***REMOVED***
             return false;
       ***REMOVED***
@@ -129,7 +129,7 @@ public class AudioEncoder ***REMOVED***
     private boolean initAGC(int audioSession) ***REMOVED***
 
         boolean isDevicesSupportAGC = isDevicesSupportAGC();
-        Log.e(TAG, "isDevicesSupportAGC: " + isDevicesSupportAGC);
+        Log.e(TAG, "isDevicesSupportAGC: "+isDevicesSupportAGC);
         if (!isDevicesSupportAGC) ***REMOVED***
             return false;
       ***REMOVED***
@@ -218,7 +218,7 @@ public class AudioEncoder ***REMOVED***
             int audioInputBufferId = audioCodec.dequeueInputBuffer(0);
             if (audioInputBufferId >= 0) ***REMOVED***
                 ByteBuffer inputBuffer = null;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) ***REMOVED***
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) ***REMOVED***
                     inputBuffer = audioCodec.getInputBuffer(audioInputBufferId);
               ***REMOVED*** else ***REMOVED***
                     inputBuffer = audioCodec.getInputBuffers()[audioInputBufferId];
@@ -235,7 +235,7 @@ public class AudioEncoder ***REMOVED***
             int audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
             while (audioOutputBufferId >= 0) ***REMOVED***
                 ByteBuffer outputBuffer = null;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) ***REMOVED***
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) ***REMOVED***
                     outputBuffer = audioCodec.getOutputBuffer(audioOutputBufferId);
               ***REMOVED*** else ***REMOVED***
                     outputBuffer = audioCodec.getOutputBuffers()[audioOutputBufferId];

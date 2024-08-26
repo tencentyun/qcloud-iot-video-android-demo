@@ -1,6 +1,7 @@
 package com.tencent.iotvideo.link.popup;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -11,6 +12,8 @@ import android.widget.Toast;
 
 import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.util.VoipSetting;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class DeviceSettingDialog extends IosCenterStyleDialog ***REMOVED***
 

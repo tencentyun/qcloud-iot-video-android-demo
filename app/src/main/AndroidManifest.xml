@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,31 +9,27 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight">
+
         <activity
-            android:name="com.tencent.iotvideo.ivdemo.MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.DayNight">
+            android:name="com.example.ivdemo.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.tencent.iotvideo.ivdemo.IPCActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.DayNight" />
+            android:name="com.example.ivdemo.IPCActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+        </activity>
         <activity
-            android:name="com.tencent.iotvideo.ivdemo.VoipActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.DayNight" />
+            android:name="com.example.ivdemo.VoipLoginActivity"
+            android:label="@string/title_activity_voip">
+        </activity>
         <activity
-            android:name="com.tencent.iotvideo.ivdemo.VoipLoginActivity"
+            android:name="com.example.ivdemo.VoipActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.DayNight" />
+            android:label="@string/title_activity_voip">
+        </activity>
     </application>
 
 </manifest>

@@ -2,11 +2,18 @@ package com.tencent.iotvideo.link;
 
 import android.app.Activity;
 import android.graphics.ImageFormat;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.graphics.SurfaceTexture;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.util.Log;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.tencent.iot.voip.device.VoipNativeInterface;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
@@ -17,13 +24,6 @@ import com.tencent.iotvideo.link.param.MicParam;
 import com.tencent.iotvideo.link.param.VideoEncodeParam;
 import com.tencent.iotvideo.link.util.CameraUtils;
 import com.tencent.iotvideo.link.util.QualitySetting;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener ***REMOVED***
     private static final String TAG = "CameraEncoder";

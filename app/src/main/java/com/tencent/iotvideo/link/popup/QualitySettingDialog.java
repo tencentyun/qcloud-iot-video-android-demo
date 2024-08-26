@@ -2,6 +2,7 @@ package com.tencent.iotvideo.link.popup;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.os.Build;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,6 +18,7 @@ import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.consts.CameraConstants;
 import com.tencent.iotvideo.link.entity.ResolutionEntity;
 import com.tencent.iotvideo.link.util.QualitySetting;
+import com.tencent.iotvideo.link.util.VoipSetting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public class QualitySettingDialog extends IosCenterStyleDialog ***REMOVED***
 
     private Spinner mLocalResolutionSp;
 
-    private ArrayList<ResolutionEntity> localResolutionArray = new ArrayList<>();
+    private ArrayList<ResolutionEntity> localResolutionArray = new ArrayList<ResolutionEntity>();
 
     private int selectedLocalResolution = 0;
     private SeekBar mFrameRateSb;

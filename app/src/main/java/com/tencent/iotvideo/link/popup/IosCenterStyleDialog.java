@@ -15,7 +15,6 @@ import android.view.animation.TranslateAnimation;
 
 import com.tencent.iot.voipdemo.R;
 
-
 public class IosCenterStyleDialog extends Dialog ***REMOVED***
 
     protected DisplayMetrics displayMetrics;
@@ -54,11 +53,12 @@ public class IosCenterStyleDialog extends Dialog ***REMOVED***
         initView();
   ***REMOVED***
 
-    public void initView() ***REMOVED*** }
+    public void initView() ***REMOVED***
+  ***REMOVED***
 
     @Override
     public void show() ***REMOVED***
-        if(((Activity) mContext).isFinishing() || ((Activity) mContext).isDestroyed()) return;
+        if (((Activity) mContext).isFinishing() || ((Activity) mContext).isDestroyed()) return;
         if (isShowing()) return; // 已经处于显示状态，不再显示
 
         super.show();
