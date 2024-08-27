@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.tencent.iot.video.device.VideoNativeInterface;
 import com.tencent.iot.video.device.consts.StreamType;
+import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.CameraRecorder;
 import com.tencent.iotvideo.link.adapter.UserListAdapter;
 import com.tencent.iotvideo.link.entity.UserEntity;
@@ -30,8 +31,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import com.tencent.iot.voipdemo.R;
 
 
 public class VoipActivity extends IPCActivity implements TextureView.SurfaceTextureListener ***REMOVED***
@@ -161,30 +160,36 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
 //                int ret = VideoNativeInterface.getInstance().initWxCloudVoip(path, "mHostAppId", mModelId,
 //                        "mVoipProductId", mVoipDeviceId, "mVoipDeviceSign", mWxaAppId, mSNTicket, mMiniprogramVersion);
                 int ret = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-                int isRegistered = VideoNativeInterface.getInstance().isAvtVoipRegistered();
-                if (isRegistered != 0) ***REMOVED***
-                    VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
-              ***REMOVED***
-                Log.i(TAG, "initWxCloudVoip ret: " + ret);
-                mInitStatus = ret;
-                if (ret == 19) ***REMOVED***
-                    //把device_key文件删掉
-                    deleteDeviceKeyFile();
-                    mInitStatus = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-                    int registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered();
-                    if (registeredState != 0) ***REMOVED***
-                        VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                if (ret == 0) ***REMOVED***
+                    Log.i(TAG, "initWxCloudVoip ret: " + ret);
+                    int isRegistered = VideoNativeInterface.getInstance().isAvtVoipRegistered();
+                    Log.i(TAG, "isAvtVoipRegistered isRegistered: " + isRegistered);
+                    if (isRegistered == 0) ***REMOVED***
+                        int registerRes = VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                        Log.i(TAG, "registerAvtVoip registerRes: " + registerRes);
                   ***REMOVED***
-                    Log.i(TAG, "reInitWxCloudVoip ret: " + ret);
-              ***REMOVED***
-                runOnUiThread(new Runnable() ***REMOVED***
-                    @Override
-                    public void run() ***REMOVED***
-                        if (mDialog != null) ***REMOVED***
-                            mDialog.dismiss();
+                    mInitStatus = ret;
+                    if (ret == 19) ***REMOVED***
+                        //把device_key文件删掉
+                        deleteDeviceKeyFile();
+                        mInitStatus = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
+                        Log.i(TAG, "reInitWxCloudVoip ret: " + ret);
+                        int registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered();
+                        Log.i(TAG, "reisAvtVoipRegistered isRegistered: " + isRegistered);
+                        if (registeredState == 0) ***REMOVED***
+                            int registerRes = VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                            Log.i(TAG, "reregisterAvtVoip registerRes: " + registerRes);
                       ***REMOVED***
                   ***REMOVED***
-              ***REMOVED***);
+                    runOnUiThread(new Runnable() ***REMOVED***
+                        @Override
+                        public void run() ***REMOVED***
+                            if (mDialog != null) ***REMOVED***
+                                mDialog.dismiss();
+                          ***REMOVED***
+                      ***REMOVED***
+                  ***REMOVED***);
+              ***REMOVED***
           ***REMOVED***);
       ***REMOVED***
 
@@ -218,7 +223,8 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                         String result = "";
                         int recvPixel = QualitySetting.getInstance(VoipActivity.this).getWxResolution();
                         boolean calleeCameraSwitch = QualitySetting.getInstance(VoipActivity.this).isWxCameraOn();
-                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
+                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
+                                mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
                         if (ret == -2) ***REMOVED***
                             result = "通话中";
                       ***REMOVED*** else if (ret != 0) ***REMOVED***
@@ -272,7 +278,8 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                     executor.submit(() -> ***REMOVED***
                         // voip call
                         String result = "";
-                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
+                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(
+                                mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
                         if (ret == -2) ***REMOVED***
                             result = "通话中";
                       ***REMOVED*** else if (ret != 0) ***REMOVED***
@@ -315,7 +322,8 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                 if (!executor.isShutdown()) ***REMOVED***
                     executor.submit(() -> ***REMOVED***
                         String result = "";
-                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(mProductId, mDeviceName, mOpenId, mVoipDeviceId);
+                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
+                                mProductId, mDeviceName, mOpenId, mVoipDeviceId);
                         if (ret == 0) ***REMOVED***
                             result = "已挂断";
                       ***REMOVED*** else ***REMOVED***
