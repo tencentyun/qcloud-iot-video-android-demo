@@ -12,15 +12,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.tencent.iot.voip.device.VoipNativeInterface;
-import com.tencent.iot.voip.device.callback.IvAvtCallback;
-import com.tencent.iot.voip.device.callback.IvDeviceCallback;
-import com.tencent.iot.voip.device.consts.CommandType;
-import com.tencent.iot.voip.device.consts.P2pEventType;
-import com.tencent.iot.voip.device.consts.StreamType;
-import com.tencent.iot.voip.device.model.AvDataInfo;
-import com.tencent.iot.voip.device.model.AvtInitInfo;
-import com.tencent.iot.voip.device.model.SysInitInfo;
+import com.tencent.iot.video.device.VideoNativeInterface;
+import com.tencent.iot.video.device.callback.IvAvtCallback;
+import com.tencent.iot.video.device.callback.IvDeviceCallback;
+import com.tencent.iot.video.device.consts.CommandType;
+import com.tencent.iot.video.device.consts.P2pEventType;
+import com.tencent.iot.video.device.consts.StreamType;
+import com.tencent.iot.video.device.model.AvDataInfo;
+import com.tencent.iot.video.device.model.AvtInitInfo;
+import com.tencent.iot.video.device.model.SysInitInfo;
 import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.CameraRecorder;
 
@@ -68,7 +68,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
               ***REMOVED***
                 lastClickTime = time;
                 // msg_id 6: 按门铃
-                VoipNativeInterface.getInstance().sendMsgNotice(6);
+                VideoNativeInterface.getInstance().sendMsgNotice(6);
           ***REMOVED***
       ***REMOVED***);
   ***REMOVED***
@@ -99,7 +99,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
 
         // start run JNI iot_video_demo
         SysInitInfo info = new SysInitInfo(mProductId, mDeviceName, deviceKey, region);
-        VoipNativeInterface.getInstance().initIvSystem(info, new IvDeviceCallback() ***REMOVED***
+        VideoNativeInterface.getInstance().initIvSystem(info, new IvDeviceCallback() ***REMOVED***
             @Override
             public void onOnline(long netDateTime) ***REMOVED***
                 Log.d(TAG, "onOnline  netDateTime--->" + netDateTime);
@@ -115,9 +115,9 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
                 Log.d(TAG, "moduleStatus--->" + moduleStatus);
           ***REMOVED***
       ***REMOVED***);
-        VoipNativeInterface.getInstance().initIvDm();
+        VideoNativeInterface.getInstance().initIvDm();
         AvtInitInfo avtInitInfo = new AvtInitInfo();
-        VoipNativeInterface.getInstance().initIvAvt(avtInitInfo, this);
+        VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this);
         Log.d(TAG, "run iot_video_demo for " + devinfo);
 
         initWidget();
@@ -126,10 +126,10 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
 
     @Override
     protected void onDestroy() ***REMOVED***
-        VoipNativeInterface.getInstance().exitWxCloudVoip();
-        VoipNativeInterface.getInstance().exitIvAvt();
-        VoipNativeInterface.getInstance().exitIvDm();
-        VoipNativeInterface.getInstance().exitIvSys();
+        VideoNativeInterface.getInstance().exitWxCloudVoip();
+        VideoNativeInterface.getInstance().exitIvAvt();
+        VideoNativeInterface.getInstance().exitIvDm();
+        VideoNativeInterface.getInstance().exitIvSys();
         super.onDestroy();
   ***REMOVED***
 
