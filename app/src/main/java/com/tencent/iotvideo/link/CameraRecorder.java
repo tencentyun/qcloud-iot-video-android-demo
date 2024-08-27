@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.tencent.iot.voip.device.VoipNativeInterface;
+import com.tencent.iot.video.device.VideoNativeInterface;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
 import com.tencent.iotvideo.link.encoder.VideoEncoder;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
@@ -162,7 +162,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) ***REMOVED***
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
-                int ret = VoipNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, res_type);
+                int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, res_type);
                 if (ret != 0)
                     Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
           ***REMOVED***
@@ -179,7 +179,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) ***REMOVED***
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
-                VoipNativeInterface iv = VoipNativeInterface.getInstance();
+                VideoNativeInterface iv = VideoNativeInterface.getInstance();
                 int ret = iv.sendAvtVideoData(datas, pts, seq, isKeyFrame, visitor, res_type);
                 if (ret != 0) ***REMOVED***
                     int buf_size = iv.getSendStreamBuf(visitor, res_type);
@@ -219,8 +219,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             if (mVideoEncoder != null) ***REMOVED***
 
 
-                int bufsize = VoipNativeInterface.getInstance().getSendStreamBuf(0, 1);
-                int p2p_wl_avg = VoipNativeInterface.getInstance().getAvgMaxMin(bufsize);
+                int bufsize = VideoNativeInterface.getInstance().getSendStreamBuf(0, 1);
+                int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufsize);
                 int now_video_rate = mVideoEncoder.getVideoBitRate();
                 int now_frame_rate = mVideoEncoder.getVideoFrameRate();
 
