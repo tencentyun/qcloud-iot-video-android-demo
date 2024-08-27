@@ -18,8 +18,8 @@ import android.widget.Toast;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.tencent.iot.voip.device.VoipNativeInterface;
-import com.tencent.iot.voip.device.consts.StreamType;
+import com.tencent.iot.video.device.VideoNativeInterface;
+import com.tencent.iot.video.device.consts.StreamType;
 import com.tencent.iotvideo.link.CameraRecorder;
 import com.tencent.iotvideo.link.adapter.UserListAdapter;
 import com.tencent.iotvideo.link.entity.UserEntity;
@@ -158,22 +158,22 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
 
         if (!executor.isShutdown()) ***REMOVED***
             executor.submit(() -> ***REMOVED***
-//                int ret = VoipNativeInterface.getInstance().initWxCloudVoip(path, "mHostAppId", mModelId,
+//                int ret = VideoNativeInterface.getInstance().initWxCloudVoip(path, "mHostAppId", mModelId,
 //                        "mVoipProductId", mVoipDeviceId, "mVoipDeviceSign", mWxaAppId, mSNTicket, mMiniprogramVersion);
-                int ret = VoipNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-                int isRegistered = VoipNativeInterface.getInstance().isAvtVoipRegistered();
+                int ret = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
+                int isRegistered = VideoNativeInterface.getInstance().isAvtVoipRegistered();
                 if (isRegistered != 0) ***REMOVED***
-                    VoipNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                    VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
               ***REMOVED***
                 Log.i(TAG, "initWxCloudVoip ret: " + ret);
                 mInitStatus = ret;
                 if (ret == 19) ***REMOVED***
                     //把device_key文件删掉
                     deleteDeviceKeyFile();
-                    mInitStatus = VoipNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-                    int registeredState = VoipNativeInterface.getInstance().isAvtVoipRegistered();
+                    mInitStatus = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
+                    int registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered();
                     if (registeredState != 0) ***REMOVED***
-                        VoipNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                        VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
                   ***REMOVED***
                     Log.i(TAG, "reInitWxCloudVoip ret: " + ret);
               ***REMOVED***
@@ -218,7 +218,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                         String result = "";
                         int recvPixel = QualitySetting.getInstance(VoipActivity.this).getWxResolution();
                         boolean calleeCameraSwitch = QualitySetting.getInstance(VoipActivity.this).isWxCameraOn();
-                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
+                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
                         if (ret == -2) ***REMOVED***
                             result = "通话中";
                       ***REMOVED*** else if (ret != 0) ***REMOVED***
@@ -272,7 +272,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                     executor.submit(() -> ***REMOVED***
                         // voip call
                         String result = "";
-                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipAudioCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
+                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
                         if (ret == -2) ***REMOVED***
                             result = "通话中";
                       ***REMOVED*** else if (ret != 0) ***REMOVED***
@@ -315,7 +315,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                 if (!executor.isShutdown()) ***REMOVED***
                     executor.submit(() -> ***REMOVED***
                         String result = "";
-                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipHangUp(mProductId, mDeviceName, mOpenId, mVoipDeviceId);
+                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(mProductId, mDeviceName, mOpenId, mVoipDeviceId);
                         if (ret == 0) ***REMOVED***
                             result = "已挂断";
                       ***REMOVED*** else ***REMOVED***
