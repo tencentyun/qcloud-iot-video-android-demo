@@ -1,5 +1,6 @@
 package com.example.ivdemo;
 
+import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,8 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.Context;
-import com.tencent.iot.voipdemo.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,9 +18,10 @@ import com.tencent.iot.voip.device.callback.IvDeviceCallback;
 import com.tencent.iot.voip.device.consts.CommandType;
 import com.tencent.iot.voip.device.consts.P2pEventType;
 import com.tencent.iot.voip.device.consts.StreamType;
+import com.tencent.iot.voip.device.model.AvDataInfo;
 import com.tencent.iot.voip.device.model.AvtInitInfo;
-import com.tencent.iot.voip.device.model.DeviceInfo;
 import com.tencent.iot.voip.device.model.SysInitInfo;
+import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.CameraRecorder;
 
 
@@ -68,7 +68,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
               ***REMOVED***
                 lastClickTime = time;
                 // msg_id 6: 按门铃
-//                IVoipJNIBridge.getInstance().sendMsgNotice(6);
+                VoipNativeInterface.getInstance().sendMsgNotice(6);
           ***REMOVED***
       ***REMOVED***);
   ***REMOVED***
@@ -98,7 +98,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
         fileOps.copyFileFromAssets(getApplicationContext(), videoFileName, absVideoFileName);
 
         // start run JNI iot_video_demo
-        SysInitInfo info = SysInitInfo.createDefaultSysInitInfo(new DeviceInfo(mProductId, mDeviceName, deviceKey, region));
+        SysInitInfo info = new SysInitInfo(mProductId, mDeviceName, deviceKey, region);
         VoipNativeInterface.getInstance().initIvSystem(info, new IvDeviceCallback() ***REMOVED***
             @Override
             public void onOnline(long netDateTime) ***REMOVED***
@@ -116,7 +116,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
           ***REMOVED***
       ***REMOVED***);
         VoipNativeInterface.getInstance().initIvDm();
-        AvtInitInfo avtInitInfo = AvtInitInfo.createDefaultAvtInitInfo();
+        AvtInitInfo avtInitInfo = new AvtInitInfo();
         VoipNativeInterface.getInstance().initIvAvt(avtInitInfo, this);
         Log.d(TAG, "run iot_video_demo for " + devinfo);
 
@@ -131,6 +131,11 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
         VoipNativeInterface.getInstance().exitIvDm();
         VoipNativeInterface.getInstance().exitIvSys();
         super.onDestroy();
+  ***REMOVED***
+
+    @Override
+    public AvDataInfo onGetAvEncInfo(int visitor, int channel, int videoResType) ***REMOVED***
+        return AvDataInfo.createDefaultAvDataInfo(videoResType);
   ***REMOVED***
 
     @Override
@@ -152,7 +157,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
   ***REMOVED***
 
     @Override
-    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width) ***REMOVED***
+    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) ***REMOVED***
         Log.w(TAG, "onStartRecvVideoStream  video stream is not supported in this activity");
         return 0;
   ***REMOVED***
@@ -161,16 +166,15 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
     public void onNotify(int event, int visitor, int channel, int videoResType) ***REMOVED***
         Log.w(TAG, "onNotify()");
         String msg = "";
-        switch (event)***REMOVED***
+        switch (event) ***REMOVED***
             case P2pEventType.IV_AVT_EVENT_P2P_PEER_CONNECT_FAIL:
-            case P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR:
-            ***REMOVED***
-                Log.d(TAG,"receive event: peer error");
+            case P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR: ***REMOVED***
+                Log.d(TAG, "receive event: peer error");
                 msg = "network err";
           ***REMOVED***
             break;
             case P2pEventType.IV_AVT_EVENT_P2P_PEER_ADDR_CHANGED: ***REMOVED***
-                Log.d(TAG,"receive event: peer addr change");
+                Log.d(TAG, "receive event: peer addr change");
                 msg = "peer change";
           ***REMOVED***
             break;
@@ -183,11 +187,11 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
                 break;
 
             default:
-                Log.d(TAG,"not support event");
+                Log.d(TAG, "not support event");
                 msg = "unsupport event type " + event;
                 break;
       ***REMOVED***
-        if (!msg.isEmpty())***REMOVED***
+        if (!msg.isEmpty()) ***REMOVED***
             updateUI(this, msg);
       ***REMOVED***
   ***REMOVED***
@@ -331,13 +335,13 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
 
     @Override
     public int onDownloadFile(int status, int visitor, int channel, Object args) ***REMOVED***
-        Log.d(TAG, "onDownloadFile status " + status + " visitor " + visitor + " channel"+channel+"   args"+args);
+        Log.d(TAG, "onDownloadFile status " + status + " visitor " + visitor + " channel" + channel + "   args" + args);
         return 0;
   ***REMOVED***
 
     @Override
     public void onGetPeerOuterNet(int visitor, int channel, String netInfo) ***REMOVED***
-        Log.d(TAG, "onGetPeerOuterNet visitor " + visitor + " channel " + channel + " netInfo"+netInfo);
+        Log.d(TAG, "onGetPeerOuterNet visitor " + visitor + " channel " + channel + " netInfo" + netInfo);
   ***REMOVED***
 
     public void updateUI(Context context, String msg) ***REMOVED***
