@@ -160,13 +160,21 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
             executor.submit(() -> ***REMOVED***
 //                int ret = VoipNativeInterface.getInstance().initWxCloudVoip(path, "mHostAppId", mModelId,
 //                        "mVoipProductId", mVoipDeviceId, "mVoipDeviceSign", mWxaAppId, mSNTicket, mMiniprogramVersion);
-                int ret = VoipNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mSNTicket, mMiniprogramVersion);
+                int ret = VoipNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
+                int isRegistered = VoipNativeInterface.getInstance().isAvtVoipRegistered();
+                if (isRegistered != 0) ***REMOVED***
+                    VoipNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+              ***REMOVED***
                 Log.i(TAG, "initWxCloudVoip ret: " + ret);
                 mInitStatus = ret;
                 if (ret == 19) ***REMOVED***
                     //把device_key文件删掉
                     deleteDeviceKeyFile();
-                    mInitStatus = VoipNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mSNTicket, mMiniprogramVersion);
+                    mInitStatus = VoipNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
+                    int registeredState = VoipNativeInterface.getInstance().isAvtVoipRegistered();
+                    if (registeredState != 0) ***REMOVED***
+                        VoipNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                  ***REMOVED***
                     Log.i(TAG, "reInitWxCloudVoip ret: " + ret);
               ***REMOVED***
                 runOnUiThread(new Runnable() ***REMOVED***
@@ -210,8 +218,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                         String result = "";
                         int recvPixel = QualitySetting.getInstance(VoipActivity.this).getWxResolution();
                         boolean calleeCameraSwitch = QualitySetting.getInstance(VoipActivity.this).isWxCameraOn();
-                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipCall(
-                                mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
+                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
                         if (ret == -2) ***REMOVED***
                             result = "通话中";
                       ***REMOVED*** else if (ret != 0) ***REMOVED***
@@ -265,8 +272,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                     executor.submit(() -> ***REMOVED***
                         // voip call
                         String result = "";
-                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipAudioCall(
-                                mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
+                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipAudioCall(mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
                         if (ret == -2) ***REMOVED***
                             result = "通话中";
                       ***REMOVED*** else if (ret != 0) ***REMOVED***
@@ -309,8 +315,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                 if (!executor.isShutdown()) ***REMOVED***
                     executor.submit(() -> ***REMOVED***
                         String result = "";
-                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipHangUp(
-                                mProductId, mDeviceName, mOpenId, mVoipDeviceId);
+                        int ret = VoipNativeInterface.getInstance().doWxCloudVoipHangUp(mProductId, mDeviceName, mOpenId, mVoipDeviceId);
                         if (ret == 0) ***REMOVED***
                             result = "已挂断";
                       ***REMOVED*** else ***REMOVED***
@@ -383,7 +388,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
   ***REMOVED***
 
     @Override
-    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width) ***REMOVED***
+    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) ***REMOVED***
         Log.d(TAG, "start video visitor " + visitor + " h: " + height + " w: " + width);
         runOnUiThread(new Runnable() ***REMOVED***
             @Override
