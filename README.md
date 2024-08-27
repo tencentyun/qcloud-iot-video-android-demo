@@ -31,11 +31,11 @@
 
 ```
 dependencies ***REMOVED***
-    implementation 'com.tencent.iot.voip:voip-device-android:x.x.x'
+    implementation 'com.tencent.iot.video:video-device-android:x.x.x'
 }
 ```
 
-具体版本号可参考[版本号列表](https://central.sonatype.com/search?q=voip-device-android)
+具体版本号可参考[版本号列表](https://central.sonatype.com/search?q=video-device-android)
 
 ## 2.2 引用SNAPSHOT版：
 
@@ -57,7 +57,7 @@ allprojects ***REMOVED***
 
 ```
 dependencies ***REMOVED***
-    implementation 'com.tencent.iot.voip:voip-device-android:x.x.x-SNAPSHOT'
+    implementation 'com.tencent.iot.video:video-device-android:x.x.x-SNAPSHOT'
 }
 ```
 
