@@ -76,10 +76,10 @@ dependencies ***REMOVED***
 
 ```
 // 依次按顺序初始化必要的功能模块
-VoipNativeInterface.getInstance().initIvSystem(...)
-VoipNativeInterface.getInstance().initIvDm()
-VoipNativeInterface.getInstance().initIvAvt(...)
-VoipNativeInterface.getInstance().initWxCloudVoip(...)
+VideoNativeInterface.getInstance().initIvSystem(...)
+VideoNativeInterface.getInstance().initIvDm()
+VideoNativeInterface.getInstance().initIvAvt(...)
+VideoNativeInterface.getInstance().initWxCloudVoip(...)
 
 // -------- 呼叫流程开始 --------
 
@@ -97,14 +97,14 @@ else ***REMOVED***
 sendAudioData()
 
 // 通话结束后请主动挂断，对方挂断会收到 onRecvCommand(...) 回调函数发来的信令
-VoipNativeInterface.getInstance().doWxCloudVoipHangUp()
+VideoNativeInterface.getInstance().doWxCloudVoipHangUp()
 // -------- 呼叫流程结束 --------
 
 // 不再使用请依次销毁相关模块，长带电设备不必销毁，重复上述呼叫流程即可
-VoipNativeInterface.getInstance().exitWxCloudVoip()
-VoipNativeInterface.getInstance().exitIvAvt()
-VoipNativeInterface.getInstance().exitIvDm()
-VoipNativeInterface.getInstance().exitIvSys()
+VideoNativeInterface.getInstance().exitWxCloudVoip()
+VideoNativeInterface.getInstance().exitIvAvt()
+VideoNativeInterface.getInstance().exitIvDm()
+VideoNativeInterface.getInstance().exitIvSys()
 ```
 
 # 4. 接口参考
