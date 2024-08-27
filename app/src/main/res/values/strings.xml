@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">IoT Video Device Demo</string>
+    <string name="app_name">IoT Voip Device Demo</string>
     <string name="title_activity_duplex_video">Duplex Video</string>
     <string name="title_activity_voip">WX VOIP demo</string>
 
