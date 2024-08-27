@@ -162,7 +162,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) ***REMOVED***
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
-                int ret = VoipNativeInterface.getInstance().sendAudioData(datas, pts, seq, visitor, res_type);
+                int ret = VoipNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, res_type);
                 if (ret != 0)
                     Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
           ***REMOVED***
@@ -180,7 +180,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
                 VoipNativeInterface iv = VoipNativeInterface.getInstance();
-                int ret = iv.sendVideoData(datas, pts, seq, isKeyFrame, visitor, res_type);
+                int ret = iv.sendAvtVideoData(datas, pts, seq, isKeyFrame, visitor, res_type);
                 if (ret != 0) ***REMOVED***
                     int buf_size = iv.getSendStreamBuf(visitor, res_type);
                     Log.e(TAG, "sendVideoData to visitor " + visitor + " failed: " + ret + " buf size " + buf_size);
