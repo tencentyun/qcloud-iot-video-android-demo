@@ -1,9 +1,11 @@
 # qcloud-iot-video-android-demo
 
+初次体验demo请查看demo使用教程：
+* [demo使用教程](app)
+
 **目录**
 
 <!-- TOC -->
-
 - [1. 功能介绍](#1-功能介绍)
 - [2. 接入方式](#2-接入方式)
     - [2.1 引用稳定版:](#21-引用稳定版)
@@ -81,10 +83,16 @@ VideoNativeInterface.getInstance().initIvDm()
 VideoNativeInterface.getInstance().initIvAvt(...)
 VideoNativeInterface.getInstance().initWxCloudVoip(...)
 
+//检测注册
+int isRegistered = VideoNativeInterface.getInstance().isAvtVoipRegistered();
+if (isRegistered == 0) ***REMOVED*** //表示未注册
+    VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket); //执行注册
+}
+
 // -------- 呼叫流程开始 --------
 
 // onNotify() 回调函数收到 IV_AVT_EVENT_P2P_PEER_READY 事件后方可进行后续呼叫流程
-if (!iv_avt_voip_is_busy()) ***REMOVED***
+if (!isWxCloudVoipBusy()) ***REMOVED***
     // 非占线情况下即可开始呼叫，该接口为阻塞接口，呼叫成功后微信会弹出语音通话界面
     doWxCloudVoipCall(...)
 }
