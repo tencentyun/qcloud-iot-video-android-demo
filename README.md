@@ -381,6 +381,7 @@ WXERROR_UNAVAILABLE = 14
 * @brief 数据丢失
 WXERROR_DATA_LOSS = 15
 
+* @brief
 WXERROR_UNAUTHENTICATED = 16
 
 * @brief IO 错误
