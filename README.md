@@ -14,7 +14,9 @@
     - [基本使用流程](#基本使用流程)
 - [4. 接口参考](#4-接口参考)
     - [接口列表](#接口列表)
+    - [接口描述](#接口描述)
 - [5. 注意事项](#5-注意事项)
+- [6. error信息](#6-error信息)
 
 <!-- /TOC -->
 --------
@@ -142,6 +144,161 @@ VideoNativeInterface.getInstance().exitIvSys()
 * exitIvDm() 退出 data model
 * exitIvSys() 退出 iv system
 
+## 接口描述
+
+### initWxCloudVoip() voip功能关闭
+
+**功能描述**  
+voip模块初始化，函数内部会执行鉴权等操作。  
+该接口为阻塞接口，阻塞时长视网络情况而定。
+
+**参数说明**  
+| 参数名称  | 类型               | 描述                            | 输入/输出 |
+| --------- | ------------------ | ------------------------------- | --------- |
+| type      | voip_wxa_type_t *  | 小程序类型                      | 输入      |
+| data_path | const char *       | voip 自动生成的设置文件存储路径 | 输入      |
+| model_id  | const char *       | voip model_id                   | 输入      |
+| device_id | const char *       | voip device_id                  | 输入      |
+| wxa_appid | const char *       | voip 微信小程序 wxa_appid       | 输入      |
+
+**返回值**  
+| 返回值     | 描述                                 |
+| ---------- | ------------------------------------ |
+| WXERROR_OK | 成功                                 |
+| WXERROR_*  | 失败，请参考 wx_error_t 对应的错误码 |
+| 9800001    | sn长度不能超过128字节                |
+| 9800002    | sn包含非法字符                       |
+| 9800003    | model_id检查不通过                   |
+
+### isAvtVoipRegistered()  检测设备是否已经注册
+
+**功能描述**  
+检测设备是否已经注册。  
+需要在 iv_avt_voip_init 调用完成之后才能调用本函数。
+
+**参数说明**  
+| 参数名称 | 类型  | 描述                       | 输入/输出 |
+| -------- | ----- | -------------------------- | --------- |
+| is_reg   | int * | voip 微信小程序绑定 ticket | 输出      |
+
+**返回值**  
+| 返回值     | 描述                                 |
+| ---------- | ------------------------------------ |
+| WXERROR_OK | 成功                                 |
+| WXERROR_*  | 失败，请参考 wx_error_t 对应的错误码 |
+
+### registerAvtVoip() voip 注册
+
+**功能描述**  
+注册设备。  
+该接口为阻塞接口，阻塞时长视网络情况而定。  
+新设备初次使用或清理 data_path 后需要调用一次此接口进行注册。  
+绑定成功后 data_path 路径下会产生大小不为0的密钥文件，请勿删除。  
+如需重新绑定（或恢复出厂设置等情况）请删除 data_path 路径下所有文件，并使用新的 ticket 重新绑定。  
+若设备已经注册，则立即返回。  
+若设备未注册或注册数据错误，会再次注册。
+
+**参数说明**  
+| 参数名称 | 类型         | 描述                                                      | 输入/输出 |
+| -------- | ------------ | --------------------------------------------------------- | --------- |
+| ticket   | const char * | voip 微信小程序绑定 ticket，有效期5分钟，获取后请尽快注册 | 输入      |
+
+**返回值**  
+| 返回值     | 描述                                      |
+| ---------- | ----------------------------------------- |
+| WXERROR_OK | 成功                                      |
+| WXERROR_*  | 失败，请参考 wx_error_t 对应的错误码      |
+| -10008     | snticket 有问题，常见原因是 snticket 过期 |
+
+### exitWxCloudVoip() 退出 voip功能
+
+**功能描述**  
+voip模块退出，释放资源。
+
+**参数说明**  
+| 参数名称 | 类型 | 描述 | 输入/输出 |
+| -------- | ---- | ---- | --------- |
+| 无       | 无   | 无   | 无        |
+
+**返回值**  
+| 返回值 | 描述 |
+| ------ | ---- |
+| 无     | 无   |
+
+### doWxCloudVoipCall() \ doWxCloudVoipAudioCall() voip呼叫
+
+**功能描述**  
+发起 voip 呼叫，该接口为阻塞接口，阻塞时长视网络情况而定。
+
+**参数说明**  
+| 参数名称             | 类型                | 描述                                                                                               | 输入/输出 |
+| -------------------- | ------------------- | -------------------------------------------------------------------------------------------------- | --------- |
+| type                 | iv_cm_stream_type_e | 呼叫类型，支持音视频、或仅音频                                                                     | 输入      |
+| open_id              | const char *        | voip open_id                                                                                       | 输入      |
+| device_id            | const char *        | voip device_id                                                                                     | 输入      |
+| model_id             | const char *        | voip model_id                                                                                      | 输入      |
+| wxa_appid            | const char *        | voip 微信小程序 wxa_appid                                                                          | 输入      |
+| v_info               | voip_video_info_s   | 设备端指定收发视频格式信息                                                                         | 输入      |
+| caller_camera_switch | uint32_t            | 主叫端摄像头开关，0关闭，1开启，如果设备端不具备摄像头或不需要开启摄像头，请设置为关闭             | 输入      |
+| callee_camera_switch | uint32_t            | 被叫端摄像头开关，0关闭，1开启，如果设备端不具备屏幕或不需要查看微信用户的摄像头内容，请设置为关闭 | 输入      |
+
+**返回值**  
+| 返回值                         | 描述                                                                               |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| -1                             | groupId 错误                                                                       |
+| -2                             | 设备 deviceId 错误                                                                 |
+| -3                             | voip_id 错误                                                                       |
+| -4                             | 校园场景支付刷脸模式，voipToken 错误                                               |
+| -5                             | 生成 voip 房间错误                                                                 |
+| -7                             | openId 错误                                                                        |
+| -8                             | openId 未授权                                                                      |
+| -9                             | 校园场景支付刷脸模式：openId 不是 userId 的联系人；硬件设备模式：openId 未绑定设备 |
+| -12                            | 小程序音视频能力审核未完成，正式版中暂时无法使用                                   |
+| -13                            | 硬件设备拨打手机微信模式，voipToken 错误                                           |
+| -14                            | 手机微信拨打硬件设备模式，voipToken 错误                                           |
+| -15                            | 音视频费用包欠费                                                                   |
+| -17                            | voipToken 对应 modelId 错误                                                        |
+| -19                            | openId 与小程序 appId 不匹配。请注意同一个用户在不同小程序的 openId 是不同的       |
+| -20                            | openId 无效                                                                        |
+| WXERROR_OK                     | 成功                                                                               |
+| WXERROR_*                      | 正数错误码，请参考 wx_error_t 对应的错误码                                         |
+| IV_ERR_AVT_REQ_CHN_BUSY        | 占线                                                                               |
+| IV_ERR_AVT_INPUT_PARAM_INVAILD | 初始化失败或未初始化                                                               |
+| IV_ERR_AVT_FAILED              | 其他错误                                                                           |
+
+### doWxCloudVoipHangUp() voip挂断
+
+**功能描述**  
+用于本机主动挂断 voip 呼叫
+对方主动挂断通话时不需要调用此接口
+
+**参数说明**  
+| 参数名称 | 类型 | 描述 | 输入/输出 |
+| -------- | ---- | ---- | --------- |
+| 无       | 无   | 无   | 无        |
+
+**返回值**  
+| 返回值      | 描述                 |
+| ----------- | -------------------- |
+| IV_ERR_NONE | 成功                 |
+| IV_ERR_*    | 失败，对应相应错误码 |
+
+### isWxCloudVoipBusy() voip是否占线
+
+**功能描述**  
+检查是否占线
+
+**参数说明**  
+| 参数名称 | 类型 | 描述 | 输入/输出 |
+| -------- | ---- | ---- | --------- |
+| 无       | 无   | 无   | 无        |
+
+**返回值**  
+| 返回值 | 描述   |
+| ------ | ------ |
+| 0      | 无占线 |
+| 1      | 占线   |
+
 # 5. 注意事项
 
 1. 本模块依赖av模块内的音视频传输接口，请按顺序初始化 initIvSystem, initIvDm, initIvAvt,
@@ -153,3 +310,115 @@ VideoNativeInterface.getInstance().exitIvSys()
 5. 对方正常挂断设备端会先通过 onRecvCommand() 回调收到 IV_AVT_COMMAND_CALL_HANG_UP 信令，之后触发
    onStopRealPlay() 回调
 6. 当网络异常导致挂断时设备端无法收到 IV_AVT_COMMAND_CALL_HANG_UP 信令，只会触发 onStopRealPlay() 回调
+
+# 6. error信息
+
+/**
+* @brief 操作成功
+*
+*/
+WXERROR_OK = 0
+/**
+* @brief 操作被取消
+* 通常是被调用方取消.
+*/
+WXERROR_CANCELLED = 1
+/**
+* @brief 未知错误
+* 通常，你应该尽可能返回其他更加详细的错误码。如果实在没有相关可以使用的错误码，使用
+* WXERROR_UNKNOWN.
+*/
+WXERROR_UNKNOWN = 2
+/**
+* @brief 非法参数
+* 这表示方法调用方传递了非法参数，如需要接受一个非空指针，但是调用方实际传递了个空指针；或者调用方传递了一个错误的文件路径.
+* 请注意，该错误仅应用于参数能被简单地校验失败的情况下.
+* 对于传入的参数不符合系统状态的情况，你应该返回
+* WXERROR_FAILED_PRECONDITION.
+*/
+WXERROR_INVALID_ARGUMENT = 3
+/**
+* @brief 调用超时
+* 这表示操作应该在指定时间内完成，但并未完成.
+*/
+WXERROR_TIMEOUT = 4
+/**
+* @brief 被请求的实体不存在
+* 如文件不存在.
+*/
+WXERROR_NOT_FOUND = 5
+/**
+* @brief 希望创建的实体已存在
+* 如要创建的文件已经存在.
+*/
+WXERROR_ALREADY_EXISTS = 6
+/**
+* @brief 没有权限
+* 这表示调用方无权调用指定的操作.
+* 需要与 WXERROR_UNAUTHENTICATED 进行区分.
+*/
+WXERROR_PERMISSION_DENIED = 7
+/**
+* @brief 资源不足
+* 可能表示磁盘空间已满, 或网络不连通.
+*/
+WXERROR_RESOURCE_EXHAUSTED = 8
+/**
+* @brief 前置条件不满足
+* 这表示当前操作因系统不在可以运行的状态中而被拒绝执行.
+* 比如要删除文件夹时，指定的路径上实际是个普通文件.
+*/
+WXERROR_FAILED_PRECONDITION = 9
+/**
+* @brief 操作被中断
+*
+*/
+WXERROR_ABORTED = 10
+/**
+* @brief 超出范围
+* 这表示当前操作超出了允许的范围，如读取文件时超出了文件长度.
+*/
+WXERROR_OUT_OF_RANGE = 11
+/**
+* @brief 操作未实现
+* 这表示当前操作尚未被实现/被支持. 因此当前操作不应该重试.
+*/
+WXERROR_UNIMPLEMENTED = 12
+/**
+* @brief 内部错误
+* 这表示当前操作因为系统状态不正常而失败. 这通常表示系统内部有 bug.
+*/
+WXERROR_INTERNAL = 13
+
+/**
+* @brief 服务不可用
+* 这表示操作尚不可用.
+* 比如要播放音频时，音频设备未连接；或者要采集音频时，话筒设备未连接.
+*/
+WXERROR_UNAVAILABLE = 14
+
+/**
+* @brief 数据丢失
+*
+*/
+WXERROR_DATA_LOSS = 15
+
+WXERROR_UNAUTHENTICATED = 16
+
+/**
+* @brief IO 错误
+* 一般是文件创建、读、写。
+*/
+WXERROR_IO = 17
+
+/**
+* @brief 回复错误
+* 一般是网络返回内容不对
+*/
+WXERROR_RESPONSE = 18
+
+/**
+* @brief 设备信息不匹配
+* 一般是传入的 sn、modelid 与原注册信息不匹配
+*/
+WXERROR_INVALID_DEVICEID = 19
