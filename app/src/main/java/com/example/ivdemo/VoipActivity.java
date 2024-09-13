@@ -3,7 +3,6 @@ package com.example.ivdemo;
 import android.app.ProgressDialog;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
@@ -69,7 +68,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
 
     public ArrayList<UserEntity> getmUsersData() ***REMOVED***
         if (mUsersData == null) ***REMOVED***
-            mUsersData = new ArrayList<UserEntity>();
+            mUsersData = new ArrayList<>();
             UserEntity user1 = new UserEntity();
             user1.setOpenId(VoipSetting.getInstance(this).openId1);
             mUsersData.add(user1);
@@ -96,12 +95,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
         // 设置适配器，刷新展示用户列表
         mUserListAdapter = new UserListAdapter(this, getmUsersData());
         mUserListRv.setAdapter(mUserListAdapter);
-        mUserListAdapter.setOnSelectedListener(new UserListAdapter.OnSelectedListener() ***REMOVED***
-            @Override
-            public void onSelected(int position) ***REMOVED***
-                selectedPosition = position;
-          ***REMOVED***
-      ***REMOVED***);
+        mUserListAdapter.setOnSelectedListener(position -> selectedPosition = position);
 
         mTipsTv = findViewById(R.id.tv_tips);
         mTipsTv.setVisibility(View.INVISIBLE);
@@ -134,216 +128,155 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
         mSNTicket = getIntent().getStringExtra("voip_sn_ticket");
         mMiniprogramVersion = getIntent().getIntExtra("miniprogramVersion", 0);
 
-        try ***REMOVED***
-            File dir = new File(Environment.getExternalStorageDirectory(), "ivdemo");
-            if (!dir.exists()) ***REMOVED***
-                dir.mkdir();
-          ***REMOVED***
-
-      ***REMOVED*** catch (Exception e) ***REMOVED***
-            e.printStackTrace();
-            Toast.makeText(VoipActivity.this, "创建文件夹失败！", Toast.LENGTH_LONG).show();
-            return;
-      ***REMOVED***
-        String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
-        String path = baseDir + "/ivdemo/";
-        // 证书文件需要保存在相同的路径
-        AssetFileOps fileOps = new AssetFileOps();
-        String certFileName = "cacert.pem";
-        String absCertFileName = path + "/" + certFileName;
-        fileOps.copyFileFromAssets(getApplicationContext(), certFileName, absCertFileName);
-
         mDialog = ProgressDialog.show(VoipActivity.this, "", "正在加载初始化initWxCloudVoip", true);
 
         if (!executor.isShutdown()) ***REMOVED***
             executor.submit(() -> ***REMOVED***
-//                int ret = VideoNativeInterface.getInstance().initWxCloudVoip(path, "mHostAppId", mModelId,
-//                        "mVoipProductId", mVoipDeviceId, "mVoipDeviceSign", mWxaAppId, mSNTicket, mMiniprogramVersion);
-                int ret = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-                if (ret == 0) ***REMOVED***
-                    Log.i(TAG, "initWxCloudVoip ret: " + ret);
-                    int isRegistered = VideoNativeInterface.getInstance().isAvtVoipRegistered();
-                    Log.i(TAG, "isAvtVoipRegistered isRegistered: " + isRegistered);
-                    if (isRegistered == 0) ***REMOVED***
-                        int registerRes = VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
-                        Log.i(TAG, "registerAvtVoip registerRes: " + registerRes);
+                mInitStatus = initWxCloudVoip();
+                if (mInitStatus == 19) ***REMOVED***
+                    //把device_key文件删掉
+                    deleteDeviceKeyFile();
+                    mInitStatus = initWxCloudVoip();
+              ***REMOVED***
+          ***REMOVED***);
+      ***REMOVED***
+
+        Button callButton = findViewById(R.id.btn_voip_video_call);
+        callButton.setOnClickListener(v -> ***REMOVED***
+            mTextureView.setVisibility(View.VISIBLE);
+            if (selectedPosition == RecyclerView.NO_POSITION) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "请勾选被呼叫的用户！", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            setOpenId();
+            if (TextUtils.isEmpty(mOpenId)) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "请输入被呼叫的用户openid！", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            if (mInitStatus == -1) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            if (mInitStatus != 0) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+
+            mDialog = ProgressDialog.show(VoipActivity.this, "", "呼叫中doWxCloudVoipCall", true);
+            if (!executor.isShutdown()) ***REMOVED***
+                executor.submit(() -> ***REMOVED***
+                    // voip call
+                    String result = "";
+                    int recvPixel = QualitySetting.getInstance(VoipActivity.this).getWxResolution();
+                    boolean calleeCameraSwitch = QualitySetting.getInstance(VoipActivity.this).isWxCameraOn();
+                    int ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
+                            mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
+                    if (ret == -2) ***REMOVED***
+                        result = "通话中";
+                  ***REMOVED*** else if (ret != 0) ***REMOVED***
+                        result = "呼叫失败";
+                  ***REMOVED*** else ***REMOVED***
+                        result = "呼叫成功";
                   ***REMOVED***
-                    mInitStatus = ret;
-                    if (ret == 19) ***REMOVED***
-                        //把device_key文件删掉
-                        deleteDeviceKeyFile();
-                        mInitStatus = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-                        Log.i(TAG, "reInitWxCloudVoip ret: " + ret);
-                        int registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered();
-                        Log.i(TAG, "reisAvtVoipRegistered isRegistered: " + isRegistered);
-                        if (registeredState == 0) ***REMOVED***
-                            int registerRes = VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
-                            Log.i(TAG, "reregisterAvtVoip registerRes: " + registerRes);
+                    Log.i(TAG, "VOIP call result: " + result + ", ret: " + ret);
+                    String finalResult = result;
+                    runOnUiThread(() -> ***REMOVED***
+                        if (mDialog != null) ***REMOVED***
+                            mDialog.dismiss();
                       ***REMOVED***
+                        Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
+                        updateVideoUI(true);
+                  ***REMOVED***);
+              ***REMOVED***);
+          ***REMOVED***
+      ***REMOVED***);
+
+        Button audioCallButton = findViewById(R.id.btn_voip_audio_call);
+        audioCallButton.setOnClickListener(view -> ***REMOVED***
+
+            mTextureView.setVisibility(View.INVISIBLE);
+            if (selectedPosition == RecyclerView.NO_POSITION) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "请勾选被呼叫的用户！", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            setOpenId();
+            if (TextUtils.isEmpty(mOpenId)) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "请输入被呼叫的用户openid！", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            if (mInitStatus == -1) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            if (mInitStatus != 0) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+
+            mDialog = ProgressDialog.show(VoipActivity.this, "", "呼叫中doWxCloudVoipAudioCall", true);
+            if (!executor.isShutdown()) ***REMOVED***
+                executor.submit(() -> ***REMOVED***
+                    // voip call
+                    String result = "";
+                    int ret = VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(
+                            mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
+                    if (ret == -2) ***REMOVED***
+                        result = "通话中";
+                  ***REMOVED*** else if (ret != 0) ***REMOVED***
+                        result = "呼叫失败";
+                  ***REMOVED*** else ***REMOVED***
+                        result = "呼叫成功";
                   ***REMOVED***
+                    Log.i(TAG, "VOIP call result: " + result + ", ret: " + ret);
+                    String finalResult = result;
+                    runOnUiThread(() -> ***REMOVED***
+                        if (mDialog != null) ***REMOVED***
+                            mDialog.dismiss();
+                      ***REMOVED***
+                        Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
+                        mTipsTv.setText(finalResult);
+                        updateAudioUI(true);
+                  ***REMOVED***);
+              ***REMOVED***);
+          ***REMOVED***
+      ***REMOVED***);
+
+        mHangUpButton = findViewById(R.id.btn_voip_hang_up);
+        mHangUpButton.setOnClickListener(v -> ***REMOVED***
+            if (mInitStatus == -1) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+            if (mInitStatus != 0) ***REMOVED***
+                Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
+                return;
+          ***REMOVED***
+
+            mDialog = ProgressDialog.show(VoipActivity.this, "", "挂断doWxCloudVoipHangUp", true);
+            if (!executor.isShutdown()) ***REMOVED***
+                executor.submit(() -> ***REMOVED***
+                    String result = "";
+                    int ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
+                            mProductId, mDeviceName, mOpenId, mVoipDeviceId);
+                    if (ret == 0) ***REMOVED***
+                        result = "已挂断";
+                  ***REMOVED*** else ***REMOVED***
+                        result = "挂断失败";
+                  ***REMOVED***
+                    Log.i(TAG, "VOIP call result: " + result);
+                    String finalResult = result;
                     runOnUiThread(new Runnable() ***REMOVED***
                         @Override
                         public void run() ***REMOVED***
                             if (mDialog != null) ***REMOVED***
                                 mDialog.dismiss();
                           ***REMOVED***
+                            Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
+                            mTipsTv.setText(finalResult);
+                            updateVideoUI(false);
                       ***REMOVED***
                   ***REMOVED***);
-              ***REMOVED***
-          ***REMOVED***);
-      ***REMOVED***
-
-        Button callButton = findViewById(R.id.btn_voip_video_call);
-        callButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View v) ***REMOVED***
-                mTextureView.setVisibility(View.VISIBLE);
-                if (selectedPosition == RecyclerView.NO_POSITION) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "请勾选被呼叫的用户！", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                setOpenId();
-                if (TextUtils.isEmpty(mOpenId)) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "请输入被呼叫的用户openid！", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                if (mInitStatus == -1) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                if (mInitStatus != 0) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-
-                mDialog = ProgressDialog.show(VoipActivity.this, "", "呼叫中doWxCloudVoipCall", true);
-                if (!executor.isShutdown()) ***REMOVED***
-                    executor.submit(() -> ***REMOVED***
-                        // voip call
-                        String result = "";
-                        int recvPixel = QualitySetting.getInstance(VoipActivity.this).getWxResolution();
-                        boolean calleeCameraSwitch = QualitySetting.getInstance(VoipActivity.this).isWxCameraOn();
-                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
-                                mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
-                        if (ret == -2) ***REMOVED***
-                            result = "通话中";
-                      ***REMOVED*** else if (ret != 0) ***REMOVED***
-                            result = "呼叫失败";
-                      ***REMOVED*** else ***REMOVED***
-                            result = "呼叫成功";
-                      ***REMOVED***
-                        Log.i(TAG, "VOIP call result: " + result + ", ret: " + ret);
-                        String finalResult = result;
-                        runOnUiThread(new Runnable() ***REMOVED***
-                            @Override
-                            public void run() ***REMOVED***
-                                if (mDialog != null) ***REMOVED***
-                                    mDialog.dismiss();
-                              ***REMOVED***
-                                Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
-                                updateVideoUI(true);
-                          ***REMOVED***
-                      ***REMOVED***);
-                  ***REMOVED***);
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***);
-
-        Button audioCallButton = findViewById(R.id.btn_voip_audio_call);
-        audioCallButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View view) ***REMOVED***
-
-                mTextureView.setVisibility(View.INVISIBLE);
-                if (selectedPosition == RecyclerView.NO_POSITION) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "请勾选被呼叫的用户！", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                setOpenId();
-                if (TextUtils.isEmpty(mOpenId)) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "请输入被呼叫的用户openid！", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                if (mInitStatus == -1) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                if (mInitStatus != 0) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-
-                mDialog = ProgressDialog.show(VoipActivity.this, "", "呼叫中doWxCloudVoipAudioCall", true);
-                if (!executor.isShutdown()) ***REMOVED***
-                    executor.submit(() -> ***REMOVED***
-                        // voip call
-                        String result = "";
-                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(
-                                mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
-                        if (ret == -2) ***REMOVED***
-                            result = "通话中";
-                      ***REMOVED*** else if (ret != 0) ***REMOVED***
-                            result = "呼叫失败";
-                      ***REMOVED*** else ***REMOVED***
-                            result = "呼叫成功";
-                      ***REMOVED***
-                        Log.i(TAG, "VOIP call result: " + result + ", ret: " + ret);
-                        String finalResult = result;
-                        runOnUiThread(new Runnable() ***REMOVED***
-                            @Override
-                            public void run() ***REMOVED***
-                                if (mDialog != null) ***REMOVED***
-                                    mDialog.dismiss();
-                              ***REMOVED***
-                                Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
-                                mTipsTv.setText(finalResult);
-                                updateAudioUI(true);
-                          ***REMOVED***
-                      ***REMOVED***);
-                  ***REMOVED***);
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***);
-
-        mHangUpButton = findViewById(R.id.btn_voip_hang_up);
-        mHangUpButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View v) ***REMOVED***
-                if (mInitStatus == -1) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-                if (mInitStatus != 0) ***REMOVED***
-                    Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
-                    return;
-              ***REMOVED***
-
-                mDialog = ProgressDialog.show(VoipActivity.this, "", "挂断doWxCloudVoipHangUp", true);
-                if (!executor.isShutdown()) ***REMOVED***
-                    executor.submit(() -> ***REMOVED***
-                        String result = "";
-                        int ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
-                                mProductId, mDeviceName, mOpenId, mVoipDeviceId);
-                        if (ret == 0) ***REMOVED***
-                            result = "已挂断";
-                      ***REMOVED*** else ***REMOVED***
-                            result = "挂断失败";
-                      ***REMOVED***
-                        Log.i(TAG, "VOIP call result: " + result);
-                        String finalResult = result;
-                        runOnUiThread(new Runnable() ***REMOVED***
-                            @Override
-                            public void run() ***REMOVED***
-                                if (mDialog != null) ***REMOVED***
-                                    mDialog.dismiss();
-                              ***REMOVED***
-                                Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
-                                mTipsTv.setText(finalResult);
-                                updateVideoUI(false);
-                          ***REMOVED***
-                      ***REMOVED***);
-                  ***REMOVED***);
-              ***REMOVED***
+              ***REMOVED***);
           ***REMOVED***
       ***REMOVED***);
         mHangUpButton.setVisibility(View.INVISIBLE);
@@ -368,6 +301,31 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
                 break;
       ***REMOVED***
   ***REMOVED***
+
+    /**
+     * 初始化 voip
+     *
+     * @return 初始化状态值
+     */
+    private int initWxCloudVoip() ***REMOVED***
+        int initStatus = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
+        if (initStatus == 0) ***REMOVED***
+            Log.i(TAG, "reInitWxCloudVoip initStatus: " + initStatus);
+            int registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered();
+            Log.i(TAG, "isAvtVoipRegistered: " + registeredState);
+            if (registeredState == 0) ***REMOVED***
+                int registerRes = VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
+                Log.i(TAG, "registerAvtVoip registerRes: " + registerRes);
+          ***REMOVED***
+            runOnUiThread(() -> ***REMOVED***
+                if (mDialog != null) ***REMOVED***
+                    mDialog.dismiss();
+              ***REMOVED***
+          ***REMOVED***);
+      ***REMOVED***
+        return initStatus;
+  ***REMOVED***
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) ***REMOVED***
@@ -398,12 +356,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
     @Override
     public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) ***REMOVED***
         Log.d(TAG, "start video visitor " + visitor + " h: " + height + " w: " + width);
-        runOnUiThread(new Runnable() ***REMOVED***
-            @Override
-            public void run() ***REMOVED***
-                updateVideoUI(true);
-          ***REMOVED***
-      ***REMOVED***);
+        runOnUiThread(() -> updateVideoUI(true));
         this.visitor = visitor;
         this.type = type;
         this.height = height;
