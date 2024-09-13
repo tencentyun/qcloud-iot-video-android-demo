@@ -44,20 +44,14 @@ public class VoipLoginActivity extends AppCompatActivity ***REMOVED***
       ***REMOVED***);
 
         Button wxSettingButton = findViewById(R.id.btn_wx_setting);
-        wxSettingButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View v) ***REMOVED***
-                WxSettingDialog dialog = new WxSettingDialog(VoipLoginActivity.this);
-                dialog.show();
-                dialog.setOnDismisListener(new WxSettingDialog.OnDismisListener() ***REMOVED***
-                    @Override
-                    public void onDismised() ***REMOVED***
-                        if (mWelcomeSnTv != null) ***REMOVED***
-                            mWelcomeSnTv.setText(String.format("Welcome: %s", VoipSetting.getInstance(VoipLoginActivity.this).sn));
-                      ***REMOVED***
-                  ***REMOVED***
-              ***REMOVED***);
-          ***REMOVED***
+        wxSettingButton.setOnClickListener(v -> ***REMOVED***
+            WxSettingDialog dialog = new WxSettingDialog(VoipLoginActivity.this);
+            dialog.show();
+            dialog.setOnDismisListener(() -> ***REMOVED***
+                if (mWelcomeSnTv != null) ***REMOVED***
+                    mWelcomeSnTv.setText(String.format("Welcome: %s", VoipSetting.getInstance(VoipLoginActivity.this).sn));
+              ***REMOVED***
+          ***REMOVED***);
       ***REMOVED***);
 
 
