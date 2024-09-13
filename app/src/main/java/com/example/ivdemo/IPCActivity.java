@@ -85,17 +85,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
         String deviceKey = getIntent().getStringExtra("deviceKey");
         String region = "china";
         String devinfo = mProductId + "/" + mDeviceName;
-
-        // local AV files for playback
-        AssetFileOps fileOps = new AssetFileOps();
-        String path = getFilesDir().getAbsolutePath();
-        Log.d(TAG, "path is " + path);
-        String audioFileName = "audio_sample16000_stereo_64kbps.aac";
-        String absAudioFileName = path + "/" + audioFileName;
-        String videoFileName = "video_size320x180_gop50_fps25.h264";
-        String absVideoFileName = path + "/" + videoFileName;
-        fileOps.copyFileFromAssets(getApplicationContext(), audioFileName, absAudioFileName);
-        fileOps.copyFileFromAssets(getApplicationContext(), videoFileName, absVideoFileName);
+        Log.d(TAG, "run iot_video_demo for " + devinfo);
 
         // start run JNI iot_video_demo
         SysInitInfo info = new SysInitInfo(mProductId, mDeviceName, deviceKey, region);
@@ -118,8 +108,6 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
         VideoNativeInterface.getInstance().initIvDm();
         AvtInitInfo avtInitInfo = new AvtInitInfo();
         VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this);
-        Log.d(TAG, "run iot_video_demo for " + devinfo);
-
         initWidget();
         mTextDevinfo.setText(devinfo);
   ***REMOVED***
