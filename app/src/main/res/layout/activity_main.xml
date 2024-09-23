@@ -16,6 +16,16 @@
         android:textSize="20sp" />
 
     <Button
+        android:id="@+id/btn_login_duplex_video"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="80dp"
+        android:text="@string/title_audio_video_call"
+        android:textSize="20sp" />
+
+    <Button
         android:id="@+id/btn_login_voip"
         android:layout_width="match_parent"
         android:layout_height="50dp"
