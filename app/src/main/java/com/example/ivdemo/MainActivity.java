@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity ***REMOVED***
 
         // Get UI elements
         Button ipcButton = findViewById(R.id.btn_login_IPC);
+        Button duplexButton = findViewById(R.id.btn_login_duplex_video);
         Button voipButton = findViewById(R.id.btn_login_voip);
         Button settingDeviceButton = findViewById(R.id.btn_setting_device);
 
@@ -67,6 +68,13 @@ public class MainActivity extends AppCompatActivity ***REMOVED***
             public void onClick(View v) ***REMOVED***
                 if (!checkDeviceInfo()) return;
                 startIpcActivity();
+          ***REMOVED***
+      ***REMOVED***);
+        duplexButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
+            @Override
+            public void onClick(View v) ***REMOVED***
+                if (!checkDeviceInfo()) return;
+                startDuplexActivity();
           ***REMOVED***
       ***REMOVED***);
         voipButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
@@ -116,16 +124,16 @@ public class MainActivity extends AppCompatActivity ***REMOVED***
         startActivity(intent);
   ***REMOVED***
 
-//    private void startDuplexActivity() ***REMOVED***
-//        String productId = VoipSetting.getInstance(this).productId;
-//        String deviceName = VoipSetting.getInstance(this).deviceName;
-//        String deviceKey = VoipSetting.getInstance(this).deviceKey;
-//        Intent intent = new Intent(this, DuplexVideoActivity.class);
-//        intent.putExtra("productId", productId);
-//        intent.putExtra("deviceName", deviceName);
-//        intent.putExtra("deviceKey", deviceKey);
-//        startActivity(intent);
-//  ***REMOVED***
+    private void startDuplexActivity() ***REMOVED***
+        String productId = VoipSetting.getInstance(this).productId;
+        String deviceName = VoipSetting.getInstance(this).deviceName;
+        String deviceKey = VoipSetting.getInstance(this).deviceKey;
+        Intent intent = new Intent(this, DuplexVideoActivity.class);
+        intent.putExtra("productId", productId);
+        intent.putExtra("deviceName", deviceName);
+        intent.putExtra("deviceKey", deviceKey);
+        startActivity(intent);
+  ***REMOVED***
 
     private void startVoipActivity() ***REMOVED***
         String productId = VoipSetting.getInstance(this).productId;
