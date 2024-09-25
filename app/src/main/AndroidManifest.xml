@@ -18,17 +18,17 @@
         </activity>
         <activity
             android:name="com.example.ivdemo.IPCActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"></activity>
+            android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity
             android:name="com.example.ivdemo.VoipLoginActivity"
-            android:label="@string/title_activity_voip"></activity>
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_voip" />
         <activity
             android:name="com.example.ivdemo.VoipActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_voip"></activity>
+            android:label="@string/title_activity_voip" />
         <activity
             android:name="com.example.ivdemo.DuplexVideoActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" />
     </application>
-
 </manifest>
