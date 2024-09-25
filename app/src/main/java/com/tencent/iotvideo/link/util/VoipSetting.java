@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class VoipSetting ***REMOVED***
+public class VoipSetting {
     private static String TAG = VoipSetting.class.getSimpleName();
     private static final String PREFERENCES_NAME = "MyPreferences";
     private static final String JSON_FILE_NAME = "voip_setting.json";
@@ -37,273 +37,273 @@ public class VoipSetting ***REMOVED***
     public String openId2 = "";
     public String openId3 = "";
 
-    private VoipSetting(Context context) ***REMOVED***
+    private VoipSetting(Context context) {
         this.context = context.getApplicationContext();
-  ***REMOVED***
+    }
 
-    public static synchronized VoipSetting getInstance(Context context) ***REMOVED***
-        if (instance == null) ***REMOVED***
+    public static synchronized VoipSetting getInstance(Context context) {
+        if (instance == null) {
             instance = new VoipSetting(context);
             instance.loadValueToMemory();
-      ***REMOVED***
+        }
         return instance;
-  ***REMOVED***
+    }
 
-    public void saveData(String json) ***REMOVED***
-        if (TextUtils.isEmpty(json)) ***REMOVED***
+    public void saveData(String json) {
+        if (TextUtils.isEmpty(json)) {
             Log.e(TAG, "saveData :" + json + ", is empty");
             return;
-      ***REMOVED***
-        if (!isJSONString(json)) ***REMOVED***
+        }
+        if (!isJSONString(json)) {
             Log.e(TAG, "saveData :" + json + ", is not json string");
             return;
-      ***REMOVED***
+        }
 
-        if (hasFilePermission()) ***REMOVED***
+        if (hasFilePermission()) {
             saveToFile(json);
-      ***REMOVED***
+        }
 
         saveToSharedPreferences(json);
-  ***REMOVED***
+    }
 
-    public String loadData() ***REMOVED***
+    public String loadData() {
         String json = null;
 
-        if (hasFilePermission()) ***REMOVED***
+        if (hasFilePermission()) {
             json = loadFromFile();
-            if (!TextUtils.isEmpty(json)) ***REMOVED***
-                if (!isJSONString(json)) ***REMOVED***
+            if (!TextUtils.isEmpty(json)) {
+                if (!isJSONString(json)) {
                     Log.e(TAG, "loadData :" + json + ", is not json string");
-              ***REMOVED*** else ***REMOVED***
+                } else {
                     saveToSharedPreferences(json);
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***
+                }
+            }
+        }
 
-        if (TextUtils.isEmpty(json)) ***REMOVED***
+        if (TextUtils.isEmpty(json)) {
             json = loadFromSharedPreferences();
-      ***REMOVED***
+        }
 
         return json;
-  ***REMOVED***
+    }
 
-    public void updateValueForKey(String key, String value) ***REMOVED***
-        if (TextUtils.isEmpty(value)) ***REMOVED***
+    public void updateValueForKey(String key, String value) {
+        if (TextUtils.isEmpty(value)) {
             Log.e(TAG, "updateValueForKey key: " + key + ", value: " + value + " value is empty!");
             return;
-      ***REMOVED***
+        }
         String json = loadData();
 
-        try ***REMOVED***
+        try {
             JSONObject jsonObject;
-            if (TextUtils.isEmpty(json)) ***REMOVED***
+            if (TextUtils.isEmpty(json)) {
                 jsonObject = new JSONObject();
-          ***REMOVED*** else ***REMOVED***
+            } else {
                 jsonObject = new JSONObject(json);
-          ***REMOVED***
+            }
             jsonObject.put(key, value);
             saveData(jsonObject.toString());
-      ***REMOVED*** catch (JSONException e) ***REMOVED***
+        } catch (JSONException e) {
             e.printStackTrace();
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    private boolean hasFilePermission() ***REMOVED***
+    private boolean hasFilePermission() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
-  ***REMOVED***
+    }
 
-    private void saveToFile(String json) ***REMOVED***
+    private void saveToFile(String json) {
         File file = new File(Environment.getExternalStorageDirectory(), JSON_FILE_NAME);
-        try ***REMOVED***
+        try {
             FileWriter writer = new FileWriter(file);
             writer.write(json);
             writer.flush();
             writer.close();
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void loadValueToMemory() ***REMOVED***
+    public void loadValueToMemory() {
         String json = loadData();
-        if (TextUtils.isEmpty(json)) ***REMOVED***
+        if (TextUtils.isEmpty(json)) {
             json = readVoipSettingJsonStringFromAssets();
-      ***REMOVED*** else ***REMOVED***
-            if (isJSONString(json)) ***REMOVED***
+        } else {
+            if (isJSONString(json)) {
                 Log.e(TAG, "loadValueToMemory :" + json + ", is not json string");
-          ***REMOVED***
-      ***REMOVED***
+            }
+        }
 
-        try ***REMOVED***
+        try {
             JSONObject jsonObject = new JSONObject(json);
-            if (jsonObject.has("productId")) ***REMOVED***
+            if (jsonObject.has("productId")) {
                 this.productId = jsonObject.optString("productId");
-          ***REMOVED***
-            if (jsonObject.has("deviceName")) ***REMOVED***
+            }
+            if (jsonObject.has("deviceName")) {
                 this.deviceName = jsonObject.optString("deviceName");
-          ***REMOVED***
-            if (jsonObject.has("deviceKey")) ***REMOVED***
+            }
+            if (jsonObject.has("deviceKey")) {
                 this.deviceKey = jsonObject.optString("deviceKey");
-          ***REMOVED***
-            if (jsonObject.has("voip_model_id")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_model_id")) {
                 this.modelId = jsonObject.optString("voip_model_id");
-          ***REMOVED***
-            if (jsonObject.has("voip_sn")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_sn")) {
                 this.sn = jsonObject.optString("voip_sn");
-          ***REMOVED***
-            if (jsonObject.has("voip_sn_ticket")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_sn_ticket")) {
                 this.snTicket = jsonObject.optString("voip_sn_ticket");
-          ***REMOVED***
-            if (jsonObject.has("voip_wxa_appid")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_wxa_appid")) {
                 this.appId = jsonObject.optString("voip_wxa_appid");
-          ***REMOVED***
-            if (jsonObject.has("voip_openid1")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_openid1")) {
                 this.openId1 = jsonObject.optString("voip_openid1");
-          ***REMOVED***
-            if (jsonObject.has("voip_openid2")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_openid2")) {
                 this.openId2 = jsonObject.optString("voip_openid2");
-          ***REMOVED***
-            if (jsonObject.has("voip_openid3")) ***REMOVED***
+            }
+            if (jsonObject.has("voip_openid3")) {
                 this.openId3 = jsonObject.optString("voip_openid3");
-          ***REMOVED***
-      ***REMOVED*** catch (JSONException e) ***REMOVED***
+            }
+        } catch (JSONException e) {
             e.printStackTrace();
-      ***REMOVED***
+        }
 
-  ***REMOVED***
+    }
 
-    private String loadFromFile() ***REMOVED***
+    private String loadFromFile() {
         File file = new File(Environment.getExternalStorageDirectory(), JSON_FILE_NAME);
         StringBuilder stringBuilder = new StringBuilder();
 
-        if (file.exists()) ***REMOVED***
-            try ***REMOVED***
+        if (file.exists()) {
+            try {
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
                 String line;
-                while ((line = bufferedReader.readLine()) != null) ***REMOVED***
+                while ((line = bufferedReader.readLine()) != null) {
                     stringBuilder.append(line);
-              ***REMOVED***
+                }
                 bufferedReader.close();
-          ***REMOVED*** catch (IOException e) ***REMOVED***
+            } catch (IOException e) {
                 e.printStackTrace();
-          ***REMOVED***
-      ***REMOVED***
+            }
+        }
 
         return stringBuilder.toString();
-  ***REMOVED***
+    }
 
-    private void saveToSharedPreferences(String json) ***REMOVED***
+    private void saveToSharedPreferences(String json) {
         SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(JSON_FILE_NAME, json);
         editor.apply();
-  ***REMOVED***
+    }
 
-    private String loadFromSharedPreferences() ***REMOVED***
+    private String loadFromSharedPreferences() {
         SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
         return preferences.getString(JSON_FILE_NAME, null);
-  ***REMOVED***
+    }
 
-    public void setProductId(String productId) ***REMOVED***
-        if (!TextUtils.isEmpty(productId)) ***REMOVED***
+    public void setProductId(String productId) {
+        if (!TextUtils.isEmpty(productId)) {
             this.productId = productId;
             updateValueForKey("productId", productId);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setDeviceName(String deviceName) ***REMOVED***
-        if (!TextUtils.isEmpty(deviceName)) ***REMOVED***
+    public void setDeviceName(String deviceName) {
+        if (!TextUtils.isEmpty(deviceName)) {
             this.deviceName = deviceName;
             updateValueForKey("deviceName", deviceName);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setDeviceKey(String deviceKey) ***REMOVED***
-        if (!TextUtils.isEmpty(deviceKey)) ***REMOVED***
+    public void setDeviceKey(String deviceKey) {
+        if (!TextUtils.isEmpty(deviceKey)) {
             this.deviceKey = deviceKey;
             updateValueForKey("deviceKey", deviceKey);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setModelId(String modelId) ***REMOVED***
-        if (!TextUtils.isEmpty(modelId)) ***REMOVED***
+    public void setModelId(String modelId) {
+        if (!TextUtils.isEmpty(modelId)) {
             this.modelId = modelId;
             updateValueForKey("voip_model_id", modelId);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setSn(String sn) ***REMOVED***
-        if (!TextUtils.isEmpty(sn)) ***REMOVED***
+    public void setSn(String sn) {
+        if (!TextUtils.isEmpty(sn)) {
             this.sn = sn;
             updateValueForKey("voip_sn", sn);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setSnTicket(String snTicket) ***REMOVED***
-        if (!TextUtils.isEmpty(snTicket)) ***REMOVED***
+    public void setSnTicket(String snTicket) {
+        if (!TextUtils.isEmpty(snTicket)) {
             this.snTicket = snTicket;
             updateValueForKey("voip_sn_ticket", snTicket);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setAppId(String appId) ***REMOVED***
-        if (!TextUtils.isEmpty(appId)) ***REMOVED***
+    public void setAppId(String appId) {
+        if (!TextUtils.isEmpty(appId)) {
             this.appId = appId;
             updateValueForKey("voip_wxa_appid", appId);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setOpenId1(String openId1) ***REMOVED***
-        if (!TextUtils.isEmpty(openId1)) ***REMOVED***
+    public void setOpenId1(String openId1) {
+        if (!TextUtils.isEmpty(openId1)) {
             this.openId1 = openId1;
             updateValueForKey("voip_openid1", openId1);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setOpenId2(String openId2) ***REMOVED***
-        if (!TextUtils.isEmpty(openId2)) ***REMOVED***
+    public void setOpenId2(String openId2) {
+        if (!TextUtils.isEmpty(openId2)) {
             this.openId2 = openId2;
             updateValueForKey("voip_openid2", openId2);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setOpenId3(String openId3) ***REMOVED***
-        if (!TextUtils.isEmpty(openId3)) ***REMOVED***
+    public void setOpenId3(String openId3) {
+        if (!TextUtils.isEmpty(openId3)) {
             this.openId3 = openId3;
             updateValueForKey("voip_openid3", openId3);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    private String readVoipSettingJsonStringFromAssets() ***REMOVED***
+    private String readVoipSettingJsonStringFromAssets() {
         AssetManager assetManager = context.getAssets();
         StringBuilder stringBuilder = new StringBuilder();
 
-        try ***REMOVED***
+        try {
             InputStream inputStream = assetManager.open(JSON_FILE_NAME);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
-            while ((line = bufferedReader.readLine()) != null) ***REMOVED***
+            while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
-          ***REMOVED***
+            }
             bufferedReader.close();
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
-      ***REMOVED***
+        }
         return stringBuilder.toString();
-  ***REMOVED***
+    }
 
-    public static boolean isJSONString(String jsonString) ***REMOVED***
-        if (!TextUtils.isEmpty(jsonString)) ***REMOVED***
-            try ***REMOVED***
+    public static boolean isJSONString(String jsonString) {
+        if (!TextUtils.isEmpty(jsonString)) {
+            try {
                 new JSONObject(jsonString);
                 return true;
-          ***REMOVED*** catch (JSONException e) ***REMOVED***
+            } catch (JSONException e) {
                 return false;
-          ***REMOVED***
-      ***REMOVED*** else ***REMOVED***
+            }
+        } else {
             return false;
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
 }

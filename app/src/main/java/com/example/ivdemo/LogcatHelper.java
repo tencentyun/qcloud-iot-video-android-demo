@@ -14,57 +14,57 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class LogcatHelper ***REMOVED***
+public class LogcatHelper {
     private static final String TAG = LogcatHelper.class.getName();
     private static LogcatHelper INSTANCE = null;
     private static String PATH_LOGCAT;
     private LogDumper mLogDumper = null;
     private final int mPId;
 
-    public void init(Context context) ***REMOVED***
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) ***REMOVED***// 优先保存到SD卡中
+    public void init(Context context) {
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {// 优先保存到SD卡中
             PATH_LOGCAT = Environment.getExternalStorageDirectory()
                     .getAbsolutePath() + File.separator + "p2p_logs";
-      ***REMOVED*** else ***REMOVED***// 如果SD卡不存在，就保存到本应用的目录下
+        } else {// 如果SD卡不存在，就保存到本应用的目录下
             PATH_LOGCAT = context.getFilesDir().getAbsolutePath() + File.separator + "p2p_logs";
-      ***REMOVED***
+        }
         File file = new File(PATH_LOGCAT);
-        if (!file.exists()) ***REMOVED***
-            if (file.mkdirs()) ***REMOVED***
+        if (!file.exists()) {
+            if (file.mkdirs()) {
                 Log.e(TAG, "创建日志目录成功");
-          ***REMOVED*** else ***REMOVED***
+            } else {
                 Log.e(TAG, "创建日志目录失败");
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 
-    public static LogcatHelper getInstance(Context context) ***REMOVED***
-        if (INSTANCE == null) ***REMOVED***
+    public static LogcatHelper getInstance(Context context) {
+        if (INSTANCE == null) {
             INSTANCE = new LogcatHelper(context);
-      ***REMOVED***
+        }
         return INSTANCE;
-  ***REMOVED***
+    }
 
-    private LogcatHelper(Context context) ***REMOVED***
+    private LogcatHelper(Context context) {
         init(context);
         mPId = android.os.Process.myPid();
-  ***REMOVED***
+    }
 
-    public void start() ***REMOVED***
-        if (mLogDumper == null) ***REMOVED***
+    public void start() {
+        if (mLogDumper == null) {
             mLogDumper = new LogDumper(String.valueOf(mPId), PATH_LOGCAT);
-      ***REMOVED***
+        }
         mLogDumper.start();
-  ***REMOVED***
+    }
 
-    public void stop() ***REMOVED***
-        if (mLogDumper != null) ***REMOVED***
+    public void stop() {
+        if (mLogDumper != null) {
             mLogDumper.stopLogs();
             mLogDumper = null;
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    private static class LogDumper extends Thread ***REMOVED***
+    private static class LogDumper extends Thread {
 
         private Process logcatProc;
         private BufferedReader mReader = null;
@@ -73,62 +73,62 @@ public class LogcatHelper ***REMOVED***
         private final String mPID;
         private FileOutputStream out = null;
 
-        public LogDumper(String pid, String dir) ***REMOVED***
+        public LogDumper(String pid, String dir) {
             mPID = pid;
-            try ***REMOVED***
+            try {
                 out = new FileOutputStream(new File(dir, "log_" + getFileName() + ".log"),
                         true);
-          ***REMOVED*** catch (FileNotFoundException e) ***REMOVED***
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();
-          ***REMOVED***
+            }
             cmds = "logcat | grep \"(" + mPID + ")\"";
-      ***REMOVED***
+        }
 
-        public void stopLogs() ***REMOVED***
+        public void stopLogs() {
             mRunning = false;
-      ***REMOVED***
+        }
 
         @Override
-        public void run() ***REMOVED***
-            try ***REMOVED***
+        public void run() {
+            try {
                 logcatProc = Runtime.getRuntime().exec(cmds);
                 mReader = new BufferedReader(new InputStreamReader(logcatProc.getInputStream()), 1024);
                 String line;
-                while (mRunning && (line = mReader.readLine()) != null) ***REMOVED***
+                while (mRunning && (line = mReader.readLine()) != null) {
                     if (!mRunning) break;
                     if (line.length() == 0) continue;
-                    if (out != null && line.contains(mPID)) ***REMOVED***
+                    if (out != null && line.contains(mPID)) {
                         out.write((line + "\n").getBytes());
-                  ***REMOVED***
-              ***REMOVED***
-          ***REMOVED*** catch (IOException e) ***REMOVED***
+                    }
+                }
+            } catch (IOException e) {
                 e.printStackTrace();
-          ***REMOVED*** finally ***REMOVED***
-                if (logcatProc != null) ***REMOVED***
+            } finally {
+                if (logcatProc != null) {
                     logcatProc.destroy();
                     logcatProc = null;
-              ***REMOVED***
-                if (mReader != null) ***REMOVED***
-                    try ***REMOVED***
+                }
+                if (mReader != null) {
+                    try {
                         mReader.close();
                         mReader = null;
-                  ***REMOVED*** catch (IOException e) ***REMOVED***
+                    } catch (IOException e) {
                         e.printStackTrace();
-                  ***REMOVED***
-              ***REMOVED***
-                if (out != null) ***REMOVED***
-                    try ***REMOVED***
+                    }
+                }
+                if (out != null) {
+                    try {
                         out.close();
-                  ***REMOVED*** catch (IOException e) ***REMOVED***
+                    } catch (IOException e) {
                         e.printStackTrace();
-                  ***REMOVED***
+                    }
                     out = null;
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***
-        private String getFileName() ***REMOVED***
+                }
+            }
+        }
+        private String getFileName() {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
             return format.format(new Date(System.currentTimeMillis()));
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 }

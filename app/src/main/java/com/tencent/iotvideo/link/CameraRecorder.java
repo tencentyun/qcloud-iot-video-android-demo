@@ -25,7 +25,7 @@ import com.tencent.iotvideo.link.param.VideoEncodeParam;
 import com.tencent.iotvideo.link.util.CameraUtils;
 import com.tencent.iotvideo.link.util.QualitySetting;
 
-public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener ***REMOVED***
+public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener {
     private static final String TAG = "CameraEncoder";
 
     private Camera mCamera;
@@ -49,8 +49,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     // for test only
 //    private FileOutputStream mOutputStream = null;
 
-    public void openCamera(SurfaceTexture surfaceTexture, Activity activity) ***REMOVED***
-        try ***REMOVED***
+    public void openCamera(SurfaceTexture surfaceTexture, Activity activity) {
+        try {
             mActivity = activity;
             mVideoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
@@ -67,26 +67,26 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mCamera.setPreviewTexture(surfaceTexture);
             mCamera.setPreviewCallback(this);
             mCamera.startPreview();
-      ***REMOVED*** catch (RuntimeException | IOException e) ***REMOVED***
+        } catch (RuntimeException | IOException e) {
             e.printStackTrace();
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void closeCamera() ***REMOVED***
-        try ***REMOVED***
+    public void closeCamera() {
+        try {
             mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
             mCamera.release();
-      ***REMOVED*** catch (RuntimeException e) ***REMOVED***
+        } catch (RuntimeException e) {
             e.printStackTrace();
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void startRecording(int visitor, int res_type) ***REMOVED***
-        if (mIsRecording) ***REMOVED***
+    public void startRecording(int visitor, int res_type) {
+        if (mIsRecording) {
             mVisitorInfo.put(new Integer(visitor), new Integer(res_type));
             return;
-      ***REMOVED***
+        }
         mVisitorInfo.put(new Integer(visitor), new Integer(res_type));
         VideoEncodeParam encodeParam = new VideoEncodeParam();
         encodeParam.setHeight(mVideoHeight);
@@ -109,12 +109,12 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         mIsRecording = true;
         Log.d(TAG, "start camera recording");
         startBitRateAdapter();
-  ***REMOVED***
+    }
 
-    public void stopRecording(int visitor, int res_type) ***REMOVED***
-        if (!mIsRecording) ***REMOVED***
+    public void stopRecording(int visitor, int res_type) {
+        if (!mIsRecording) {
             return;
-      ***REMOVED***
+        }
 
         mVisitorInfo.remove(Integer.valueOf(visitor));
         if (!mVisitorInfo.isEmpty())
@@ -128,63 +128,63 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         mAudioEncoder = null;
         Log.d(TAG, "stop camera recording");
         stopBitRateAdapter();
-  ***REMOVED***
+    }
 
     @Override
-    public void onAudioEncoded(byte[] datas, long pts, long seq) ***REMOVED***
+    public void onAudioEncoded(byte[] datas, long pts, long seq) {
 //        Log.d(TAG, "encoded audio data len " + datas.length + " pts " + pts);
-        if (mIsRecording) ***REMOVED***
-            for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) ***REMOVED***
+        if (mIsRecording) {
+            for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) {
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
                 int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, res_type);
                 if (ret != 0)
                     Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 
     private int stat_cnt = 0;
 
     @Override
-    public void onVideoEncoded(byte[] datas, long pts, long seq, boolean isKeyFrame) ***REMOVED***
+    public void onVideoEncoded(byte[] datas, long pts, long seq, boolean isKeyFrame) {
 //        Log.d(TAG, "encoded video data len " + datas.length + " pts " + pts);
 
-        if (mIsRecording) ***REMOVED***
-            for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) ***REMOVED***
+        if (mIsRecording) {
+            for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) {
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
                 VideoNativeInterface iv = VideoNativeInterface.getInstance();
                 int ret = iv.sendAvtVideoData(datas, pts, seq, isKeyFrame, visitor, res_type);
-                if (ret != 0) ***REMOVED***
+                if (ret != 0) {
                     int buf_size = iv.getSendStreamBuf(visitor, res_type);
                     Log.e(TAG, "sendVideoData to visitor " + visitor + " failed: " + ret + " buf size " + buf_size);
-              ***REMOVED***
+                }
 
-                if ((stat_cnt++ % 50) == 0) ***REMOVED***
+                if ((stat_cnt++ % 50) == 0) {
                     int buf_size = iv.getSendStreamBuf(visitor, res_type);
                     int link_mode = iv.getSendStreamStatus(visitor, res_type);
                     Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + link_mode);
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+                }
+            }
+        }
+    }
 
     @Override
-    public void onPreviewFrame(byte[] data, Camera camera) ***REMOVED***
-        if (!mIsRecording || mVideoEncoder == null) ***REMOVED***
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        if (!mIsRecording || mVideoEncoder == null) {
             return;
-      ***REMOVED***
+        }
         mVideoEncoder.encoderH264(data, false);
-  ***REMOVED***
+    }
 
 
-    public class AdapterBitRateTask extends TimerTask ***REMOVED***
+    public class AdapterBitRateTask extends TimerTask {
         @Override
-        public void run() ***REMOVED***
+        public void run() {
             System.out.println("检测时间到:" + new Date());
 
-            if (mVideoEncoder != null) ***REMOVED***
+            if (mVideoEncoder != null) {
 
 
                 int bufsize = VideoNativeInterface.getInstance().getSendStreamBuf(0, 1);
@@ -200,34 +200,34 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
 
                 int video_rate_byte = (now_video_rate / 8) * 3 / 4;
-                if (p2p_wl_avg > video_rate_byte) ***REMOVED***
+                if (p2p_wl_avg > video_rate_byte) {
 
                     mVideoEncoder.setVideoBitRate(now_video_rate / 2);
                     mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
 
-              ***REMOVED*** else if (p2p_wl_avg < (now_video_rate / 8) / 3) ***REMOVED***
+                } else if (p2p_wl_avg < (now_video_rate / 8) / 3) {
 
                     // 升码率
                     // 测试发现升码率的速度慢一些效果更好
                     // p2p水线经验值一般小于[视频码率/2]，网络良好的情况会小于 [视频码率/3] 甚至更低
                     mVideoEncoder.setVideoBitRate(now_video_rate + (now_video_rate - p2p_wl_avg * 8) / 5);
                     mVideoEncoder.setVideoFrameRate(now_frame_rate * 5 / 4);
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+                }
+            }
+        }
+    }
 
 
-    private void startBitRateAdapter() ***REMOVED***
+    private void startBitRateAdapter() {
 
 //        IvNativeInterface.getInstance().resetAvg();
         bitRateTimer = new Timer();
         bitRateTimer.schedule(new AdapterBitRateTask(), 3000, 1000);
-  ***REMOVED***
+    }
 
-    private void stopBitRateAdapter() ***REMOVED***
-        if (bitRateTimer != null) ***REMOVED***
+    private void stopBitRateAdapter() {
+        if (bitRateTimer != null) {
             bitRateTimer.cancel();
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 }

@@ -18,14 +18,14 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AudioEncoder ***REMOVED***
+public class AudioEncoder {
 
     /**
      * 采样频率对照表
      */
     private static final Map<Integer, Integer> samplingFrequencyIndexMap = new HashMap<>();
 
-    static ***REMOVED***
+    static {
         samplingFrequencyIndexMap.put(96000, 0);
         samplingFrequencyIndexMap.put(88200, 1);
         samplingFrequencyIndexMap.put(64000, 2);
@@ -38,7 +38,7 @@ public class AudioEncoder ***REMOVED***
         samplingFrequencyIndexMap.put(12000, 9);
         samplingFrequencyIndexMap.put(11025, 10);
         samplingFrequencyIndexMap.put(8000, 11);
-  ***REMOVED***
+    }
 
     private final String TAG = AudioEncoder.class.getSimpleName();
     private MediaCodec audioCodec;
@@ -55,136 +55,136 @@ public class AudioEncoder ***REMOVED***
     private int bufferSizeInBytes;
 
 
-    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam) ***REMOVED***
+    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam) {
         this(micParam, audioEncodeParam, false, false);
-  ***REMOVED***
+    }
 
 
-    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC) ***REMOVED***
+    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC) {
         this.micParam = micParam;
         this.audioEncodeParam = audioEncodeParam;
         initAudio();
         int audioSessionId = audioRecord.getAudioSessionId();
-        if (enableAEC && audioSessionId != 0) ***REMOVED***
+        if (enableAEC && audioSessionId != 0) {
             Log.e(TAG, "=====initAEC result: " + initAEC(audioSessionId));
-      ***REMOVED***
-        if (enableAGC && audioSessionId != 0) ***REMOVED***
+        }
+        if (enableAGC && audioSessionId != 0) {
             Log.e(TAG, "=====initAGC result: " + initAGC(audioSessionId));
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void setOnEncodeListener(OnEncodeListener listener) ***REMOVED***
+    public void setOnEncodeListener(OnEncodeListener listener) {
         this.encodeListener = listener;
-  ***REMOVED***
+    }
 
-    private void initAudio() ***REMOVED***
+    private void initAudio() {
         bufferSizeInBytes = 2*AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
         Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
         audioRecord = new AudioRecord(micParam.getAudioSource(), micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat(), bufferSizeInBytes);
-        try ***REMOVED***
+        try {
             audioCodec = MediaCodec.createEncoderByType(audioEncodeParam.getMime());
             MediaFormat format = MediaFormat.createAudioFormat(audioEncodeParam.getMime(), micParam.getSampleRateInHz(), 1);
             format.setInteger(MediaFormat.KEY_BIT_RATE, audioEncodeParam.getBitRate());
             format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioEncodeParam.getMaxInputSize());
             audioCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
             audioRecord = null;
             audioCodec = null;
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void start() ***REMOVED***
+    public void start() {
         new Thread(this::record).start();
-  ***REMOVED***
+    }
 
-    public void stop() ***REMOVED***
+    public void stop() {
         stopEncode = true;
-  ***REMOVED***
+    }
 
-    public boolean isDevicesSupportAEC() ***REMOVED***
+    public boolean isDevicesSupportAEC() {
         return AcousticEchoCanceler.isAvailable();
-  ***REMOVED***
+    }
 
-    private boolean initAEC(int audioSession) ***REMOVED***
+    private boolean initAEC(int audioSession) {
 
         boolean isDevicesSupportAEC = isDevicesSupportAEC();
         Log.e(TAG, "isDevicesSupportAEC: "+isDevicesSupportAEC);
-        if (!isDevicesSupportAEC) ***REMOVED***
+        if (!isDevicesSupportAEC) {
             return false;
-      ***REMOVED***
-        if (canceler != null) ***REMOVED***
+        }
+        if (canceler != null) {
             return false;
-      ***REMOVED***
+        }
         canceler = AcousticEchoCanceler.create(audioSession);
         canceler.setEnabled(true);
         return canceler.getEnabled();
-  ***REMOVED***
+    }
 
-    public boolean isDevicesSupportAGC() ***REMOVED***
+    public boolean isDevicesSupportAGC() {
         return AutomaticGainControl.isAvailable();
-  ***REMOVED***
+    }
 
-    private boolean initAGC(int audioSession) ***REMOVED***
+    private boolean initAGC(int audioSession) {
 
         boolean isDevicesSupportAGC = isDevicesSupportAGC();
         Log.e(TAG, "isDevicesSupportAGC: "+isDevicesSupportAGC);
-        if (!isDevicesSupportAGC) ***REMOVED***
+        if (!isDevicesSupportAGC) {
             return false;
-      ***REMOVED***
-        if (control != null) ***REMOVED***
+        }
+        if (control != null) {
             return false;
-      ***REMOVED***
+        }
         control = AutomaticGainControl.create(audioSession);
         control.setEnabled(true);
         return control.getEnabled();
-  ***REMOVED***
+    }
 
-    private void release() ***REMOVED***
-        if (audioRecord != null) ***REMOVED***
+    private void release() {
+        if (audioRecord != null) {
             audioRecord.stop();
             audioRecord.release();
             audioRecord = null;
-      ***REMOVED***
+        }
 
-        if (audioCodec != null) ***REMOVED***
+        if (audioCodec != null) {
             audioCodec.stop();
             audioCodec.release();
             audioCodec = null;
-      ***REMOVED***
+        }
 
-        if (canceler != null) ***REMOVED***
+        if (canceler != null) {
             canceler.setEnabled(false);
             canceler.release();
             canceler = null;
-      ***REMOVED***
+        }
 
-        if (control != null) ***REMOVED***
+        if (control != null) {
             control.setEnabled(false);
             control.release();
             control = null;
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    private void addADTStoPacket(ByteBuffer outputBuffer) ***REMOVED***
+    private void addADTStoPacket(ByteBuffer outputBuffer) {
         byte[] bytes = new byte[outputBuffer.remaining()];
         outputBuffer.get(bytes, 0, bytes.length);
         byte[] dataBytes = new byte[bytes.length + 7];
         System.arraycopy(bytes, 0, dataBytes, 7, bytes.length);
         addADTStoPacket(dataBytes, dataBytes.length);
-        if (stopEncode) ***REMOVED***
+        if (stopEncode) {
             return;
-      ***REMOVED***
-        if (encodeListener != null) ***REMOVED***
+        }
+        if (encodeListener != null) {
             encodeListener.onAudioEncoded(dataBytes, System.currentTimeMillis(), seq);
             seq++;
-      ***REMOVED*** else ***REMOVED***
+        } else {
             Log.e(TAG, "Encode listener is null, please set encode listener.");
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    private void addADTStoPacket(byte[] packet, int packetLen) ***REMOVED***
+    private void addADTStoPacket(byte[] packet, int packetLen) {
         // AAC LC
         int profile = 2;
         // CPE
@@ -198,56 +198,56 @@ public class AudioEncoder ***REMOVED***
         packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
         packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
         packet[6] = (byte) 0xFC;
-  ***REMOVED***
+    }
 
-    private void record() ***REMOVED***
-        if (audioCodec == null) ***REMOVED***
+    private void record() {
+        if (audioCodec == null) {
             return;
-      ***REMOVED***
+        }
         stopEncode = false;
         audioRecord.startRecording();
         audioCodec.start();
         MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-        while (true) ***REMOVED***
-            if (stopEncode) ***REMOVED***
+        while (true) {
+            if (stopEncode) {
                 release();
                 break;
-          ***REMOVED***
+            }
 
             // 将 AudioRecord 获取的 PCM 原始数据送入编码器
             int audioInputBufferId = audioCodec.dequeueInputBuffer(0);
-            if (audioInputBufferId >= 0) ***REMOVED***
+            if (audioInputBufferId >= 0) {
                 ByteBuffer inputBuffer = null;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) ***REMOVED***
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     inputBuffer = audioCodec.getInputBuffer(audioInputBufferId);
-              ***REMOVED*** else ***REMOVED***
+                } else {
                     inputBuffer = audioCodec.getInputBuffers()[audioInputBufferId];
-              ***REMOVED***
+                }
                 int readSize = -1;
-                if (inputBuffer != null) ***REMOVED***
+                if (inputBuffer != null) {
                     readSize = audioRecord.read(inputBuffer, bufferSizeInBytes);
-              ***REMOVED***
-                if (readSize >= 0) ***REMOVED***
+                }
+                if (readSize >= 0) {
                     audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, System.nanoTime() / 1000, 0);
-              ***REMOVED***
-          ***REMOVED***
+                }
+            }
 
             int audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
-            while (audioOutputBufferId >= 0) ***REMOVED***
+            while (audioOutputBufferId >= 0) {
                 ByteBuffer outputBuffer = null;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) ***REMOVED***
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     outputBuffer = audioCodec.getOutputBuffer(audioOutputBufferId);
-              ***REMOVED*** else ***REMOVED***
+                } else {
                     outputBuffer = audioCodec.getOutputBuffers()[audioOutputBufferId];
-              ***REMOVED***
-                if (audioInfo.size > 2) ***REMOVED***
+                }
+                if (audioInfo.size > 2) {
                     outputBuffer.position(audioInfo.offset);
                     outputBuffer.limit(audioInfo.offset + audioInfo.size);
                     addADTStoPacket(outputBuffer);
-              ***REMOVED***
+                }
                 audioCodec.releaseOutputBuffer(audioOutputBufferId, false);
                 audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 }

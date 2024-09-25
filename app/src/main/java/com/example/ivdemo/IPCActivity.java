@@ -25,7 +25,7 @@ import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.CameraRecorder;
 
 
-public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***REMOVED***
+public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
     private static final String TAG = IPCActivity.class.getSimpleName();
 
     protected SimplePlayer mPlayer;
@@ -44,7 +44,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
 
     private static long lastClickTime;
 
-    protected void initWidget() ***REMOVED***
+    protected void initWidget() {
         setContentView(R.layout.activity_ipc);
 //        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
@@ -56,26 +56,26 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
         mCameraRecorder = new CameraRecorder();
 
         Button callButton = findViewById(R.id.btn_ipc_call);
-        callButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
+        callButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) ***REMOVED***
+            public void onClick(View v) {
                 long time = System.currentTimeMillis();
                 long timeD = time - lastClickTime;
                 //防止频繁点击
-                if (0 < timeD && timeD < 1000) ***REMOVED***
+                if (0 < timeD && timeD < 1000) {
                     Toast.makeText(IPCActivity.this, "频繁点击！", Toast.LENGTH_SHORT).show();
                     return;
-              ***REMOVED***
+                }
                 lastClickTime = time;
                 // msg_id 6: 按门铃
                 VideoNativeInterface.getInstance().sendMsgNotice(6);
-          ***REMOVED***
-      ***REMOVED***);
-  ***REMOVED***
+            }
+        });
+    }
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) ***REMOVED***
+    protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "start create");
         super.onCreate(savedInstanceState);
 
@@ -89,82 +89,82 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
 
         // start run JNI iot_video_demo
         SysInitInfo info = new SysInitInfo(mProductId, mDeviceName, deviceKey, region);
-        VideoNativeInterface.getInstance().initIvSystem(info, new IvDeviceCallback() ***REMOVED***
+        VideoNativeInterface.getInstance().initIvSystem(info, new IvDeviceCallback() {
             @Override
-            public void onOnline(long netDateTime) ***REMOVED***
+            public void onOnline(long netDateTime) {
                 Log.d(TAG, "onOnline  netDateTime--->" + netDateTime);
-          ***REMOVED***
+            }
 
             @Override
-            public void onOffline(int status) ***REMOVED***
+            public void onOffline(int status) {
                 Log.d(TAG, "onOffline  status--->" + status);
-          ***REMOVED***
+            }
 
             @Override
-            public void onModuleStatus(int moduleStatus) ***REMOVED***
+            public void onModuleStatus(int moduleStatus) {
                 Log.d(TAG, "moduleStatus--->" + moduleStatus);
-          ***REMOVED***
-      ***REMOVED***);
+            }
+        });
         VideoNativeInterface.getInstance().initIvDm();
         AvtInitInfo avtInitInfo = new AvtInitInfo();
         VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this);
         initWidget();
         mTextDevinfo.setText(devinfo);
-  ***REMOVED***
+    }
 
     @Override
-    protected void onDestroy() ***REMOVED***
+    protected void onDestroy() {
         VideoNativeInterface.getInstance().exitWxCloudVoip();
         VideoNativeInterface.getInstance().exitIvAvt();
         VideoNativeInterface.getInstance().exitIvDm();
         VideoNativeInterface.getInstance().exitIvSys();
         super.onDestroy();
-  ***REMOVED***
+    }
 
     @Override
-    public AvDataInfo onGetAvEncInfo(int visitor, int channel, int videoResType) ***REMOVED***
+    public AvDataInfo onGetAvEncInfo(int visitor, int channel, int videoResType) {
         return AvDataInfo.createDefaultAvDataInfo(videoResType);
-  ***REMOVED***
+    }
 
     @Override
-    public void onStartRealPlay(int visitor, int channel, int res_type) ***REMOVED***
+    public void onStartRealPlay(int visitor, int channel, int res_type) {
         Log.d(TAG, "onStartRealPlay  visitor " + visitor + " channel " + channel + " res_type " + res_type);
         mCameraRecorder.startRecording(visitor, res_type);
-  ***REMOVED***
+    }
 
     @Override
-    public void onStopRealPlay(int visitor, int channel, int res_type) ***REMOVED***
+    public void onStopRealPlay(int visitor, int channel, int res_type) {
         Log.d(TAG, "onStopRealPlay  visitor " + visitor + " channel " + channel + " res_type " + res_type);
         mCameraRecorder.stopRecording(visitor, res_type);
-  ***REMOVED***
+    }
 
     @Override
-    public int onStartRecvAudioStream(int visitor, int channel, int type, int option, int mode, int width, int sample_rate, int sample_num) ***REMOVED***
+    public int onStartRecvAudioStream(int visitor, int channel, int type, int option, int mode, int width, int sample_rate, int sample_num) {
         Log.d(TAG, "onStartRecvAudioStream visitor " + visitor);
         return mPlayer.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num);
-  ***REMOVED***
+    }
 
     @Override
-    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) ***REMOVED***
+    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) {
         Log.w(TAG, "onStartRecvVideoStream  video stream is not supported in this activity");
         return 0;
-  ***REMOVED***
+    }
 
     @Override
-    public void onNotify(int event, int visitor, int channel, int videoResType) ***REMOVED***
+    public void onNotify(int event, int visitor, int channel, int videoResType) {
         Log.w(TAG, "onNotify()");
         String msg = "";
-        switch (event) ***REMOVED***
+        switch (event) {
             case P2pEventType.IV_AVT_EVENT_P2P_PEER_CONNECT_FAIL:
-            case P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR: ***REMOVED***
+            case P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR: {
                 Log.d(TAG, "receive event: peer error");
                 msg = "network err";
-          ***REMOVED***
+            }
             break;
-            case P2pEventType.IV_AVT_EVENT_P2P_PEER_ADDR_CHANGED: ***REMOVED***
+            case P2pEventType.IV_AVT_EVENT_P2P_PEER_ADDR_CHANGED: {
                 Log.d(TAG, "receive event: peer addr change");
                 msg = "peer change";
-          ***REMOVED***
+            }
             break;
             case P2pEventType.IV_AVT_EVENT_P2P_PEER_READY:
             case P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_LOW:
@@ -178,167 +178,167 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback ***R
                 Log.d(TAG, "not support event");
                 msg = "unsupport event type " + event;
                 break;
-      ***REMOVED***
-        if (!msg.isEmpty()) ***REMOVED***
+        }
+        if (!msg.isEmpty()) {
             updateUI(this, msg);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public int onStopRecvStream(int visitor, int channel, int streamType) ***REMOVED***
+    public int onStopRecvStream(int visitor, int channel, int streamType) {
         Log.d(TAG, "onStopRecvStream visitor " + visitor + " stream_type " + streamType + " stopped");
-        if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO) ***REMOVED***
+        if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO) {
             return mPlayer.stopVideoPlay(visitor);
-      ***REMOVED*** else ***REMOVED***
+        } else {
             return mPlayer.stopAudioPlay(visitor);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
     @Override
-    public int onRecvStream(int visitor, int streamType, byte[] data, int len, long pts, long seq) ***REMOVED***
+    public int onRecvStream(int visitor, int streamType, byte[] data, int len, long pts, long seq) {
         Log.d(TAG, "onRecvStream visitor " + visitor + " stream_type " + streamType + " data" + data + "  len" + len + "   pts" + pts + "   seq" + seq);
-        if (streamType == 1) ***REMOVED***
+        if (streamType == 1) {
             return mPlayer.playVideoStream(visitor, data, len, pts, seq);
 
-      ***REMOVED*** else if (streamType == 0) ***REMOVED***
+        } else if (streamType == 0) {
             return mPlayer.playAudioStream(visitor, data, len, pts, seq);
-      ***REMOVED***
+        }
         return 0;
-  ***REMOVED***
+    }
 
     @Override
-    public int onRecvCommand(int command, int visitor, int channel, int videoResType, Object args) ***REMOVED***
+    public int onRecvCommand(int command, int visitor, int channel, int videoResType, Object args) {
         Log.d(TAG, "onRecvCommand command " + command + " visitor " + visitor + " channel" + channel + "   videoResType" + videoResType + "   args" + args);
         String msg = "";
-        switch (command) ***REMOVED***
-            case CommandType.IV_AVT_COMMAND_USR_DATA: ***REMOVED***
+        switch (command) {
+            case CommandType.IV_AVT_COMMAND_USR_DATA: {
                 Log.d(TAG, "receive command: user data");
                 msg = "user data";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_REQ_STREAM: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_REQ_STREAM: {
                 Log.d(TAG, "receive command: request stream");
                 msg = "request stream";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CHN_NAME: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CHN_NAME: {
                 Log.d(TAG, "receive command: get channel name");
                 msg = "get channel name";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_REQ_IFRAME: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_REQ_IFRAME: {
                 Log.d(TAG, "receive command: request I frame");
                 msg = "request I frame";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_PAUSE: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_PAUSE: {
                 Log.d(TAG, "receive command: playback pause");
                 msg = "playback pause";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_RESUME: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_RESUME: {
                 Log.d(TAG, "receive command: playback resume");
                 msg = "playback resume";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_QUERY_MONTH: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_QUERY_MONTH: {
                 Log.d(TAG, "receive command: playback query month");
                 msg = "playback query month";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_QUERY_DAY: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_QUERY_DAY: {
                 Log.d(TAG, "receive command: playback query day");
                 msg = "playback query day";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_SEEK: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_SEEK: {
                 Log.d(TAG, "receive command: playback seek");
                 msg = "playback seek";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_FF: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_FF: {
                 Log.d(TAG, "receive command: playback fast forward");
                 msg = "playback fast forward";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_SPEED: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_SPEED: {
                 Log.d(TAG, "receive command: playback speed");
                 msg = "playback speed";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_REWIND: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_REWIND: {
                 Log.d(TAG, "receive command: playback rewind");
                 msg = "playback rewind";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_PLAYBACK_PROGRESS: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_PLAYBACK_PROGRESS: {
                 Log.d(TAG, "receive command: playback progress");
                 msg = "playback progress";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_QUERY_FILE_LIST: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_QUERY_FILE_LIST: {
                 Log.d(TAG, "receive command: get file list");
                 msg = "get file list";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CALL_ANSWER: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CALL_ANSWER: {
                 Log.d(TAG, "receive command: call answer");
                 msg = "call answer";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CALL_HANG_UP: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CALL_HANG_UP: {
                 Log.d(TAG, "receive command: call hang up");
                 msg = "call hang up";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CALL_REJECT: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CALL_REJECT: {
                 Log.d(TAG, "receive command: call reject");
                 msg = "call reject";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CALL_CANCEL: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CALL_CANCEL: {
                 Log.d(TAG, "receive command: call cancel");
                 msg = "call cancel";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CALL_BUSY: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CALL_BUSY: {
                 Log.d(TAG, "receive command: call busy");
                 msg = "call busy";
-          ***REMOVED***
+            }
             break;
-            case CommandType.IV_AVT_COMMAND_CALL_TIMEOUT: ***REMOVED***
+            case CommandType.IV_AVT_COMMAND_CALL_TIMEOUT: {
                 Log.d(TAG, "receive command: call timeout");
                 msg = "call timeout";
-          ***REMOVED***
+            }
             break;
 
             default:
                 Log.d(TAG, "not support command");
                 msg = "unsupport cmd type " + command;
                 break;
-      ***REMOVED***
+        }
         // Toast.makeText(IPCActivity.this, msg, Toast.LENGTH_SHORT).show();
         updateUI(this, msg);
         return 0;
-  ***REMOVED***
+    }
 
     @Override
-    public int onDownloadFile(int status, int visitor, int channel, Object args) ***REMOVED***
+    public int onDownloadFile(int status, int visitor, int channel, Object args) {
         Log.d(TAG, "onDownloadFile status " + status + " visitor " + visitor + " channel" + channel + "   args" + args);
         return 0;
-  ***REMOVED***
+    }
 
     @Override
-    public void onGetPeerOuterNet(int visitor, int channel, String netInfo) ***REMOVED***
+    public void onGetPeerOuterNet(int visitor, int channel, String netInfo) {
         Log.d(TAG, "onGetPeerOuterNet visitor " + visitor + " channel " + channel + " netInfo" + netInfo);
-  ***REMOVED***
+    }
 
-    public void updateUI(Context context, String msg) ***REMOVED***
-        ((IPCActivity) context).runOnUiThread(new Runnable() ***REMOVED***
+    public void updateUI(Context context, String msg) {
+        ((IPCActivity) context).runOnUiThread(new Runnable() {
             @Override
-            public void run() ***REMOVED***
+            public void run() {
                 //此时已在主线程中，可以更新UI了
                 Toast.makeText(IPCActivity.this, msg, Toast.LENGTH_SHORT).show();
-          ***REMOVED***
-      ***REMOVED***);
-  ***REMOVED***
+            }
+        });
+    }
 }
