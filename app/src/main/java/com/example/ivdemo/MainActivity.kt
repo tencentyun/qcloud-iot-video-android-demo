@@ -1,234 +1,203 @@
-package com.example.ivdemo;
+package com.example.ivdemo
 
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.os.Environment
+import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.tencent.bugly.crashreport.CrashReport
+import com.tencent.iot.voipdemo.databinding.ActivityMainBinding
+import com.tencent.iotvideo.link.popup.DeviceSettingDialog
+import com.tencent.iotvideo.link.util.VoipSetting
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+private const val PERMISSION_REQUEST_CODE = 1
+private val TAG: String = MainActivity::class.java.simpleName
 
-import com.tencent.bugly.crashreport.CrashReport;
-import com.tencent.iot.voipdemo.R;
-import com.tencent.iotvideo.link.popup.DeviceSettingDialog;
-import com.tencent.iotvideo.link.util.VoipSetting;
+class MainActivity : AppCompatActivity() ***REMOVED***
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+    private val binding = ActivityMainBinding.inflate(layoutInflater)
+    private val permissions = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
+    private val voipSetting = VoipSetting.getInstance(this)
 
-public class MainActivity extends AppCompatActivity ***REMOVED***
-    private static final int PERMISSIONS_REQUEST_CODE = 1;
-    private static final String TAG = MainActivity.class.getSimpleName();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) ***REMOVED***
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        CrashReport.initCrashReport(getApplicationContext(), "e1c50561ac", false);
-
-        // Get UI elements
-        Button ipcButton = findViewById(R.id.btn_login_IPC);
-        Button duplexButton = findViewById(R.id.btn_login_duplex_video);
-        Button voipButton = findViewById(R.id.btn_login_voip);
-        Button settingDeviceButton = findViewById(R.id.btn_setting_device);
+    override fun onCreate(savedInstanceState: Bundle?) ***REMOVED***
+        super.onCreate(savedInstanceState)
+        CrashReport.initCrashReport(applicationContext, "e1c50561ac", false)
+        setContentView(binding.root)
 
         // Request permissions
         if (!hasPermissions()) ***REMOVED***
-            ActivityCompat.requestPermissions(this, new String[]***REMOVED***
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-          ***REMOVED***, PERMISSIONS_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
       ***REMOVED*** else ***REMOVED***
-            checkFilesToastAfterPermissions();
-            runOnUiThread(new Runnable() ***REMOVED***
-                @Override
-                public void run() ***REMOVED***
-                    LogcatHelper.getInstance(MainActivity.this).start();
-              ***REMOVED***
-          ***REMOVED***);
+            checkFilesToastAfterPermissions()
+            lifecycleScope.launch(Dispatchers.Main) ***REMOVED***
+                LogcatHelper.getInstance(this@MainActivity).start()
+          ***REMOVED***
       ***REMOVED***
-
-        // Set button click listeners
-        ipcButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View v) ***REMOVED***
-                if (!checkDeviceInfo()) return;
-                startIpcActivity();
+        with(binding) ***REMOVED***
+            // Set button click listeners
+            btnLoginIPC.setOnClickListener ***REMOVED***
+                if (!checkDeviceInfo()) return@setOnClickListener
+                startActivity(IPCActivity::class.java)
           ***REMOVED***
-      ***REMOVED***);
-        duplexButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View v) ***REMOVED***
-                if (!checkDeviceInfo()) return;
-                startDuplexActivity();
+            btnLoginDuplexVideo.setOnClickListener ***REMOVED***
+                if (!checkDeviceInfo()) return@setOnClickListener
+                startActivity(DuplexVideoActivity::class.java)
           ***REMOVED***
-      ***REMOVED***);
-        voipButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View v) ***REMOVED***
-                if (!checkDeviceInfo()) return;
-                startVoipActivity();
+            btnLoginVoip.setOnClickListener ***REMOVED***
+                if (!checkDeviceInfo()) return@setOnClickListener
+                startActivity(VoipLoginActivity::class.java)
           ***REMOVED***
-      ***REMOVED***);
-        settingDeviceButton.setOnClickListener(new View.OnClickListener() ***REMOVED***
-            @Override
-            public void onClick(View view) ***REMOVED***
-                DeviceSettingDialog dialog = new DeviceSettingDialog(MainActivity.this);
-                dialog.show();
+            btnSettingDevice.setOnClickListener ***REMOVED***
+                DeviceSettingDialog(this@MainActivity).show()
           ***REMOVED***
-      ***REMOVED***);
+      ***REMOVED***
   ***REMOVED***
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) ***REMOVED***
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) ***REMOVED***
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == PERMISSIONS_REQUEST_CODE) ***REMOVED***
+        if (requestCode == PERMISSION_REQUEST_CODE) ***REMOVED***
             if (hasPermissions()) ***REMOVED***
-                checkFilesToastAfterPermissions();
-                LogcatHelper.getInstance(this).start();
+                checkFilesToastAfterPermissions()
+                LogcatHelper.getInstance(this).start()
           ***REMOVED*** else ***REMOVED***
-                Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show()
           ***REMOVED***
       ***REMOVED***
   ***REMOVED***
 
-    private boolean hasPermissions() ***REMOVED***
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    private fun hasPermissions(): Boolean ***REMOVED***
+        return (ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED) && ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
   ***REMOVED***
 
-    private void startIpcActivity() ***REMOVED***
-        String productId = VoipSetting.getInstance(this).productId;
-        String deviceName = VoipSetting.getInstance(this).deviceName;
-        String deviceKey = VoipSetting.getInstance(this).deviceKey;
-        Intent intent = new Intent(this, IPCActivity.class);
-        intent.putExtra("productId", productId);
-        intent.putExtra("deviceName", deviceName);
-        intent.putExtra("deviceKey", deviceKey);
-        startActivity(intent);
+    private fun startActivity(clazz: Class<*>) ***REMOVED***
+        val productId = voipSetting.productId
+        val deviceName = voipSetting.deviceName
+        val deviceKey = voipSetting.deviceKey
+        val intent = Intent(this, clazz)
+        intent.putExtra("productId", productId)
+        intent.putExtra("deviceName", deviceName)
+        intent.putExtra("deviceKey", deviceKey)
+        startActivity(intent)
   ***REMOVED***
 
-    private void startDuplexActivity() ***REMOVED***
-        String productId = VoipSetting.getInstance(this).productId;
-        String deviceName = VoipSetting.getInstance(this).deviceName;
-        String deviceKey = VoipSetting.getInstance(this).deviceKey;
-        Intent intent = new Intent(this, DuplexVideoActivity.class);
-        intent.putExtra("productId", productId);
-        intent.putExtra("deviceName", deviceName);
-        intent.putExtra("deviceKey", deviceKey);
-        startActivity(intent);
-  ***REMOVED***
-
-    private void startVoipActivity() ***REMOVED***
-        String productId = VoipSetting.getInstance(this).productId;
-        String deviceName = VoipSetting.getInstance(this).deviceName;
-        String deviceKey = VoipSetting.getInstance(this).deviceKey;
-        Intent intent = new Intent(this, VoipLoginActivity.class);
-        intent.putExtra("productId", productId);
-        intent.putExtra("deviceName", deviceName);
-        intent.putExtra("deviceKey", deviceKey);
-        startActivity(intent);
-  ***REMOVED***
-
-    private boolean checkDeviceInfo() ***REMOVED***
-        String productId = VoipSetting.getInstance(this).productId;
-        String deviceName = VoipSetting.getInstance(this).deviceName;
-        String deviceKey = VoipSetting.getInstance(this).deviceKey;
+    private fun checkDeviceInfo(): Boolean ***REMOVED***
+        val productId = voipSetting.productId
+        val deviceName = voipSetting.deviceName
+        val deviceKey = voipSetting.deviceKey
         if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) ***REMOVED***
-            Toast.makeText(MainActivity.this, "请输入设备信息！", Toast.LENGTH_LONG).show();
-            return false;
+            Toast.makeText(this@MainActivity, "请输入设备信息！", Toast.LENGTH_LONG).show()
+            return false
       ***REMOVED***
-
-        return true;
+        return true
   ***REMOVED***
 
-    private void checkFilesToastAfterPermissions() ***REMOVED***
-        SharedPreferences preferences = getSharedPreferences("InstallConfig", Context.MODE_PRIVATE);
-        boolean installFlag = preferences.getBoolean("installFlag", false);
-        Log.d(TAG, "is first install or reinstall: " + installFlag);
+    private fun checkFilesToastAfterPermissions() ***REMOVED***
+        val preferences = getSharedPreferences("InstallConfig", MODE_PRIVATE)
+        val installFlag = preferences.getBoolean("installFlag", false)
+        Log.d(TAG, "is first install or reinstall: $installFlag")
         if (!installFlag) ***REMOVED***
-            saveFileFromAssertToSDCard("device_key");
-            saveFileFromAssertToSDCard("voip_setting.json");
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean("installFlag", true);
-            editor.apply();
+            saveFileFromAssertToSDCard("device_key")
+            saveFileFromAssertToSDCard("voip_setting.json")
+            val editor = preferences.edit()
+            editor.putBoolean("installFlag", true)
+            editor.apply()
       ***REMOVED*** else ***REMOVED***
             if (!isFileExists("device_key")) ***REMOVED***
-                saveFileFromAssertToSDCard("device_key");
+                saveFileFromAssertToSDCard("device_key")
           ***REMOVED***
             if (!isFileExists("voip_setting.json")) ***REMOVED***
-                saveFileFromAssertToSDCard("voip_setting.json");
+                saveFileFromAssertToSDCard("voip_setting.json")
           ***REMOVED***
       ***REMOVED***
-        Toast.makeText(this, "voip_setting.json是否在sdcard下：" + isFileExists("voip_setting.json") + ", json是否合法：" + VoipSetting.isJSONString(VoipSetting.getInstance(this).loadData()), Toast.LENGTH_SHORT).show();
-
+        Toast.makeText(
+            this,
+            "voip_setting.json是否在sdcard下：" + isFileExists("voip_setting.json") + ", json是否合法：" + VoipSetting.isJSONString(
+                voipSetting.loadData()
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
   ***REMOVED***
 
-    private boolean isFileExists(String fileName) ***REMOVED***
-        File file = new File(Environment.getExternalStorageDirectory(), fileName);
+    private fun isFileExists(fileName: String): Boolean ***REMOVED***
+        val file = File(Environment.getExternalStorageDirectory(), fileName)
         if (file.exists()) ***REMOVED***
-            Log.d(TAG, fileName + "File exists");
-            return true;
+            Log.d(TAG, fileName + "File exists")
+            return true
       ***REMOVED*** else ***REMOVED***
-            Log.d(TAG, fileName + "File does not exist");
-            return false;
+            Log.d(TAG, fileName + "File does not exist")
+            return false
       ***REMOVED***
   ***REMOVED***
 
-    private void saveFileFromAssertToSDCard(String fileName) ***REMOVED***
-        AssetManager assetManager = getAssets();
-
-        InputStream in = null;
-        OutputStream out = null;
+    private fun saveFileFromAssertToSDCard(fileName: String) ***REMOVED***
+        val assetManager = assets
+        var input: InputStream? = null
+        var output: OutputStream? = null
 
         try ***REMOVED***
-            in = assetManager.open(fileName);
-            File outFile = new File(Environment.getExternalStorageDirectory(), fileName);
-            out = new FileOutputStream(outFile);
-            copyFile(in, out);
-      ***REMOVED*** catch (IOException e) ***REMOVED***
-            Log.e(TAG, "Failed to copy asset file: " + fileName, e);
+            input = assetManager.open(fileName)
+            val outFile = File(Environment.getExternalStorageDirectory(), fileName)
+            output = FileOutputStream(outFile)
+            copyFile(input, output)
+      ***REMOVED*** catch (e: IOException) ***REMOVED***
+            Log.e(TAG, "Failed to copy asset file: $fileName", e)
       ***REMOVED*** finally ***REMOVED***
-            if (in != null) ***REMOVED***
+            if (input != null) ***REMOVED***
                 try ***REMOVED***
-                    in.close();
-              ***REMOVED*** catch (IOException e) ***REMOVED***
+                    input.close()
+              ***REMOVED*** catch (e: IOException) ***REMOVED***
                     // NOOP
-                    Log.e(TAG, "in.close Failed to copy asset file: " + fileName, e);
+                    Log.e(TAG, "in.close Failed to copy asset file: $fileName", e)
               ***REMOVED***
           ***REMOVED***
-            if (out != null) ***REMOVED***
+            if (output != null) ***REMOVED***
                 try ***REMOVED***
-                    out.close();
-              ***REMOVED*** catch (IOException e) ***REMOVED***
+                    output.close()
+              ***REMOVED*** catch (e: IOException) ***REMOVED***
                     // NOOP
-                    Log.e(TAG, "out.close Failed to copy asset file: " + fileName, e);
+                    Log.e(TAG, "out.close Failed to copy asset file: $fileName", e)
               ***REMOVED***
           ***REMOVED***
       ***REMOVED***
   ***REMOVED***
 
-    private void copyFile(InputStream in, OutputStream out) throws IOException ***REMOVED***
-        byte[] buffer = new byte[1024];
-        int read;
-        while ((read = in.read(buffer)) != -1) ***REMOVED***
-            out.write(buffer, 0, read);
+    @Throws(IOException::class)
+    private fun copyFile(input: InputStream, output: OutputStream) ***REMOVED***
+        val buffer = ByteArray(1024)
+        var read: Int
+        while ((input.read(buffer).also ***REMOVED*** read = it }) != -1) ***REMOVED***
+            output.write(buffer, 0, read)
       ***REMOVED***
   ***REMOVED***
 }
