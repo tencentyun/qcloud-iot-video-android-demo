@@ -20,7 +20,7 @@
     <string name="voip_quality_setting">画质设置</string>
     <string name="voip_openid">请输入Openid</string>
 
-    <string name="voip_setting_json_input">可以按照***REMOVED***\"productId\":\"\",\"deviceName\":\"\",\"deviceKey\":\"\",\"voip_model_id\":\"\",\"voip_sn\":\"\",\"voip_sn_ticket\":\"\",\"voip_wxa_appid\":\"\",\"voip_openid1\":\"\",\"voip_openid2\":\"\",\"voip_openid3\":\"\"}
+    <string name="voip_setting_json_input">可以按照{\"productId\":\"\",\"deviceName\":\"\",\"deviceKey\":\"\",\"voip_model_id\":\"\",\"voip_sn\":\"\",\"voip_sn_ticket\":\"\",\"voip_wxa_appid\":\"\",\"voip_openid1\":\"\",\"voip_openid2\":\"\",\"voip_openid3\":\"\"}
 json格式填充粘贴的数据到此输入框</string>
     <string name="product_id">Product ID</string>
     <string name="device_name">Device Name</string>
