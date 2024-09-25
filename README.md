@@ -35,7 +35,7 @@
 在应用模块的build.gradle中配置
 
 ```
-dependencies ***REMOVED***
+dependencies {
     implementation 'com.tencent.iot.video:video-device-android:x.x.x'
 }
 ```
@@ -47,21 +47,21 @@ dependencies ***REMOVED***
 (1). 在工程的build.gradle中配置仓库url
 
 ```
-allprojects ***REMOVED***
-    repositories ***REMOVED***
+allprojects {
+    repositories {
         google()
         jcenter()
-        maven ***REMOVED***
+        maven {
             url "https://oss.sonatype.org/content/repositories/snapshots"
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 }
 ```
 
 (2). 在应用模块的build.gradle中配置
 
 ```
-dependencies ***REMOVED***
+dependencies {
     implementation 'com.tencent.iot.video:video-device-android:x.x.x-SNAPSHOT'
 }
 ```
@@ -88,18 +88,18 @@ VideoNativeInterface.getInstance().initWxCloudVoip(...)
 
 //检测注册
 int isRegistered = VideoNativeInterface.getInstance().isAvtVoipRegistered();
-if (isRegistered == 0) ***REMOVED*** //表示未注册
+if (isRegistered == 0) { //表示未注册
     VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket); //执行注册
 }
 
 // -------- 呼叫流程开始 --------
 
 // onNotify() 回调函数收到 IV_AVT_EVENT_P2P_PEER_READY 事件后方可进行后续呼叫流程
-if (!isWxCloudVoipBusy()) ***REMOVED***
+if (!isWxCloudVoipBusy()) {
     // 非占线情况下即可开始呼叫，该接口为阻塞接口，呼叫成功后微信会弹出语音通话界面
     doWxCloudVoipCall(...)
 }
-else ***REMOVED***
+else {
     // 如果本机已在通话中可以主动挂断；如有其他用户占线请稍后重试
     doWxCloudVoipHangUp(...)
 }
