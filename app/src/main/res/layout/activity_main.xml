@@ -45,5 +45,4 @@
         android:text="@string/title_setting_device"
         android:textSize="20sp" />
 
-
 </LinearLayout>
