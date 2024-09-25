@@ -13,7 +13,7 @@
 
 准备以下json字符串，并将对应值填上：
 ```
-***REMOVED***"productId":"","deviceName":"","deviceKey":"","voip_model_id":"","voip_sn":"","voip_sn_ticket":"","voip_wxa_appid":"","voip_openid1":""}
+{"productId":"","deviceName":"","deviceKey":"","voip_model_id":"","voip_sn":"","voip_sn_ticket":"","voip_wxa_appid":"","voip_openid1":""}
 ```
 
 # 2. 使用步骤

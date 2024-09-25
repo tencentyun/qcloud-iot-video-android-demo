@@ -9,14 +9,14 @@ constraintlayout = "2.1.4"
 coreKtx = "1.13.1"
 
 [libraries]
-androidx-appcompat = ***REMOVED*** group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-crashreport = ***REMOVED*** module = "com.tencent.bugly:crashreport", version.ref = "crashreport" }
-kotlinx-coroutines-android = ***REMOVED*** module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
-material = ***REMOVED*** group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-constraintlayout = ***REMOVED*** group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-core-ktx = ***REMOVED*** group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+crashreport = { module = "com.tencent.bugly:crashreport", version.ref = "crashreport" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 
 [plugins]
-android-application = ***REMOVED*** id = "com.android.application", version.ref = "agp" }
-jetbrains-kotlin-android = ***REMOVED*** id = "org.jetbrains.kotlin.android", version = "1.8.22" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version = "1.8.22" }
 
