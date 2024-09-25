@@ -3,7 +3,7 @@ package com.tencent.iotvideo.link.param;
 /**
  * Mic 参数
  */
-public class MicParam ***REMOVED***
+public class MicParam {
 
     private int audioSource = -1; // 音频输入源
     private int sampleRateInHz = -1; // 采样率
@@ -12,101 +12,101 @@ public class MicParam ***REMOVED***
     private int streamType = -1; // 音频流类型
     private int mode = -1; // 音频流形式
 
-//    private MicParam() ***REMOVED*** }
+//    private MicParam() { }
 
-    public int getAudioSource() ***REMOVED***
+    public int getAudioSource() {
         return audioSource;
-  ***REMOVED***
+    }
 
-    public void setAudioSource(int audioSource) ***REMOVED***
+    public void setAudioSource(int audioSource) {
         this.audioSource = audioSource;
-  ***REMOVED***
+    }
 
-    public int getSampleRateInHz() ***REMOVED***
+    public int getSampleRateInHz() {
         return sampleRateInHz;
-  ***REMOVED***
+    }
 
-    public void setSampleRateInHz(int sampleRateInHz) ***REMOVED***
+    public void setSampleRateInHz(int sampleRateInHz) {
         this.sampleRateInHz = sampleRateInHz;
-  ***REMOVED***
+    }
 
-    public int getChannelConfig() ***REMOVED***
+    public int getChannelConfig() {
         return channelConfig;
-  ***REMOVED***
+    }
 
-    public void setChannelConfig(int channelConfig) ***REMOVED***
+    public void setChannelConfig(int channelConfig) {
         this.channelConfig = channelConfig;
-  ***REMOVED***
+    }
 
-    public int getAudioFormat() ***REMOVED***
+    public int getAudioFormat() {
         return audioFormat;
-  ***REMOVED***
+    }
 
-    public void setAudioFormat(int audioFormat) ***REMOVED***
+    public void setAudioFormat(int audioFormat) {
         this.audioFormat = audioFormat;
-  ***REMOVED***
+    }
 
-    public int getStreamType() ***REMOVED***
+    public int getStreamType() {
         return streamType;
-  ***REMOVED***
+    }
 
-    public void setStreamType(int streamType) ***REMOVED***
+    public void setStreamType(int streamType) {
         this.streamType = streamType;
-  ***REMOVED***
+    }
 
-    public int getMode() ***REMOVED***
+    public int getMode() {
         return mode;
-  ***REMOVED***
+    }
 
-    public void setMode(int mode) ***REMOVED***
+    public void setMode(int mode) {
         this.mode = mode;
-  ***REMOVED***
+    }
 
-//    public static class Builder ***REMOVED***
+//    public static class Builder {
 //        private MicParam micParam;
 //
-//        public Builder() ***REMOVED***
+//        public Builder() {
 //            micParam = new MicParam();
-//      ***REMOVED***
+//        }
 //
-//        public Builder setAudioSource(int audioSource) ***REMOVED***
+//        public Builder setAudioSource(int audioSource) {
 //            micParam.setAudioSource(audioSource);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setSampleRateInHz(int sampleRateInHz) ***REMOVED***
+//        public Builder setSampleRateInHz(int sampleRateInHz) {
 //            micParam.setSampleRateInHz(sampleRateInHz);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setChannelConfig(int channelConfig) ***REMOVED***
+//        public Builder setChannelConfig(int channelConfig) {
 //            micParam.setChannelConfig(channelConfig);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setAudioFormat(int audioFormat) ***REMOVED***
+//        public Builder setAudioFormat(int audioFormat) {
 //            micParam.setAudioFormat(audioFormat);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setStreamType(int streamType) ***REMOVED***
+//        public Builder setStreamType(int streamType) {
 //            micParam.setStreamType(streamType);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setMode(int mode) ***REMOVED***
+//        public Builder setMode(int mode) {
 //            micParam.setMode(mode);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public MicParam build() ***REMOVED***
+//        public MicParam build() {
 //            return micParam;
-//      ***REMOVED***
-//  ***REMOVED***
+//        }
+//    }
 
-    public boolean isEmpty() ***REMOVED***
+    public boolean isEmpty() {
         return sampleRateInHz == -1
                 || channelConfig == -1
                 || audioFormat == -1;
-  ***REMOVED***
+    }
 }
