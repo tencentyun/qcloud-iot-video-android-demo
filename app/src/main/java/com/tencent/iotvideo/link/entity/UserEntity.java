@@ -1,31 +1,31 @@
 package com.tencent.iotvideo.link.entity;
 
-public class UserEntity ***REMOVED***
+public class UserEntity {
     String openId;
     String userHeadIcon;
     boolean isSelect = false;
 
-    public String getOpenId() ***REMOVED***
+    public String getOpenId() {
         return openId;
-  ***REMOVED***
+    }
 
-    public void setOpenId(String openId) ***REMOVED***
+    public void setOpenId(String openId) {
         this.openId = openId;
-  ***REMOVED***
+    }
 
-    public String getUserHeadIcon() ***REMOVED***
+    public String getUserHeadIcon() {
         return userHeadIcon;
-  ***REMOVED***
+    }
 
-    public void setUserHeadIcon(String userHeadIcon) ***REMOVED***
+    public void setUserHeadIcon(String userHeadIcon) {
         this.userHeadIcon = userHeadIcon;
-  ***REMOVED***
+    }
 
-    public boolean getIsSelect() ***REMOVED***
+    public boolean getIsSelect() {
         return isSelect;
-  ***REMOVED***
+    }
 
-    public void setIsSelect(boolean isSelect) ***REMOVED***
+    public void setIsSelect(boolean isSelect) {
         this.isSelect = isSelect;
-  ***REMOVED***
+    }
 }

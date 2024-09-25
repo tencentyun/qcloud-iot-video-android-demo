@@ -15,7 +15,7 @@ import com.tencent.iotvideo.link.util.VoipSetting;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class DeviceSettingDialog extends IosCenterStyleDialog ***REMOVED***
+public class DeviceSettingDialog extends IosCenterStyleDialog {
 
     private EditText mJsonCopyEt;
     private EditText mProductEt;
@@ -23,12 +23,12 @@ public class DeviceSettingDialog extends IosCenterStyleDialog ***REMOVED***
     private EditText mDeviceKeyEt;
     private Button mConfirmBtn;
 
-    public DeviceSettingDialog(Context context) ***REMOVED***
+    public DeviceSettingDialog(Context context) {
         super(context, R.layout.popup_device_setting_layout);
-  ***REMOVED***
+    }
 
     @Override
-    public void initView() ***REMOVED***
+    public void initView() {
         mJsonCopyEt = view.findViewById(R.id.et_json_copy);
         mProductEt = view.findViewById(R.id.et_login_product_id);
         mDeviceNameEt = view.findViewById(R.id.et_login_device_name);
@@ -39,58 +39,58 @@ public class DeviceSettingDialog extends IosCenterStyleDialog ***REMOVED***
         mDeviceNameEt.setText(VoipSetting.getInstance(getContext()).deviceName);
         mDeviceKeyEt.setText(VoipSetting.getInstance(getContext()).deviceKey);
 
-        mConfirmBtn.setOnClickListener(new View.OnClickListener() ***REMOVED***
+        mConfirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) ***REMOVED***
+            public void onClick(View view) {
                 if (!checkDeviceInfo()) return;
                 saveDeviceInfo();
                 dismiss();
-          ***REMOVED***
-      ***REMOVED***);
+            }
+        });
 
-        mJsonCopyEt.addTextChangedListener(new TextWatcher() ***REMOVED***
+        mJsonCopyEt.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) ***REMOVED***
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-          ***REMOVED***
+            }
 
             @Override
-            public void onTextChanged(CharSequence s, int i, int i1, int i2) ***REMOVED***
+            public void onTextChanged(CharSequence s, int i, int i1, int i2) {
                 String inputText = s.toString();
-                if (!TextUtils.isEmpty(inputText)) ***REMOVED***
-                    if (VoipSetting.isJSONString(inputText)) ***REMOVED***
+                if (!TextUtils.isEmpty(inputText)) {
+                    if (VoipSetting.isJSONString(inputText)) {
                         VoipSetting.getInstance(getContext()).saveData(inputText);
                         VoipSetting.getInstance(getContext()).loadValueToMemory();
                         mProductEt.setText(VoipSetting.getInstance(getContext()).productId);
                         mDeviceNameEt.setText(VoipSetting.getInstance(getContext()).deviceName);
                         mDeviceKeyEt.setText(VoipSetting.getInstance(getContext()).deviceKey);
-                  ***REMOVED*** else ***REMOVED***
+                    } else {
                         Toast.makeText(getContext(), "输入的json非法！", Toast.LENGTH_LONG).show();
-                  ***REMOVED***
-              ***REMOVED***
-          ***REMOVED***
+                    }
+                }
+            }
 
             @Override
-            public void afterTextChanged(Editable editable) ***REMOVED***
+            public void afterTextChanged(Editable editable) {
 
-          ***REMOVED***
-      ***REMOVED***);
-  ***REMOVED***
+            }
+        });
+    }
 
-    private boolean checkDeviceInfo() ***REMOVED***
+    private boolean checkDeviceInfo() {
         String productId = mProductEt.getText().toString();
         String deviceName = mDeviceNameEt.getText().toString();
         String deviceKey = mDeviceKeyEt.getText().toString();
-        if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) ***REMOVED***
+        if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) {
             Toast.makeText(getContext(), "请输入设备信息！", Toast.LENGTH_LONG).show();
             return false;
-      ***REMOVED***
+        }
         return true;
-  ***REMOVED***
+    }
 
-    private void saveDeviceInfo() ***REMOVED***
+    private void saveDeviceInfo() {
         VoipSetting.getInstance(getContext()).setProductId(mProductEt.getText().toString());
         VoipSetting.getInstance(getContext()).setDeviceName(mDeviceNameEt.getText().toString());
         VoipSetting.getInstance(getContext()).setDeviceKey(mDeviceKeyEt.getText().toString());
-  ***REMOVED***
+    }
 }

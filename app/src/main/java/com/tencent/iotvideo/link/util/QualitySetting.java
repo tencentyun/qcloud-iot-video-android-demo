@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class QualitySetting ***REMOVED***
+public class QualitySetting {
     private static String TAG = QualitySetting.class.getSimpleName();
     private static final String PREFERENCES_NAME = "QualitySetting";
     private Context context;
@@ -29,22 +29,22 @@ public class QualitySetting ***REMOVED***
     private int height = 360;
     private int frameRate = 15;
     private int bitRate = 800;
-    private int wxResolution = 0;  //***REMOVED***"可变自适应" : 0, "240x320": 1, "320x240": 2, "480x352" : 3, "480x640" : 4};
+    private int wxResolution = 0;  //{"可变自适应" : 0, "240x320": 1, "320x240": 2, "480x352" : 3, "480x640" : 4};
     private boolean wxCameraOn = true;
 
-    private QualitySetting(Context context) ***REMOVED***
+    private QualitySetting(Context context) {
         this.context = context.getApplicationContext();
-  ***REMOVED***
+    }
 
-    public static synchronized QualitySetting getInstance(Context context) ***REMOVED***
-        if (instance == null) ***REMOVED***
+    public static synchronized QualitySetting getInstance(Context context) {
+        if (instance == null) {
             instance = new QualitySetting(context);
             instance.loadData();
-      ***REMOVED***
+        }
         return instance;
-  ***REMOVED***
+    }
 
-    public void saveData() ***REMOVED***
+    public void saveData() {
         SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("width", this.width);
@@ -54,9 +54,9 @@ public class QualitySetting ***REMOVED***
         editor.putInt("wxResolution", this.wxResolution);
         editor.putBoolean("wxCameraOn", this.wxCameraOn);
         editor.apply();
-  ***REMOVED***
+    }
 
-    public void loadData() ***REMOVED***
+    public void loadData() {
         SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
         this.width = preferences.getInt("width", 0);
         this.height = preferences.getInt("height", 0);
@@ -64,54 +64,54 @@ public class QualitySetting ***REMOVED***
         this.bitRate = preferences.getInt("bitRate", 0);
         this.wxResolution = preferences.getInt("wxResolution", 0);
         this.wxCameraOn = preferences.getBoolean("wxCameraOn", true);
-  ***REMOVED***
+    }
 
-    public int getWidth() ***REMOVED***
+    public int getWidth() {
         return width;
-  ***REMOVED***
+    }
 
-    public int getHeight() ***REMOVED***
+    public int getHeight() {
         return height;
-  ***REMOVED***
+    }
 
-    public int getFrameRate() ***REMOVED***
+    public int getFrameRate() {
         return frameRate;
-  ***REMOVED***
+    }
 
-    public int getBitRate() ***REMOVED***
+    public int getBitRate() {
         return bitRate;
-  ***REMOVED***
+    }
 
-    public int getWxResolution() ***REMOVED***
+    public int getWxResolution() {
         return wxResolution;
-  ***REMOVED***
+    }
 
-    public boolean isWxCameraOn() ***REMOVED***
+    public boolean isWxCameraOn() {
         return wxCameraOn;
-  ***REMOVED***
+    }
 
-    public void setWidth(int width) ***REMOVED***
+    public void setWidth(int width) {
         this.width = width;
-  ***REMOVED***
+    }
 
-    public void setHeight(int height) ***REMOVED***
+    public void setHeight(int height) {
         this.height = height;
-  ***REMOVED***
+    }
 
-    public void setFrameRate(int frameRate) ***REMOVED***
+    public void setFrameRate(int frameRate) {
         this.frameRate = frameRate;
-  ***REMOVED***
+    }
 
-    public void setBitRate(int bitRate) ***REMOVED***
+    public void setBitRate(int bitRate) {
         this.bitRate = bitRate;
-  ***REMOVED***
+    }
 
-    public void setWxResolution(int wxResolution) ***REMOVED***
+    public void setWxResolution(int wxResolution) {
         this.wxResolution = wxResolution;
-  ***REMOVED***
+    }
 
-    public void setWxCameraOn(boolean wxCameraOn) ***REMOVED***
+    public void setWxCameraOn(boolean wxCameraOn) {
         this.wxCameraOn = wxCameraOn;
-  ***REMOVED***
+    }
 
 }

@@ -1,13 +1,13 @@
-plugins ***REMOVED***
+plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
 
-android ***REMOVED***
+android {
     namespace 'com.tencent.iot.voipdemo'
     compileSdk 34
 
-    defaultConfig ***REMOVED***
+    defaultConfig {
         applicationId "com.tencent.iot.voipdemo"
         minSdkVersion 21
         targetSdkVersion 29
@@ -15,27 +15,27 @@ android ***REMOVED***
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-  ***REMOVED***
+    }
 
-    buildTypes ***REMOVED***
-        release ***REMOVED***
+    buildTypes {
+        release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-      ***REMOVED***
-  ***REMOVED***
-    compileOptions ***REMOVED***
+        }
+    }
+    compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-  ***REMOVED***
-    kotlinOptions ***REMOVED***
+    }
+    kotlinOptions {
         jvmTarget = '17'
-  ***REMOVED***
-    buildFeatures ***REMOVED***
+    }
+    buildFeatures {
         viewBinding true
-  ***REMOVED***
+    }
 }
 
-dependencies ***REMOVED***
+dependencies {
 
     implementation libs.androidx.appcompat
     implementation libs.material

@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class VoipActivity extends IPCActivity implements TextureView.SurfaceTextureListener ***REMOVED***
+public class VoipActivity extends IPCActivity implements TextureView.SurfaceTextureListener {
     private static final String TAG = VoipActivity.class.getSimpleName();
 
     private String mModelId;
@@ -66,8 +66,8 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
     private int height;
     private int width;
 
-    public ArrayList<UserEntity> getmUsersData() ***REMOVED***
-        if (mUsersData == null) ***REMOVED***
+    public ArrayList<UserEntity> getmUsersData() {
+        if (mUsersData == null) {
             mUsersData = new ArrayList<>();
             UserEntity user1 = new UserEntity();
             user1.setOpenId(VoipSetting.getInstance(this).openId1);
@@ -78,12 +78,12 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
             UserEntity user3 = new UserEntity();
             user3.setOpenId(VoipSetting.getInstance(this).openId3);
             mUsersData.add(user3);
-      ***REMOVED***
+        }
         return mUsersData;
-  ***REMOVED***
+    }
 
     @Override
-    protected void initWidget() ***REMOVED***
+    protected void initWidget() {
         setContentView(R.layout.activity_voip);
 
         mUserListRv = findViewById(R.id.rv_user_list);
@@ -130,155 +130,155 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
 
         mDialog = ProgressDialog.show(VoipActivity.this, "", "正在加载初始化initWxCloudVoip", true);
 
-        if (!executor.isShutdown()) ***REMOVED***
-            executor.submit(() -> ***REMOVED***
+        if (!executor.isShutdown()) {
+            executor.submit(() -> {
                 mInitStatus = initWxCloudVoip();
-                if (mInitStatus == 19) ***REMOVED***
+                if (mInitStatus == 19) {
                     //把device_key文件删掉
                     deleteDeviceKeyFile();
                     mInitStatus = initWxCloudVoip();
-              ***REMOVED***
-          ***REMOVED***);
-      ***REMOVED***
+                }
+            });
+        }
 
         Button callButton = findViewById(R.id.btn_voip_video_call);
-        callButton.setOnClickListener(v -> ***REMOVED***
+        callButton.setOnClickListener(v -> {
             mTextureView.setVisibility(View.VISIBLE);
-            if (selectedPosition == RecyclerView.NO_POSITION) ***REMOVED***
+            if (selectedPosition == RecyclerView.NO_POSITION) {
                 Toast.makeText(VoipActivity.this, "请勾选被呼叫的用户！", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
+            }
             setOpenId();
-            if (TextUtils.isEmpty(mOpenId)) ***REMOVED***
+            if (TextUtils.isEmpty(mOpenId)) {
                 Toast.makeText(VoipActivity.this, "请输入被呼叫的用户openid！", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
-            if (mInitStatus == -1) ***REMOVED***
+            }
+            if (mInitStatus == -1) {
                 Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
-            if (mInitStatus != 0) ***REMOVED***
+            }
+            if (mInitStatus != 0) {
                 Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
+            }
 
             mDialog = ProgressDialog.show(VoipActivity.this, "", "呼叫中doWxCloudVoipCall", true);
-            if (!executor.isShutdown()) ***REMOVED***
-                executor.submit(() -> ***REMOVED***
+            if (!executor.isShutdown()) {
+                executor.submit(() -> {
                     // voip call
                     String result = "";
                     int recvPixel = QualitySetting.getInstance(VoipActivity.this).getWxResolution();
                     boolean calleeCameraSwitch = QualitySetting.getInstance(VoipActivity.this).isWxCameraOn();
                     int ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
                             mModelId, mWxaAppId, mOpenId, mVoipDeviceId, recvPixel, calleeCameraSwitch);
-                    if (ret == -2) ***REMOVED***
+                    if (ret == -2) {
                         result = "通话中";
-                  ***REMOVED*** else if (ret != 0) ***REMOVED***
+                    } else if (ret != 0) {
                         result = "呼叫失败";
-                  ***REMOVED*** else ***REMOVED***
+                    } else {
                         result = "呼叫成功";
-                  ***REMOVED***
+                    }
                     Log.i(TAG, "VOIP call result: " + result + ", ret: " + ret);
                     String finalResult = result;
-                    runOnUiThread(() -> ***REMOVED***
-                        if (mDialog != null) ***REMOVED***
+                    runOnUiThread(() -> {
+                        if (mDialog != null) {
                             mDialog.dismiss();
-                      ***REMOVED***
+                        }
                         Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
                         updateVideoUI(true);
-                  ***REMOVED***);
-              ***REMOVED***);
-          ***REMOVED***
-      ***REMOVED***);
+                    });
+                });
+            }
+        });
 
         Button audioCallButton = findViewById(R.id.btn_voip_audio_call);
-        audioCallButton.setOnClickListener(view -> ***REMOVED***
+        audioCallButton.setOnClickListener(view -> {
 
             mTextureView.setVisibility(View.INVISIBLE);
-            if (selectedPosition == RecyclerView.NO_POSITION) ***REMOVED***
+            if (selectedPosition == RecyclerView.NO_POSITION) {
                 Toast.makeText(VoipActivity.this, "请勾选被呼叫的用户！", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
+            }
             setOpenId();
-            if (TextUtils.isEmpty(mOpenId)) ***REMOVED***
+            if (TextUtils.isEmpty(mOpenId)) {
                 Toast.makeText(VoipActivity.this, "请输入被呼叫的用户openid！", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
-            if (mInitStatus == -1) ***REMOVED***
+            }
+            if (mInitStatus == -1) {
                 Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
-            if (mInitStatus != 0) ***REMOVED***
+            }
+            if (mInitStatus != 0) {
                 Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
+            }
 
             mDialog = ProgressDialog.show(VoipActivity.this, "", "呼叫中doWxCloudVoipAudioCall", true);
-            if (!executor.isShutdown()) ***REMOVED***
-                executor.submit(() -> ***REMOVED***
+            if (!executor.isShutdown()) {
+                executor.submit(() -> {
                     // voip call
                     String result = "";
                     int ret = VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(
                             mModelId, mWxaAppId, mOpenId, mVoipDeviceId);
-                    if (ret == -2) ***REMOVED***
+                    if (ret == -2) {
                         result = "通话中";
-                  ***REMOVED*** else if (ret != 0) ***REMOVED***
+                    } else if (ret != 0) {
                         result = "呼叫失败";
-                  ***REMOVED*** else ***REMOVED***
+                    } else {
                         result = "呼叫成功";
-                  ***REMOVED***
+                    }
                     Log.i(TAG, "VOIP call result: " + result + ", ret: " + ret);
                     String finalResult = result;
-                    runOnUiThread(() -> ***REMOVED***
-                        if (mDialog != null) ***REMOVED***
+                    runOnUiThread(() -> {
+                        if (mDialog != null) {
                             mDialog.dismiss();
-                      ***REMOVED***
+                        }
                         Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
                         mTipsTv.setText(finalResult);
                         updateAudioUI(true);
-                  ***REMOVED***);
-              ***REMOVED***);
-          ***REMOVED***
-      ***REMOVED***);
+                    });
+                });
+            }
+        });
 
         mHangUpButton = findViewById(R.id.btn_voip_hang_up);
-        mHangUpButton.setOnClickListener(v -> ***REMOVED***
-            if (mInitStatus == -1) ***REMOVED***
+        mHangUpButton.setOnClickListener(v -> {
+            if (mInitStatus == -1) {
                 Toast.makeText(VoipActivity.this, "initWxCloudVoip还未完成初始化", Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
-            if (mInitStatus != 0) ***REMOVED***
+            }
+            if (mInitStatus != 0) {
                 Toast.makeText(VoipActivity.this, "initWxCloudVoip初始化失败：" + mInitStatus, Toast.LENGTH_SHORT).show();
                 return;
-          ***REMOVED***
+            }
 
             mDialog = ProgressDialog.show(VoipActivity.this, "", "挂断doWxCloudVoipHangUp", true);
-            if (!executor.isShutdown()) ***REMOVED***
-                executor.submit(() -> ***REMOVED***
+            if (!executor.isShutdown()) {
+                executor.submit(() -> {
                     String result = "";
                     int ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
                             mProductId, mDeviceName, mOpenId, mVoipDeviceId);
-                    if (ret == 0) ***REMOVED***
+                    if (ret == 0) {
                         result = "已挂断";
-                  ***REMOVED*** else ***REMOVED***
+                    } else {
                         result = "挂断失败";
-                  ***REMOVED***
+                    }
                     Log.i(TAG, "VOIP call result: " + result);
                     String finalResult = result;
-                    runOnUiThread(new Runnable() ***REMOVED***
+                    runOnUiThread(new Runnable() {
                         @Override
-                        public void run() ***REMOVED***
-                            if (mDialog != null) ***REMOVED***
+                        public void run() {
+                            if (mDialog != null) {
                                 mDialog.dismiss();
-                          ***REMOVED***
+                            }
                             Toast.makeText(VoipActivity.this, finalResult, Toast.LENGTH_SHORT).show();
                             mTipsTv.setText(finalResult);
                             updateVideoUI(false);
-                      ***REMOVED***
-                  ***REMOVED***);
-              ***REMOVED***);
-          ***REMOVED***
-      ***REMOVED***);
+                        }
+                    });
+                });
+            }
+        });
         mHangUpButton.setVisibility(View.INVISIBLE);
 
         mTextureView.requestFocus();
@@ -286,10 +286,10 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
         mTextVoipDevice.setVisibility(View.INVISIBLE);
 //        String devinfo = "VOIP device: " + mVoipProductId + "/" + mVoipDeviceId;
 //        mTextVoipDevice.setText(devinfo);
-  ***REMOVED***
+    }
 
-    private void setOpenId() ***REMOVED***
-        switch (selectedPosition) ***REMOVED***
+    private void setOpenId() {
+        switch (selectedPosition) {
             case 0:
                 mOpenId = VoipSetting.getInstance(this).openId1;
                 break;
@@ -299,149 +299,149 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
             case 2:
                 mOpenId = VoipSetting.getInstance(this).openId3;
                 break;
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
     /**
      * 初始化 voip
      *
      * @return 初始化状态值
      */
-    private int initWxCloudVoip() ***REMOVED***
+    private int initWxCloudVoip() {
         int initStatus = VideoNativeInterface.getInstance().initWxCloudVoip(mModelId, mVoipDeviceId, mWxaAppId, mMiniprogramVersion);
-        if (initStatus == 0) ***REMOVED***
+        if (initStatus == 0) {
             Log.i(TAG, "reInitWxCloudVoip initStatus: " + initStatus);
             int registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered();
             Log.i(TAG, "isAvtVoipRegistered: " + registeredState);
-            if (registeredState == 0) ***REMOVED***
+            if (registeredState == 0) {
                 int registerRes = VideoNativeInterface.getInstance().registerAvtVoip(mSNTicket);
                 Log.i(TAG, "registerAvtVoip registerRes: " + registerRes);
-          ***REMOVED***
-            runOnUiThread(() -> ***REMOVED***
-                if (mDialog != null) ***REMOVED***
+            }
+            runOnUiThread(() -> {
+                if (mDialog != null) {
                     mDialog.dismiss();
-              ***REMOVED***
-          ***REMOVED***);
-      ***REMOVED***
+                }
+            });
+        }
         return initStatus;
-  ***REMOVED***
+    }
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) ***REMOVED***
+    protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "start create");
         super.onCreate(savedInstanceState);
-  ***REMOVED***
+    }
 
     @Override
-    protected void onDestroy() ***REMOVED***
+    protected void onDestroy() {
         Log.d(TAG, "destory");
         super.onDestroy();
         executor.shutdown();
-  ***REMOVED***
+    }
 
-    private void checkConditions() ***REMOVED***
-        if (condition1 && condition2 && mRemotePreviewSurface != null) ***REMOVED***
+    private void checkConditions() {
+        if (condition1 && condition2 && mRemotePreviewSurface != null) {
             mPlayer.startVideoPlay(new Surface(mRemotePreviewSurface), visitor, type, height, width);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
     @Override
-    public int onStartRecvAudioStream(int visitor, int channel, int type, int option, int mode, int width, int sample_rate, int sample_num) ***REMOVED***
+    public int onStartRecvAudioStream(int visitor, int channel, int type, int option, int mode, int width, int sample_rate, int sample_num) {
         Log.d(TAG, "IvStartRecvAudioStream visitor " + visitor);
         mTipsTv.setText("通话中");
         return super.onStartRecvAudioStream(visitor, channel, type, option, mode, width, sample_rate, sample_num);
-  ***REMOVED***
+    }
 
     @Override
-    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) ***REMOVED***
+    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) {
         Log.d(TAG, "start video visitor " + visitor + " h: " + height + " w: " + width);
         runOnUiThread(() -> updateVideoUI(true));
         this.visitor = visitor;
         this.type = type;
         this.height = height;
         this.width = width;
-        if (mRemotePreviewSurface != null) ***REMOVED***
-            synchronized (lock) ***REMOVED***
+        if (mRemotePreviewSurface != null) {
+            synchronized (lock) {
                 condition2 = true;
                 checkConditions();
-          ***REMOVED***
+            }
             return 0;
-      ***REMOVED*** else ***REMOVED***
-            synchronized (lock) ***REMOVED***
+        } else {
+            synchronized (lock) {
                 condition2 = true;
                 checkConditions();
-          ***REMOVED***
+            }
             Log.d(TAG, "IvStartRecvVideoStream mRemotePreviewSurface is null visitor " + visitor);
             return -1;
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
     @Override
-    public int onStopRecvStream(int visitor, int channel, int streamType) ***REMOVED***
+    public int onStopRecvStream(int visitor, int channel, int streamType) {
         super.onStopRecvStream(visitor, channel, streamType);
-        if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO || streamType == StreamType.IV_AVT_STREAM_TYPE_AV) ***REMOVED***
-            runOnUiThread(new Runnable() ***REMOVED***
+        if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO || streamType == StreamType.IV_AVT_STREAM_TYPE_AV) {
+            runOnUiThread(new Runnable() {
                 @Override
-                public void run() ***REMOVED***
+                public void run() {
                     updateVideoUI(false);
-              ***REMOVED***
-          ***REMOVED***);
-      ***REMOVED***
+                }
+            });
+        }
         return 0;
-  ***REMOVED***
+    }
 
     @Override
-    public void onStopRealPlay(int visitor, int channel, int res_type) ***REMOVED***
+    public void onStopRealPlay(int visitor, int channel, int res_type) {
         super.onStopRealPlay(visitor, channel, res_type);
-        runOnUiThread(new Runnable() ***REMOVED***
+        runOnUiThread(new Runnable() {
             @Override
-            public void run() ***REMOVED***
+            public void run() {
                 updateVideoUI(false);
-          ***REMOVED***
-      ***REMOVED***);
-  ***REMOVED***
+            }
+        });
+    }
 
     @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) ***REMOVED***
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
 
-        if (surfaceTexture.equals(mTextureView.getSurfaceTexture())) ***REMOVED***
+        if (surfaceTexture.equals(mTextureView.getSurfaceTexture())) {
             // Initialize the SurfaceTexture object
             mLocalPreviewSurface = surfaceTexture;
 
             // Start the camera encoder
             mCameraRecorder.openCamera(mLocalPreviewSurface, this);
-      ***REMOVED*** else if (surfaceTexture.equals(mRemoteView.getSurfaceTexture())) ***REMOVED***
+        } else if (surfaceTexture.equals(mRemoteView.getSurfaceTexture())) {
             mRemotePreviewSurface = surfaceTexture;
-            synchronized (lock) ***REMOVED***
+            synchronized (lock) {
                 condition1 = true;
                 checkConditions();
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 
     @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) ***REMOVED***
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
         // Not used in this example
-  ***REMOVED***
+    }
 
     @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) ***REMOVED***
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
 
-        if (surfaceTexture.equals(mTextureView.getSurfaceTexture())) ***REMOVED***
+        if (surfaceTexture.equals(mTextureView.getSurfaceTexture())) {
             // Stop the camera encoder
             mCameraRecorder.closeCamera();
-      ***REMOVED***
+        }
 
         return true;
-  ***REMOVED***
+    }
 
     @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) ***REMOVED***
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
         // Not used in this example
-  ***REMOVED***
+    }
 
-    private void deleteDeviceKeyFile() ***REMOVED***
+    private void deleteDeviceKeyFile() {
         // 假设SD卡的路径是 /sdcard
         String sdCardPath = "/sdcard";
         String fileName = "device_key";
@@ -450,20 +450,20 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
         File deviceKeyFile = new File(sdCardPath, fileName);
 
         // 检查文件是否存在
-        if (deviceKeyFile.exists()) ***REMOVED***
+        if (deviceKeyFile.exists()) {
             // 文件存在，尝试删除
-            if (deviceKeyFile.delete()) ***REMOVED***
+            if (deviceKeyFile.delete()) {
                 Log.i(TAG, "device_key文件已成功删除。");
-          ***REMOVED*** else ***REMOVED***
+            } else {
                 Log.i(TAG, "删除device_key文件失败。");
-          ***REMOVED***
-      ***REMOVED*** else ***REMOVED***
+            }
+        } else {
             Log.i(TAG, "device_key文件不存在。");
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void updateVideoUI(boolean isCalling) ***REMOVED***
-        if (isCalling) ***REMOVED***
+    public void updateVideoUI(boolean isCalling) {
+        if (isCalling) {
             mSurfaceBgView.setVisibility(View.VISIBLE);
             mRemoteView.setVisibility(View.VISIBLE);
             mRemoteView.bringToFront();
@@ -472,7 +472,7 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
             mHangUpButton.setVisibility(View.VISIBLE);
             mButtonsLL.setVisibility(View.INVISIBLE);
             mUserListRv.setVisibility(View.INVISIBLE);
-      ***REMOVED*** else ***REMOVED***
+        } else {
             mSurfaceBgView.setVisibility(View.INVISIBLE);
             mRemoteView.setVisibility(View.INVISIBLE);
             mHangUpButton.setVisibility(View.INVISIBLE);
@@ -481,22 +481,22 @@ public class VoipActivity extends IPCActivity implements TextureView.SurfaceText
             mTextureView.setVisibility(View.INVISIBLE);
             mButtonsLL.setVisibility(View.VISIBLE);
             mUserListRv.setVisibility(View.VISIBLE);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    public void updateAudioUI(boolean isCalling) ***REMOVED***
-        if (isCalling) ***REMOVED***
+    public void updateAudioUI(boolean isCalling) {
+        if (isCalling) {
             mTipsTv.setVisibility(View.VISIBLE);
             mAudioIv.setVisibility(View.VISIBLE);
             mHangUpButton.setVisibility(View.VISIBLE);
             mButtonsLL.setVisibility(View.INVISIBLE);
             mUserListRv.setVisibility(View.INVISIBLE);
-      ***REMOVED*** else ***REMOVED***
+        } else {
             mTipsTv.setVisibility(View.INVISIBLE);
             mAudioIv.setVisibility(View.INVISIBLE);
             mHangUpButton.setVisibility(View.INVISIBLE);
             mButtonsLL.setVisibility(View.VISIBLE);
             mUserListRv.setVisibility(View.VISIBLE);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 }

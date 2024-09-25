@@ -5,7 +5,7 @@ import android.media.MediaFormat;
 /**
  * 视频编码参数
  */
-public class VideoEncodeParam ***REMOVED***
+public class VideoEncodeParam {
 
     private int width = -1; //录制宽度
     private int height = -1; //录制高度
@@ -14,91 +14,91 @@ public class VideoEncodeParam ***REMOVED***
     private int bitRate = 125000; //码率
     private String mime = MediaFormat.MIMETYPE_VIDEO_AVC; // 编码格式: 默认 H264
 
-//    private VideoEncodeParam() ***REMOVED*** }
+//    private VideoEncodeParam() { }
 
-    public int getWidth() ***REMOVED***
+    public int getWidth() {
         return width;
-  ***REMOVED***
+    }
 
-    public void setWidth(int width) ***REMOVED***
+    public void setWidth(int width) {
         this.width = width;
-  ***REMOVED***
+    }
 
-    public int getHeight() ***REMOVED***
+    public int getHeight() {
         return height;
-  ***REMOVED***
+    }
 
-    public void setHeight(int height) ***REMOVED***
+    public void setHeight(int height) {
         this.height = height;
-  ***REMOVED***
+    }
 
-    public int getFrameRate() ***REMOVED***
+    public int getFrameRate() {
         return frameRate;
-  ***REMOVED***
+    }
 
-    public void setFrameRate(int frameRate) ***REMOVED***
+    public void setFrameRate(int frameRate) {
         this.frameRate = frameRate;
-  ***REMOVED***
+    }
 
-    public int getiFrameInterval() ***REMOVED***
+    public int getiFrameInterval() {
         return iFrameInterval;
-  ***REMOVED***
+    }
 
-    public void setiFrameInterval(int iFrameInterval) ***REMOVED***
+    public void setiFrameInterval(int iFrameInterval) {
         this.iFrameInterval = iFrameInterval;
-  ***REMOVED***
+    }
 
-    public String getMime() ***REMOVED***
+    public String getMime() {
         return mime;
-  ***REMOVED***
+    }
 
-    public void setMime(String mime) ***REMOVED***
+    public void setMime(String mime) {
         this.mime = mime;
-  ***REMOVED***
+    }
 
-    public int getBitRate() ***REMOVED***
+    public int getBitRate() {
         return bitRate;
-  ***REMOVED***
+    }
 
-    public void setBitRate(int bitRate) ***REMOVED***
+    public void setBitRate(int bitRate) {
         this.bitRate = bitRate;
-  ***REMOVED***
+    }
 
-//    public static class Builder ***REMOVED***
+//    public static class Builder {
 //        private VideoEncodeParam videoEncodeParam;
 //
-//        public Builder() ***REMOVED***
+//        public Builder() {
 //            videoEncodeParam = new VideoEncodeParam();
-//      ***REMOVED***
+//        }
 //
-//        public Builder setSize(int width, int height) ***REMOVED***
+//        public Builder setSize(int width, int height) {
 //            videoEncodeParam.setWidth(width);
 //            videoEncodeParam.setHeight(height);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setFrameRate(int frameRate) ***REMOVED***
+//        public Builder setFrameRate(int frameRate) {
 //            videoEncodeParam.setFrameRate(frameRate);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setIFrameInterval(int iFrameInterval) ***REMOVED***
+//        public Builder setIFrameInterval(int iFrameInterval) {
 //            videoEncodeParam.setiFrameInterval(iFrameInterval);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setMime(String mime) ***REMOVED***
+//        public Builder setMime(String mime) {
 //            videoEncodeParam.setMime(mime);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setBitRate(int bitRate) ***REMOVED***
+//        public Builder setBitRate(int bitRate) {
 //            videoEncodeParam.setBitRate(bitRate);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public VideoEncodeParam build() ***REMOVED***
+//        public VideoEncodeParam build() {
 //            return videoEncodeParam;
-//      ***REMOVED***
-//  ***REMOVED***
+//        }
+//    }
 }

@@ -1,6 +1,6 @@
 package com.tencent.iotvideo.link.consts
 
-object VideoConst ***REMOVED***
+object VideoConst {
     /***********video**********/
     const val VIDEO_CONFIG = "VideoConfig"
     const val VIDEO_WLAN_CONFIG = "VideoWlanConfig"
