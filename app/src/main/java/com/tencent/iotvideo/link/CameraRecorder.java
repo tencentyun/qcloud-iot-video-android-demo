@@ -106,24 +106,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
         mAudioEncoder.setOnEncodeListener(this);
         mAudioEncoder.start();
-
         mIsRecording = true;
-
-//        try ***REMOVED***
-//            File dir = new File(Environment.getExternalStorageDirectory(), "ivdemo");
-//            if (!dir.exists()) ***REMOVED***
-//                dir.mkdir();
-//          ***REMOVED***
-//
-//            File file = new File(dir, "test_video.h264");
-//            if (!file.exists()) ***REMOVED***
-//                file.createNewFile();
-//          ***REMOVED***
-//            mOutputStream = new FileOutputStream(file);
-//      ***REMOVED*** catch (IOException e) ***REMOVED***
-//            e.printStackTrace();
-//      ***REMOVED***
-
         Log.d(TAG, "start camera recording");
         startBitRateAdapter();
   ***REMOVED***
@@ -143,13 +126,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
         mAudioEncoder.stop();
         mAudioEncoder = null;
-
-//        try ***REMOVED***
-//            mOutputStream.flush();
-//            mOutputStream.close();
-//      ***REMOVED*** catch (IOException e) ***REMOVED***
-//            e.printStackTrace();
-//      ***REMOVED***
         Log.d(TAG, "stop camera recording");
         stopBitRateAdapter();
   ***REMOVED***
@@ -157,7 +133,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     @Override
     public void onAudioEncoded(byte[] datas, long pts, long seq) ***REMOVED***
 //        Log.d(TAG, "encoded audio data len " + datas.length + " pts " + pts);
-
         if (mIsRecording) ***REMOVED***
             for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) ***REMOVED***
                 int visitor = entry.getKey().intValue();
@@ -193,12 +168,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
               ***REMOVED***
           ***REMOVED***
       ***REMOVED***
-//        try ***REMOVED***
-//            mOutputStream.write(datas);
-//      ***REMOVED*** catch (IOException e) ***REMOVED***
-//            e.printStackTrace();
-//      ***REMOVED***
-
   ***REMOVED***
 
     @Override
@@ -206,7 +175,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (!mIsRecording || mVideoEncoder == null) ***REMOVED***
             return;
       ***REMOVED***
-
         mVideoEncoder.encoderH264(data, false);
   ***REMOVED***
 
