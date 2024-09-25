@@ -1,39 +1,22 @@
 [versions]
 agp = "8.4.0"
-kotlin = "1.9.0"
-coreKtx = "1.13.1"
-junit = "4.14-SNAPSHOT"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.4"
-activityCompose = "1.9.1"
-composeBom = "2023.08.00"
+crashreport = "4.1.9.3"
 appcompat = "1.7.0"
+kotlinxCoroutinesAndroid = "1.7.3"
 material = "1.12.0"
 activity = "1.9.1"
 constraintlayout = "2.1.4"
+coreKtx = "1.13.1"
 
 [libraries]
-androidx-core-ktx = ***REMOVED*** group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-junit = ***REMOVED*** group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = ***REMOVED*** group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = ***REMOVED*** group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-lifecycle-runtime-ktx = ***REMOVED*** group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-activity-compose = ***REMOVED*** group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-androidx-compose-bom = ***REMOVED*** group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-androidx-ui = ***REMOVED*** group = "androidx.compose.ui", name = "ui" }
-androidx-ui-graphics = ***REMOVED*** group = "androidx.compose.ui", name = "ui-graphics" }
-androidx-ui-tooling = ***REMOVED*** group = "androidx.compose.ui", name = "ui-tooling" }
-androidx-ui-tooling-preview = ***REMOVED*** group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-ui-test-manifest = ***REMOVED*** group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-ui-test-junit4 = ***REMOVED*** group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = ***REMOVED*** group = "androidx.compose.material3", name = "material3" }
 androidx-appcompat = ***REMOVED*** group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+crashreport = ***REMOVED*** module = "com.tencent.bugly:crashreport", version.ref = "crashreport" }
+kotlinx-coroutines-android = ***REMOVED*** module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 material = ***REMOVED*** group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-activity = ***REMOVED*** group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = ***REMOVED*** group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-core-ktx = ***REMOVED*** group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 
 [plugins]
 android-application = ***REMOVED*** id = "com.android.application", version.ref = "agp" }
-jetbrains-kotlin-android = ***REMOVED*** id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrains-kotlin-android = ***REMOVED*** id = "org.jetbrains.kotlin.android", version = "1.8.22" }
 
