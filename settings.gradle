@@ -1,25 +1,25 @@
-pluginManagement ***REMOVED***
-    repositories ***REMOVED***
-        google ***REMOVED***
-            content ***REMOVED***
+pluginManagement {
+    repositories {
+        google {
+            content {
                 includeGroupByRegex("com\\.android.*")
                 includeGroupByRegex("com\\.google.*")
                 includeGroupByRegex("androidx.*")
-          ***REMOVED***
-      ***REMOVED***
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
-  ***REMOVED***
+    }
 }
-dependencyResolutionManagement ***REMOVED***
+dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories ***REMOVED***
+    repositories {
         google()
         mavenCentral()
-        maven ***REMOVED***
+        maven {
             url "https://oss.sonatype.org/content/repositories/snapshots"
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 }
 
 rootProject.name = "IVDemo"

@@ -15,7 +15,7 @@ import android.view.animation.TranslateAnimation;
 
 import com.tencent.iot.voipdemo.R;
 
-public class IosCenterStyleDialog extends Dialog ***REMOVED***
+public class IosCenterStyleDialog extends Dialog {
 
     protected DisplayMetrics displayMetrics;
     protected View view;
@@ -23,41 +23,41 @@ public class IosCenterStyleDialog extends Dialog ***REMOVED***
     private int layoutId;
     private boolean showAnimation;
 
-    public IosCenterStyleDialog(Context context, int layoutId) ***REMOVED***
+    public IosCenterStyleDialog(Context context, int layoutId) {
         this(context, layoutId, true);
-  ***REMOVED***
+    }
 
-    public IosCenterStyleDialog(Context context, int layoutId, boolean showAnimation) ***REMOVED***
+    public IosCenterStyleDialog(Context context, int layoutId, boolean showAnimation) {
         super(context, R.style.iOSDialog);
         mContext = context;
         displayMetrics = context.getResources().getDisplayMetrics();
         this.layoutId = layoutId;
         this.showAnimation = showAnimation;
-  ***REMOVED***
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) ***REMOVED***
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         view = View.inflate(mContext, this.layoutId, null);
         //设置view 弹出的平移动画，从底部-100% 平移到自身位置
-        if (showAnimation) ***REMOVED***
+        if (showAnimation) {
             TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF,
                     0f, Animation.RELATIVE_TO_SELF, 1f, Animation.RELATIVE_TO_SELF, 0);
             animation.setInterpolator(new DecelerateInterpolator());
             animation.setDuration(350);
             animation.setStartOffset(150);
             view.setAnimation(animation);//设置动画
-      ***REMOVED***
+        }
 
         initView();
-  ***REMOVED***
+    }
 
-    public void initView() ***REMOVED***
-  ***REMOVED***
+    public void initView() {
+    }
 
     @Override
-    public void show() ***REMOVED***
+    public void show() {
         if (((Activity) mContext).isFinishing() || ((Activity) mContext).isDestroyed()) return;
         if (isShowing()) return; // 已经处于显示状态，不再显示
 
@@ -69,6 +69,6 @@ public class IosCenterStyleDialog extends Dialog ***REMOVED***
         params.gravity = Gravity.CENTER;
         getWindow().setAttributes(params);
         getWindow().setContentView(view);
-  ***REMOVED***
+    }
 
 }
