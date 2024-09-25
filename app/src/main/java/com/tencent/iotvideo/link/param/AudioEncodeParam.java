@@ -5,63 +5,63 @@ import android.media.MediaFormat;
 /**
  * 音频编码参数
  */
-public class AudioEncodeParam ***REMOVED***
+public class AudioEncodeParam {
 
     private int bitRate = 96000; // 比特率
     private int maxInputSize = 1024 * 1024; // 最大输入数据大小
     private String mime = MediaFormat.MIMETYPE_AUDIO_AAC; // 编码格式: 默认 AAC
 
-//    private AudioEncodeParam() ***REMOVED*** }
+//    private AudioEncodeParam() { }
 
-    public int getBitRate() ***REMOVED***
+    public int getBitRate() {
         return bitRate;
-  ***REMOVED***
+    }
 
-    public void setBitRate(int bitRate) ***REMOVED***
+    public void setBitRate(int bitRate) {
         this.bitRate = bitRate;
-  ***REMOVED***
+    }
 
-    public int getMaxInputSize() ***REMOVED***
+    public int getMaxInputSize() {
         return maxInputSize;
-  ***REMOVED***
+    }
 
-    public void setMaxInputSize(int maxInputSize) ***REMOVED***
+    public void setMaxInputSize(int maxInputSize) {
         this.maxInputSize = maxInputSize;
-  ***REMOVED***
+    }
 
-    public String getMime() ***REMOVED***
+    public String getMime() {
         return mime;
-  ***REMOVED***
+    }
 
-    public void setMime(String mime) ***REMOVED***
+    public void setMime(String mime) {
         this.mime = mime;
-  ***REMOVED***
+    }
 
-//    public static class Builder ***REMOVED***
+//    public static class Builder {
 //        private AudioEncodeParam audioEncodeParam;
 //
-//        public Builder() ***REMOVED***
+//        public Builder() {
 //            audioEncodeParam = new AudioEncodeParam();
-//      ***REMOVED***
+//        }
 //
-//        public Builder setBitRate(int bitRate) ***REMOVED***
+//        public Builder setBitRate(int bitRate) {
 //            audioEncodeParam.setBitRate(bitRate);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setMaxInputSize(int maxInputSize) ***REMOVED***
+//        public Builder setMaxInputSize(int maxInputSize) {
 //            audioEncodeParam.setMaxInputSize(maxInputSize);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public Builder setMime(String mime) ***REMOVED***
+//        public Builder setMime(String mime) {
 //            audioEncodeParam.setMime(mime);
 //            return this;
-//      ***REMOVED***
+//        }
 //
-//        public AudioEncodeParam build() ***REMOVED***
+//        public AudioEncodeParam build() {
 //            return audioEncodeParam;
-//      ***REMOVED***
-//  ***REMOVED***
+//        }
+//    }
 
 }

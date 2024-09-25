@@ -6,15 +6,15 @@ import android.view.Surface;
 
 import java.util.List;
 
-public class CameraUtils ***REMOVED***
+public class CameraUtils {
     // 获取摄像头旋转角度
-    public static int getDisplayOrientation(Activity activity, int facing) ***REMOVED***
+    public static int getDisplayOrientation(Activity activity, int facing) {
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(facing, info);
         int rotation = activity.getWindowManager().getDefaultDisplay()
                 .getRotation();
         int degrees = 0;
-        switch (rotation) ***REMOVED***
+        switch (rotation) {
             case Surface.ROTATION_0:
                 degrees = 0;
                 break;
@@ -27,36 +27,36 @@ public class CameraUtils ***REMOVED***
             case Surface.ROTATION_270:
                 degrees = 270;
                 break;
-      ***REMOVED***
+        }
         int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) ***REMOVED***
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
             result = (360 - result) % 360;  // compensate the mirror
-      ***REMOVED*** else ***REMOVED***  // back-facing
+        } else {  // back-facing
             result = (info.orientation - degrees + 360) % 360;
-      ***REMOVED***
+        }
         return result;
-  ***REMOVED***
+    }
 
     // 寻找最合适的尺寸
-    public static Camera.Size findTheBestSize(List<Camera.Size> sizeList, int screenW, int screenH) ***REMOVED***
-        if (sizeList == null || sizeList.isEmpty()) ***REMOVED***
+    public static Camera.Size findTheBestSize(List<Camera.Size> sizeList, int screenW, int screenH) {
+        if (sizeList == null || sizeList.isEmpty()) {
             throw new IllegalArgumentException();
-      ***REMOVED***
+        }
 
         Camera.Size bestSize = sizeList.get(0);
-        for (Camera.Size size : sizeList) ***REMOVED***
+        for (Camera.Size size : sizeList) {
             int width = size.height;
             int height = size.width;
 
             float ratioW = (float) width / screenW;
             float ratioH = (float) height / screenH;
 
-            if (ratioW == ratioH) ***REMOVED***
+            if (ratioW == ratioH) {
                 bestSize = size;
                 break;
-          ***REMOVED***
-      ***REMOVED***
+            }
+        }
         return bestSize;
-  ***REMOVED***
+    }
 }

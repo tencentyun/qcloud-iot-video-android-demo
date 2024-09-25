@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class PCMEncoder ***REMOVED***
+public class PCMEncoder {
     //比特率
     private static final int KEY_BIT_RATE = 96000;
     //读取数据的最大字节数
@@ -30,7 +30,7 @@ public class PCMEncoder ***REMOVED***
     // 采样频率对照表
     private static Map<Integer, Integer> samplingFrequencyIndexMap = new HashMap<>();
 
-    static ***REMOVED***
+    static {
         samplingFrequencyIndexMap.put(96000, 0);
         samplingFrequencyIndexMap.put(88200, 1);
         samplingFrequencyIndexMap.put(64000, 2);
@@ -43,21 +43,21 @@ public class PCMEncoder ***REMOVED***
         samplingFrequencyIndexMap.put(12000, 9);
         samplingFrequencyIndexMap.put(11025, 10);
         samplingFrequencyIndexMap.put(8000, 11);
-  ***REMOVED***
+    }
 
-    public PCMEncoder(int sampleRate, int channelCount, EncoderListener encoderListener, int encodeFormat) ***REMOVED***
+    public PCMEncoder(int sampleRate, int channelCount, EncoderListener encoderListener, int encodeFormat) {
         this.encoderListener = encoderListener;
         this.encodeType = encodeFormat;
         this.sampleRate = sampleRate;
         this.channelCount = channelCount;
         init();
-  ***REMOVED***
+    }
 
     /**
      * 初始化AAC编码器
      */
-    private void init() ***REMOVED***
-        try ***REMOVED***
+    private void init() {
+        try {
             //参数对应-> mime type、采样率、声道数
             MediaFormat encodeFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC,
                     sampleRate, channelCount);
@@ -67,26 +67,26 @@ public class PCMEncoder ***REMOVED***
             encodeFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, KEY_MAX_INPUT_SIZE);
             mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
             mediaCodec.configure(encodeFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
-      ***REMOVED***
+        }
 
         mediaCodec.start();
         encodeInputBuffers = mediaCodec.getInputBuffers();
         encodeOutputBuffers = mediaCodec.getOutputBuffers();
         encodeBufferInfo = new MediaCodec.BufferInfo();
-  ***REMOVED***
+    }
 
     /**
      * PCM 转 AAC
      *
      * @param data PCM数据
      */
-    public void encodeData(byte[] data) ***REMOVED***
+    public void encodeData(byte[] data) {
         //dequeueInputBuffer（time）需要传入一个时间值，-1表示一直等待，0表示不等待有可能会丢帧，其他表示等待多少毫秒
         //获取输入缓存的index
         int inputIndex = mediaCodec.dequeueInputBuffer(-1);
-        if (inputIndex >= 0) ***REMOVED***
+        if (inputIndex >= 0) {
             ByteBuffer inputByteBuf = encodeInputBuffers[inputIndex];
             inputByteBuf.clear();
             //添加数据
@@ -95,17 +95,17 @@ public class PCMEncoder ***REMOVED***
             inputByteBuf.limit(data.length);
             //把输入缓存塞回去给MediaCodec
             mediaCodec.queueInputBuffer(inputIndex, 0, data.length, 0, 0);
-      ***REMOVED***
+        }
         //获取输出缓存的index
         int outputIndex = mediaCodec.dequeueOutputBuffer(encodeBufferInfo, 0);
-        while (outputIndex >= 0) ***REMOVED***
+        while (outputIndex >= 0) {
             //获取缓存信息的长度
             int byteBufSize = encodeBufferInfo.size;
             //添加ADTS头部后的长度
             int bytePacketSize = byteBufSize + 7;
             //拿到输出Buffer
             ByteBuffer outPutBuf = encodeOutputBuffers[outputIndex];
-            if (encodeBufferInfo.size > 2) ***REMOVED***
+            if (encodeBufferInfo.size > 2) {
                 outPutBuf.position(encodeBufferInfo.offset);
                 outPutBuf.limit(encodeBufferInfo.offset + encodeBufferInfo.size);
 
@@ -117,21 +117,21 @@ public class PCMEncoder ***REMOVED***
                 outPutBuf.position(encodeBufferInfo.offset);
 
                 //编码成功
-                if (encoderListener != null) ***REMOVED***
+                if (encoderListener != null) {
                     encoderListener.encodeAAC(aacData, encodeBufferInfo.presentationTimeUs);
-              ***REMOVED***
-          ***REMOVED***
+                }
+            }
 
             //释放
             mediaCodec.releaseOutputBuffer(outputIndex, false);
             outputIndex = mediaCodec.dequeueOutputBuffer(encodeBufferInfo, 0);
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
     /**
      * 添加ADTS头
      */
-    private void addADTStoPacket(byte[] packet, int packetLen) ***REMOVED***
+    private void addADTStoPacket(byte[] packet, int packetLen) {
         int profile = 2;  // AAC LC
         int chanCfg = channelCount;
         int freqIdx = samplingFrequencyIndexMap.get(sampleRate);
@@ -143,5 +143,5 @@ public class PCMEncoder ***REMOVED***
         packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
         packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
         packet[6] = (byte) 0xFC;
-  ***REMOVED***
+    }
 }
