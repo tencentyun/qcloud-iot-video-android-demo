@@ -9,55 +9,55 @@ import com.tencent.iotvideo.link.popup.QualitySettingDialog
 import com.tencent.iotvideo.link.popup.WxSettingDialog
 import com.tencent.iotvideo.link.util.VoipSetting
 
-class VoipLoginActivity : AppCompatActivity() ***REMOVED***
+class VoipLoginActivity : AppCompatActivity() {
 
-    private val binding by lazy ***REMOVED*** ActivityVoipLoginBinding.inflate(layoutInflater) }
-    private val mProductId by lazy ***REMOVED*** intent.getStringExtra("productId") ?: "" }
-    private val mDeviceName by lazy ***REMOVED*** intent.getStringExtra("deviceName") ?: "" }
-    private val mDeviceKey by lazy ***REMOVED*** intent.getStringExtra("deviceKey") ?: "" }
-    private val voipSetting = VoipSetting.getInstance(this)
+    private val binding by lazy { ActivityVoipLoginBinding.inflate(layoutInflater) }
+    private val mProductId by lazy { intent.getStringExtra("productId") ?: "" }
+    private val mDeviceName by lazy { intent.getStringExtra("deviceName") ?: "" }
+    private val mDeviceKey by lazy { intent.getStringExtra("deviceKey") ?: "" }
+    private val voipSetting by lazy { VoipSetting.getInstance(this)}
 
-    override fun onCreate(savedInstanceState: Bundle?) ***REMOVED***
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        with(binding) ***REMOVED***
+        with(binding) {
             // Set button click listeners
-            btnLoginVoip.setOnClickListener ***REMOVED***
+            btnLoginVoip.setOnClickListener {
                 if (!checkWxAppInfo()) return@setOnClickListener
                 startVoipActivity()
-          ***REMOVED***
-            btnWxSetting.setOnClickListener ***REMOVED***
+            }
+            btnWxSetting.setOnClickListener {
                 val dialog = WxSettingDialog(this@VoipLoginActivity)
                 dialog.show()
-                dialog.setOnDismisListener ***REMOVED***
+                dialog.setOnDismisListener {
                     txWelcomeSn.text = String.format("Welcome: %s", voipSetting.sn)
-              ***REMOVED***
-          ***REMOVED***
-            btnQualitySetting.setOnClickListener ***REMOVED***
+                }
+            }
+            btnQualitySetting.setOnClickListener {
                 QualitySettingDialog(this@VoipLoginActivity).show()
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 
-    override fun onResume() ***REMOVED***
+    override fun onResume() {
         super.onResume()
         binding.txWelcomeSn.text = String.format("Welcome: %s", voipSetting.sn)
-  ***REMOVED***
+    }
 
-    private fun checkWxAppInfo(): Boolean ***REMOVED***
+    private fun checkWxAppInfo(): Boolean {
         val modelId = voipSetting.modelId
         val sn = voipSetting.sn
         val snTicket = voipSetting.snTicket
         val appId = voipSetting.appId
-        if (modelId.isEmpty() || sn.isEmpty() || snTicket.isEmpty() || appId.isEmpty()) ***REMOVED***
+        if (modelId.isEmpty() || sn.isEmpty() || snTicket.isEmpty() || appId.isEmpty()) {
             Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_LONG).show()
             return false
-      ***REMOVED***
+        }
         return true
-  ***REMOVED***
+    }
 
-    private fun startVoipActivity() ***REMOVED***
+    private fun startVoipActivity() {
         val intent = Intent(this, VoipActivity::class.java)
         intent.putExtra("voip_model_id", voipSetting.modelId)
         intent.putExtra("voip_device_id", voipSetting.sn)
@@ -68,5 +68,5 @@ class VoipLoginActivity : AppCompatActivity() ***REMOVED***
         intent.putExtra("deviceKey", mDeviceKey)
         intent.putExtra("miniprogramVersion", 0)
         startActivity(intent)
-  ***REMOVED***
+    }
 }

@@ -4,57 +4,57 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class FLVPacker ***REMOVED***
+public class FLVPacker {
 
     private long pts = 0;
     private volatile boolean isHead = false;
 
-    public synchronized byte[] getFLV(byte[] data) ***REMOVED***
+    public synchronized byte[] getFLV(byte[] data) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try ***REMOVED***
-            if (!isHead) ***REMOVED***
+        try {
+            if (!isHead) {
                 baos.write(flvHeader());
-          ***REMOVED***
+            }
             baos.write(aacToFlv(data));
             baos.flush();
             baos.close();
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
-      ***REMOVED***
+        }
         return baos.toByteArray();
-  ***REMOVED***
+    }
 
-    public synchronized byte[] aacToFlv(byte[] date) ***REMOVED***
+    public synchronized byte[] aacToFlv(byte[] date) {
         byte[] data = Arrays.copyOfRange(date, 7, date.length);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try ***REMOVED***
+        try {
             baos.write(0x08);
             // 长度
             baos.write(integerTo3Bytes(data.length + 2));
-            if (pts == 0) ***REMOVED***
+            if (pts == 0) {
                 // 时间戳
                 baos.write(0x00);
                 baos.write(0x00);
                 baos.write(0x00);
                 baos.write(0x00);
                 pts = System.currentTimeMillis();
-          ***REMOVED*** else ***REMOVED***
+            } else {
                 byte[] b = integerTo4Bytes((int) (System.currentTimeMillis() - pts));
                 baos.write(b[1]);
                 baos.write(b[2]);
                 baos.write(b[3]);
                 baos.write(b[0]);
-          ***REMOVED***
+            }
             // StreamID
             baos.write(0x00);
             baos.write(0x00);
             baos.write(0x00);
             baos.write(0xAF);
-            if (data.length < 10) ***REMOVED***
+            if (data.length < 10) {
                 baos.write(0x00);
-          ***REMOVED*** else ***REMOVED***
+            } else {
                 baos.write(0x01);
-          ***REMOVED***
+            }
             baos.write(data);
 
             int len = data.length + 13;
@@ -65,17 +65,17 @@ public class FLVPacker ***REMOVED***
             baos.write(bbDS[3]);
             baos.flush();
             baos.close();
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
-      ***REMOVED***
+        }
 
         return baos.toByteArray();
-  ***REMOVED***
+    }
 
-    private byte[] flvHeader() ***REMOVED***
+    private byte[] flvHeader() {
         isHead = true;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try ***REMOVED***
+        try {
             baos.write(0x46);
             baos.write(0x4C);
             baos.write(0x56);
@@ -93,28 +93,28 @@ public class FLVPacker ***REMOVED***
             baos.write(0x00);
             baos.flush();
             baos.close();
-      ***REMOVED*** catch (IOException e) ***REMOVED***
+        } catch (IOException e) {
             e.printStackTrace();
-      ***REMOVED***
+        }
         return baos.toByteArray();
-  ***REMOVED***
+    }
 
-    public static byte[] integerTo3Bytes(int value) ***REMOVED***
+    public static byte[] integerTo3Bytes(int value) {
         byte[] result = new byte[3];
         result[0] = (byte) ((value >>> 16) & 0xFF);
         result[1] = (byte) ((value >>> 8) & 0xFF);
         result[2] = (byte) (value & 0xFF);
         return result;
-  ***REMOVED***
+    }
 
-    public static byte[] integerTo4Bytes(int value) ***REMOVED***
+    public static byte[] integerTo4Bytes(int value) {
         byte[] result = new byte[4];
         result[0] = (byte) ((value >>> 24) & 0xFF);
         result[1] = (byte) ((value >>> 16) & 0xFF);
         result[2] = (byte) ((value >>> 8) & 0xFF);
         result[3] = (byte) (value & 0xFF);
         return result;
-  ***REMOVED***
+    }
 
 }
 

@@ -2,7 +2,7 @@ package com.tencent.iotvideo.link.entity;
 
 import androidx.annotation.NonNull;
 
-public class ResolutionEntity ***REMOVED***
+public class ResolutionEntity {
     public static String TAG = ResolutionEntity.class.getSimpleName();
     /**
      * 分辨率宽
@@ -17,48 +17,48 @@ public class ResolutionEntity ***REMOVED***
      */
     private String simpleName = "";
 
-    public ResolutionEntity()***REMOVED***
+    public ResolutionEntity(){
 
-  ***REMOVED***
+    }
 
-    public ResolutionEntity(int width, int height) ***REMOVED***
+    public ResolutionEntity(int width, int height) {
         this.width = width;
         this.height = height;
-  ***REMOVED***
+    }
 
-    public ResolutionEntity(int width, int height, String simpleName) ***REMOVED***
+    public ResolutionEntity(int width, int height, String simpleName) {
         this.width = width;
         this.height = height;
         this.simpleName = simpleName;
-  ***REMOVED***
+    }
 
-    public int getWidth() ***REMOVED***
+    public int getWidth() {
         return width;
-  ***REMOVED***
+    }
 
-    public void setWidth(int width) ***REMOVED***
+    public void setWidth(int width) {
         this.width = width;
-  ***REMOVED***
+    }
 
-    public int getHeight() ***REMOVED***
+    public int getHeight() {
         return height;
-  ***REMOVED***
+    }
 
-    public void setHeight(int height) ***REMOVED***
+    public void setHeight(int height) {
         this.height = height;
-  ***REMOVED***
+    }
 
-    public String getSimpleName() ***REMOVED***
+    public String getSimpleName() {
         return simpleName;
-  ***REMOVED***
+    }
 
-    public void setSimpleName(String simpleName) ***REMOVED***
+    public void setSimpleName(String simpleName) {
         this.simpleName = simpleName;
-  ***REMOVED***
+    }
 
     @NonNull
     @Override
-    public String toString() ***REMOVED***
+    public String toString() {
         return simpleName;
-  ***REMOVED***
+    }
 }

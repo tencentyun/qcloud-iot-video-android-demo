@@ -26,68 +26,68 @@ import java.io.OutputStream
 private const val PERMISSION_REQUEST_CODE = 1
 private val TAG: String = MainActivity::class.java.simpleName
 
-class MainActivity : AppCompatActivity() ***REMOVED***
+class MainActivity : AppCompatActivity() {
 
-    private val binding by lazy ***REMOVED*** ActivityMainBinding.inflate(layoutInflater) }
+    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private val permissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
-    private val voipSetting = VoipSetting.getInstance(this)
+    private val voipSetting by lazy { VoipSetting.getInstance(this) }
 
-    override fun onCreate(savedInstanceState: Bundle?) ***REMOVED***
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CrashReport.initCrashReport(applicationContext, "e1c50561ac", false)
         setContentView(binding.root)
 
         // Request permissions
-        if (!hasPermissions()) ***REMOVED***
+        if (!hasPermissions()) {
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
-      ***REMOVED*** else ***REMOVED***
+        } else {
             checkFilesToastAfterPermissions()
-            lifecycleScope.launch(Dispatchers.Main) ***REMOVED***
+            lifecycleScope.launch(Dispatchers.Main) {
                 LogcatHelper.getInstance(this@MainActivity).start()
-          ***REMOVED***
-      ***REMOVED***
-        with(binding) ***REMOVED***
+            }
+        }
+        with(binding) {
             // Set button click listeners
-            btnLoginIPC.setOnClickListener ***REMOVED***
+            btnLoginIPC.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 startActivity(IPCActivity::class.java)
-          ***REMOVED***
-            btnLoginDuplexVideo.setOnClickListener ***REMOVED***
+            }
+            btnLoginDuplexVideo.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 startActivity(DuplexVideoActivity::class.java)
-          ***REMOVED***
-            btnLoginVoip.setOnClickListener ***REMOVED***
+            }
+            btnLoginVoip.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 startActivity(VoipLoginActivity::class.java)
-          ***REMOVED***
-            btnSettingDevice.setOnClickListener ***REMOVED***
+            }
+            btnSettingDevice.setOnClickListener {
                 DeviceSettingDialog(this@MainActivity).show()
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
-    ) ***REMOVED***
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == PERMISSION_REQUEST_CODE) ***REMOVED***
-            if (hasPermissions()) ***REMOVED***
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (hasPermissions()) {
                 checkFilesToastAfterPermissions()
                 LogcatHelper.getInstance(this).start()
-          ***REMOVED*** else ***REMOVED***
+            } else {
                 Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show()
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+            }
+        }
+    }
 
-    private fun hasPermissions(): Boolean ***REMOVED***
+    private fun hasPermissions(): Boolean {
         return (ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.CAMERA
@@ -98,9 +98,9 @@ class MainActivity : AppCompatActivity() ***REMOVED***
             this,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED
-  ***REMOVED***
+    }
 
-    private fun startActivity(clazz: Class<*>) ***REMOVED***
+    private fun startActivity(clazz: Class<*>) {
         val productId = voipSetting.productId
         val deviceName = voipSetting.deviceName
         val deviceKey = voipSetting.deviceKey
@@ -109,37 +109,37 @@ class MainActivity : AppCompatActivity() ***REMOVED***
         intent.putExtra("deviceName", deviceName)
         intent.putExtra("deviceKey", deviceKey)
         startActivity(intent)
-  ***REMOVED***
+    }
 
-    private fun checkDeviceInfo(): Boolean ***REMOVED***
+    private fun checkDeviceInfo(): Boolean {
         val productId = voipSetting.productId
         val deviceName = voipSetting.deviceName
         val deviceKey = voipSetting.deviceKey
-        if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) ***REMOVED***
+        if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) {
             Toast.makeText(this@MainActivity, "请输入设备信息！", Toast.LENGTH_LONG).show()
             return false
-      ***REMOVED***
+        }
         return true
-  ***REMOVED***
+    }
 
-    private fun checkFilesToastAfterPermissions() ***REMOVED***
+    private fun checkFilesToastAfterPermissions() {
         val preferences = getSharedPreferences("InstallConfig", MODE_PRIVATE)
         val installFlag = preferences.getBoolean("installFlag", false)
         Log.d(TAG, "is first install or reinstall: $installFlag")
-        if (!installFlag) ***REMOVED***
+        if (!installFlag) {
             saveFileFromAssertToSDCard("device_key")
             saveFileFromAssertToSDCard("voip_setting.json")
             val editor = preferences.edit()
             editor.putBoolean("installFlag", true)
             editor.apply()
-      ***REMOVED*** else ***REMOVED***
-            if (!isFileExists("device_key")) ***REMOVED***
+        } else {
+            if (!isFileExists("device_key")) {
                 saveFileFromAssertToSDCard("device_key")
-          ***REMOVED***
-            if (!isFileExists("voip_setting.json")) ***REMOVED***
+            }
+            if (!isFileExists("voip_setting.json")) {
                 saveFileFromAssertToSDCard("voip_setting.json")
-          ***REMOVED***
-      ***REMOVED***
+            }
+        }
         Toast.makeText(
             this,
             "voip_setting.json是否在sdcard下：" + isFileExists("voip_setting.json") + ", json是否合法：" + VoipSetting.isJSONString(
@@ -147,57 +147,57 @@ class MainActivity : AppCompatActivity() ***REMOVED***
             ),
             Toast.LENGTH_SHORT
         ).show()
-  ***REMOVED***
+    }
 
-    private fun isFileExists(fileName: String): Boolean ***REMOVED***
+    private fun isFileExists(fileName: String): Boolean {
         val file = File(Environment.getExternalStorageDirectory(), fileName)
-        if (file.exists()) ***REMOVED***
+        if (file.exists()) {
             Log.d(TAG, fileName + "File exists")
             return true
-      ***REMOVED*** else ***REMOVED***
+        } else {
             Log.d(TAG, fileName + "File does not exist")
             return false
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 
-    private fun saveFileFromAssertToSDCard(fileName: String) ***REMOVED***
+    private fun saveFileFromAssertToSDCard(fileName: String) {
         val assetManager = assets
         var input: InputStream? = null
         var output: OutputStream? = null
 
-        try ***REMOVED***
+        try {
             input = assetManager.open(fileName)
             val outFile = File(Environment.getExternalStorageDirectory(), fileName)
             output = FileOutputStream(outFile)
             copyFile(input, output)
-      ***REMOVED*** catch (e: IOException) ***REMOVED***
+        } catch (e: IOException) {
             Log.e(TAG, "Failed to copy asset file: $fileName", e)
-      ***REMOVED*** finally ***REMOVED***
-            if (input != null) ***REMOVED***
-                try ***REMOVED***
+        } finally {
+            if (input != null) {
+                try {
                     input.close()
-              ***REMOVED*** catch (e: IOException) ***REMOVED***
+                } catch (e: IOException) {
                     // NOOP
                     Log.e(TAG, "in.close Failed to copy asset file: $fileName", e)
-              ***REMOVED***
-          ***REMOVED***
-            if (output != null) ***REMOVED***
-                try ***REMOVED***
+                }
+            }
+            if (output != null) {
+                try {
                     output.close()
-              ***REMOVED*** catch (e: IOException) ***REMOVED***
+                } catch (e: IOException) {
                     // NOOP
                     Log.e(TAG, "out.close Failed to copy asset file: $fileName", e)
-              ***REMOVED***
-          ***REMOVED***
-      ***REMOVED***
-  ***REMOVED***
+                }
+            }
+        }
+    }
 
     @Throws(IOException::class)
-    private fun copyFile(input: InputStream, output: OutputStream) ***REMOVED***
+    private fun copyFile(input: InputStream, output: OutputStream) {
         val buffer = ByteArray(1024)
         var read: Int
-        while ((input.read(buffer).also ***REMOVED*** read = it }) != -1) ***REMOVED***
+        while ((input.read(buffer).also { read = it }) != -1) {
             output.write(buffer, 0, read)
-      ***REMOVED***
-  ***REMOVED***
+        }
+    }
 }
