@@ -11,7 +11,7 @@ import com.tencent.iotvideo.link.util.VoipSetting
 
 class VoipLoginActivity : AppCompatActivity() ***REMOVED***
 
-    private val binding = ActivityVoipLoginBinding.inflate(layoutInflater)
+    private val binding by lazy ***REMOVED*** ActivityVoipLoginBinding.inflate(layoutInflater) }
     private val mProductId by lazy ***REMOVED*** intent.getStringExtra("productId") ?: "" }
     private val mDeviceName by lazy ***REMOVED*** intent.getStringExtra("deviceName") ?: "" }
     private val mDeviceKey by lazy ***REMOVED*** intent.getStringExtra("deviceKey") ?: "" }
