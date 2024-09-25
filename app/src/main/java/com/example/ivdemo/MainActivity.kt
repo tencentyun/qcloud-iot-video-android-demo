@@ -28,7 +28,7 @@ private val TAG: String = MainActivity::class.java.simpleName
 
 class MainActivity : AppCompatActivity() ***REMOVED***
 
-    private val binding = ActivityMainBinding.inflate(layoutInflater)
+    private val binding by lazy ***REMOVED*** ActivityMainBinding.inflate(layoutInflater) }
     private val permissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO,
