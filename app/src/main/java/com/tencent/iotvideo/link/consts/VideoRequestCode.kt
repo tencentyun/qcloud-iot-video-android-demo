@@ -1,6 +1,6 @@
 package com.tencent.iotvideo.link.consts
 
-object VideoRequestCode ***REMOVED***
+object VideoRequestCode {
 
     /*************video接口开始**************/
     const val video_describe_devices = 20000
