@@ -6,7 +6,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.tencent.iot.voipdemo.R;
+import com.tencent.iot.twcall.R;
 import com.tencent.iotvideo.link.util.VoipSetting;
 
 public class WxSettingDialog extends IosCenterStyleDialog {

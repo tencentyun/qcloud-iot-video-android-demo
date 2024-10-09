@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.tencent.iot.voipdemo.R;
+import com.tencent.iot.twcall.R;
 import com.tencent.iotvideo.link.util.VoipSetting;
 
 import static android.content.Context.MODE_PRIVATE;
