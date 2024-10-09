@@ -14,7 +14,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.tencent.iot.voipdemo.R;
+import com.tencent.iot.twcall.R;
 import com.tencent.iotvideo.link.consts.CameraConstants;
 import com.tencent.iotvideo.link.entity.ResolutionEntity;
 import com.tencent.iotvideo.link.util.QualitySetting;

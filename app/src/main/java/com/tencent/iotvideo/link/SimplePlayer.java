@@ -1,4 +1,4 @@
-package com.example.ivdemo;
+package com.tencent.iotvideo.link;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;

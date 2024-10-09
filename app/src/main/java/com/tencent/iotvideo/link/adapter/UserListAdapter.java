@@ -13,7 +13,7 @@ import android.widget.ImageView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.tencent.iot.voipdemo.R;
+import com.tencent.iot.twcall.R;
 import com.tencent.iotvideo.link.entity.UserEntity;
 import com.tencent.iotvideo.link.util.VoipSetting;
 

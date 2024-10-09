@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">IoT Video Device Demo</string>
+    <string name="app_name">TWCallDeviceSDK</string>
     <string name="title_activity_duplex_video">Duplex Video</string>
     <string name="title_activity_voip">WX VOIP demo</string>
 
@@ -38,4 +38,10 @@ json格式填充粘贴的数据到此输入框</string>
     <string name="local_bit_rate_tip">0kbps</string>
     <string name="wx_resolution">请选择要拉取小程序的分辨率</string>
     <string name="wx_camera_setting">请选择视频通话默认小程序端摄像头开关</string>
+    <string name="tip_text">温馨提示：首次进入请点击配置设备按钮配置必要参数!</string>
+    <string name="subtitle_text">欢迎使用腾讯云 IoT Device Video Demo</string>
+    <string name="title_text">IoT Device Video Demo</string>
+    <string name="wx_setting_text">WX SETTING</string>
+    <string name="quality_setting_text">画质设置</string>
+    <string name="setting">设置</string>
 </resources>

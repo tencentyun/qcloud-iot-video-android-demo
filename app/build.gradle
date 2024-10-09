@@ -1,14 +1,16 @@
+import groovy.xml.XmlSlurper
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
 
 android {
-    namespace 'com.tencent.iot.voipdemo'
+    namespace 'com.tencent.iot.twcall'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.tencent.iot.voipdemo"
+        applicationId "com.tencent.iot.twcall"
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
@@ -33,6 +35,22 @@ android {
     buildFeatures {
         viewBinding true
     }
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            def appName = getAppName()
+            def buildType = variant.buildType.name
+            def versionName = variant.versionName
+            def newApkName = "${appName}-${buildType}-${versionName}.apk"
+            outputFileName = newApkName
+        }
+    }
+}
+
+def getAppName() {
+    def stringsFile = file("${projectDir}/src/main/res/values/strings.xml")
+    def strings = new XmlSlurper().parse(stringsFile)
+    def appName = strings.string.find { it.@name == 'app_name' }.text()
+    return appName
 }
 
 dependencies {
