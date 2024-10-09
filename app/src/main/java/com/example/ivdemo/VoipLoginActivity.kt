@@ -1,116 +1,75 @@
-package com.example.ivdemo;
+package com.example.ivdemo
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.tencent.iot.twcall.R
+import com.tencent.iot.twcall.databinding.ActivityVoipLoginBinding
+import com.tencent.iotvideo.link.popup.QualitySettingDialog
+import com.tencent.iotvideo.link.popup.WxSettingDialog
+import com.tencent.iotvideo.link.util.VoipSetting
 
-import androidx.appcompat.app.AppCompatActivity;
+class VoipLoginActivity : AppCompatActivity() {
 
-import com.tencent.iot.voipdemo.R;
-import com.tencent.iotvideo.link.popup.QualitySettingDialog;
-import com.tencent.iotvideo.link.popup.WxSettingDialog;
-import com.tencent.iotvideo.link.util.VoipSetting;
+    private val binding by lazy { ActivityVoipLoginBinding.inflate(layoutInflater) }
+    private val mProductId by lazy { intent.getStringExtra("productId") ?: "" }
+    private val mDeviceName by lazy { intent.getStringExtra("deviceName") ?: "" }
+    private val mDeviceKey by lazy { intent.getStringExtra("deviceKey") ?: "" }
+    private val voipSetting by lazy { VoipSetting.getInstance(this)}
 
-public class VoipLoginActivity extends AppCompatActivity {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
 
-    private String mProductId;
-    private String mDeviceName;
-    private String mDeviceKey;
-
-    private TextView mWelcomeSnTv;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_voip_login);
-
-        mProductId = getIntent().getStringExtra("productId");
-        mDeviceName = getIntent().getStringExtra("deviceName");
-        mDeviceKey = getIntent().getStringExtra("deviceKey");
-
-        mWelcomeSnTv = findViewById(R.id.tx_welcome_sn);
-
-        // Set button click listeners
-        Button voipButton = findViewById(R.id.btn_login_voip);
-        voipButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!checkWxAppInfo()) return;
-                startVoipActivity();
+        with(binding) {
+            titleLayout.tvTitle.text = getString(R.string.title_voip)
+            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            // Set button click listeners
+            btnLoginVoip.setOnClickListener {
+                if (!checkWxAppInfo()) return@setOnClickListener
+                startVoipActivity()
             }
-        });
-
-        Button wxSettingButton = findViewById(R.id.btn_wx_setting);
-        wxSettingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                WxSettingDialog dialog = new WxSettingDialog(VoipLoginActivity.this);
-                dialog.show();
-                dialog.setOnDismisListener(new WxSettingDialog.OnDismisListener() {
-                    @Override
-                    public void onDismised() {
-                        if (mWelcomeSnTv != null) {
-                            mWelcomeSnTv.setText(String.format("Welcome: %s", VoipSetting.getInstance(VoipLoginActivity.this).sn));
-                        }
-                    }
-                });
+            btnWxSetting.setOnClickListener {
+                val dialog = WxSettingDialog(this@VoipLoginActivity)
+                dialog.show()
+                dialog.setOnDismisListener {
+                    txWelcomeSn.text = String.format("Welcome: %s", voipSetting.sn)
+                }
             }
-        });
-
-
-
-        Button qualitySettingButton = findViewById(R.id.btn_quality_setting);
-        qualitySettingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                QualitySettingDialog dialog = new QualitySettingDialog(VoipLoginActivity.this);
-                dialog.show();
-//                dialog.setOnDismisListener(new WxSettingDialog.OnDismisListener() {
-//                    @Override
-//                    public void onDismised() {
-//                        if (mWelcomeSnTv != null) {
-//                            mWelcomeSnTv.setText(String.format("Welcome: %s", VoipSetting.getInstance(VoipLoginActivity.this).sn));
-//                        }
-//                    }
-//                });
+            btnQualitySetting.setOnClickListener {
+                QualitySettingDialog(this@VoipLoginActivity).show()
             }
-        });
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mWelcomeSnTv != null) {
-            mWelcomeSnTv.setText(String.format("Welcome: %s", VoipSetting.getInstance(this).sn));
         }
     }
 
-    private boolean checkWxAppInfo() {
-        String modelId = VoipSetting.getInstance(this).modelId;
-        String sn = VoipSetting.getInstance(this).sn;
-        String snTicket = VoipSetting.getInstance(this).snTicket;
-        String appId = VoipSetting.getInstance(this).appId;
+    override fun onResume() {
+        super.onResume()
+        binding.txWelcomeSn.text = String.format("Welcome: %s", voipSetting.sn)
+    }
+
+    private fun checkWxAppInfo(): Boolean {
+        val modelId = voipSetting.modelId
+        val sn = voipSetting.sn
+        val snTicket = voipSetting.snTicket
+        val appId = voipSetting.appId
         if (modelId.isEmpty() || sn.isEmpty() || snTicket.isEmpty() || appId.isEmpty()) {
-            Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_LONG).show();
-            return false;
+            Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_LONG).show()
+            return false
         }
-        return true;
+        return true
     }
 
-    private void startVoipActivity() {
-        Intent intent = new Intent(this, VoipActivity.class);
-        intent.putExtra("voip_model_id", VoipSetting.getInstance(this).modelId);
-        intent.putExtra("voip_device_id", VoipSetting.getInstance(this).sn);
-        intent.putExtra("voip_wxa_appid", VoipSetting.getInstance(this).appId);
-        intent.putExtra("voip_sn_ticket", VoipSetting.getInstance(this).snTicket);
-        intent.putExtra("productId", mProductId);
-        intent.putExtra("deviceName", mDeviceName);
-        intent.putExtra("deviceKey", mDeviceKey);
-        intent.putExtra("miniprogramVersion", 0);
-        startActivity(intent);
+    private fun startVoipActivity() {
+        val intent = Intent(this, VoipActivity::class.java)
+        intent.putExtra("voip_model_id", voipSetting.modelId)
+        intent.putExtra("voip_device_id", voipSetting.sn)
+        intent.putExtra("voip_wxa_appid", voipSetting.appId)
+        intent.putExtra("voip_sn_ticket", voipSetting.snTicket)
+        intent.putExtra("productId", mProductId)
+        intent.putExtra("deviceName", mDeviceName)
+        intent.putExtra("deviceKey", mDeviceKey)
+        intent.putExtra("miniprogramVersion", 0)
+        startActivity(intent)
     }
 }
