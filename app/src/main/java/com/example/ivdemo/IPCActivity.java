@@ -13,11 +13,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.tencent.iot.video.device.VideoNativeInterface;
+import com.tencent.iot.video.device.annotations.StreamType;
 import com.tencent.iot.video.device.callback.IvAvtCallback;
 import com.tencent.iot.video.device.callback.IvDeviceCallback;
 import com.tencent.iot.video.device.consts.CommandType;
 import com.tencent.iot.video.device.consts.P2pEventType;
-import com.tencent.iot.video.device.consts.StreamType;
 import com.tencent.iot.video.device.model.AvDataInfo;
 import com.tencent.iot.video.device.model.AvtInitInfo;
 import com.tencent.iot.video.device.model.SysInitInfo;
@@ -43,6 +43,10 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
     protected String mDeviceName;
 
     private static long lastClickTime;
+
+    protected int visitor = 0;
+    protected int channel = 0;
+    protected int videoResType;
 
     protected void initWidget() {
         setContentView(R.layout.activity_ipc);
@@ -123,17 +127,24 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
 
     @Override
     public AvDataInfo onGetAvEncInfo(int visitor, int channel, int videoResType) {
+        this.visitor = visitor;
+        this.channel = channel;
+        this.videoResType = videoResType;
         return AvDataInfo.createDefaultAvDataInfo(videoResType);
     }
 
     @Override
     public void onStartRealPlay(int visitor, int channel, int res_type) {
+        this.visitor = visitor;
+        this.channel = channel;
         Log.d(TAG, "onStartRealPlay  visitor " + visitor + " channel " + channel + " res_type " + res_type);
         mCameraRecorder.startRecording(visitor, res_type);
     }
 
     @Override
     public void onStopRealPlay(int visitor, int channel, int res_type) {
+        this.visitor = visitor;
+        this.channel = channel;
         Log.d(TAG, "onStopRealPlay  visitor " + visitor + " channel " + channel + " res_type " + res_type);
         mCameraRecorder.stopRecording(visitor, res_type);
     }
@@ -141,18 +152,24 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
     @Override
     public int onStartRecvAudioStream(int visitor, int channel, int type, int option, int mode, int width, int sample_rate, int sample_num) {
         Log.d(TAG, "onStartRecvAudioStream visitor " + visitor);
+        this.visitor = visitor;
+        this.channel = channel;
         return mPlayer.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num);
     }
 
     @Override
     public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) {
         Log.w(TAG, "onStartRecvVideoStream  video stream is not supported in this activity");
+        this.visitor = visitor;
+        this.channel = channel;
         return 0;
     }
 
     @Override
     public void onNotify(int event, int visitor, int channel, int videoResType) {
         Log.w(TAG, "onNotify()");
+        this.visitor = visitor;
+        this.channel = channel;
         String msg = "";
         switch (event) {
             case P2pEventType.IV_AVT_EVENT_P2P_PEER_CONNECT_FAIL:
@@ -186,6 +203,8 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
 
     public int onStopRecvStream(int visitor, int channel, int streamType) {
         Log.d(TAG, "onStopRecvStream visitor " + visitor + " stream_type " + streamType + " stopped");
+        this.visitor = visitor;
+        this.channel = channel;
         if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO) {
             return mPlayer.stopVideoPlay(visitor);
         } else {
@@ -196,6 +215,7 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
     @Override
     public int onRecvStream(int visitor, int streamType, byte[] data, int len, long pts, long seq) {
         Log.d(TAG, "onRecvStream visitor " + visitor + " stream_type " + streamType + " data" + data + "  len" + len + "   pts" + pts + "   seq" + seq);
+        this.visitor = visitor;
         if (streamType == 1) {
             return mPlayer.playVideoStream(visitor, data, len, pts, seq);
 
@@ -206,8 +226,10 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
     }
 
     @Override
-    public int onRecvCommand(int command, int visitor, int channel, int videoResType, Object args) {
+    public String onRecvCommand(int command, int visitor, int channel, int videoResType, String args) {
         Log.d(TAG, "onRecvCommand command " + command + " visitor " + visitor + " channel" + channel + "   videoResType" + videoResType + "   args" + args);
+        this.visitor = visitor;
+        this.channel = channel;
         String msg = "";
         switch (command) {
             case CommandType.IV_AVT_COMMAND_USR_DATA: {
@@ -318,18 +340,22 @@ public class IPCActivity extends AppCompatActivity implements IvAvtCallback {
         }
         // Toast.makeText(IPCActivity.this, msg, Toast.LENGTH_SHORT).show();
         updateUI(this, msg);
-        return 0;
+        return "success";
     }
 
     @Override
-    public int onDownloadFile(int status, int visitor, int channel, Object args) {
-        Log.d(TAG, "onDownloadFile status " + status + " visitor " + visitor + " channel" + channel + "   args" + args);
+    public int onDownloadFile(int status, int visitor, int channel) {
+        Log.d(TAG, "onDownloadFile status " + status + " visitor " + visitor + " channel" + channel);
+        this.visitor = visitor;
+        this.channel = channel;
         return 0;
     }
 
     @Override
     public void onGetPeerOuterNet(int visitor, int channel, String netInfo) {
         Log.d(TAG, "onGetPeerOuterNet visitor " + visitor + " channel " + channel + " netInfo" + netInfo);
+        this.visitor = visitor;
+        this.channel = channel;
     }
 
     public void updateUI(Context context, String msg) {

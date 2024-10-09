@@ -37,13 +37,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_mian);
         CrashReport.initCrashReport(getApplicationContext(), "e1c50561ac", false);
 
         // Get UI elements
         Button ipcButton = findViewById(R.id.btn_login_IPC);
         Button duplexButton = findViewById(R.id.btn_login_duplex_video);
         Button voipButton = findViewById(R.id.btn_login_voip);
+        Button callAnswerButton = findViewById(R.id.btn_call_answer);
         Button settingDeviceButton = findViewById(R.id.btn_setting_device);
 
         // Request permissions
@@ -83,6 +84,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!checkDeviceInfo()) return;
                 startVoipActivity();
+            }
+        });
+        callAnswerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!checkDeviceInfo()) return;
+                startCallAnswerVideoActivity();
             }
         });
         settingDeviceButton.setOnClickListener(new View.OnClickListener() {
@@ -141,6 +149,17 @@ public class MainActivity extends AppCompatActivity {
         String deviceName = VoipSetting.getInstance(this).deviceName;
         String deviceKey = VoipSetting.getInstance(this).deviceKey;
         Intent intent = new Intent(this, VoipLoginActivity.class);
+        intent.putExtra("productId", productId);
+        intent.putExtra("deviceName", deviceName);
+        intent.putExtra("deviceKey", deviceKey);
+        startActivity(intent);
+    }
+
+    private void startCallAnswerVideoActivity() {
+        String productId = VoipSetting.getInstance(this).productId;
+        String deviceName = VoipSetting.getInstance(this).deviceName;
+        String deviceKey = VoipSetting.getInstance(this).deviceKey;
+        Intent intent = new Intent(this, CallAnswerVideoActivity.class);
         intent.putExtra("productId", productId);
         intent.putExtra("deviceName", deviceName);
         intent.putExtra("deviceKey", deviceKey);

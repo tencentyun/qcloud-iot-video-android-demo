@@ -10,7 +10,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight">
 
-        <activity android:name="com.example.ivdemo.MainActivity">
+        <activity
+            android:name="com.example.ivdemo.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -18,17 +19,25 @@
         </activity>
         <activity
             android:name="com.example.ivdemo.IPCActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
+            android:configChanges="orientation|keyboardHidden|screenSize">
+        </activity>
+        <activity
+            android:name="com.example.ivdemo.DuplexVideoActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_duplex_video">
+        </activity>
         <activity
             android:name="com.example.ivdemo.VoipLoginActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_voip" />
+            android:label="@string/title_activity_voip">
+        </activity>
         <activity
             android:name="com.example.ivdemo.VoipActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_voip" />
-        <activity
-            android:name="com.example.ivdemo.DuplexVideoActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
+            android:label="@string/title_activity_voip">
+        </activity>
+        <activity android:name="com.example.ivdemo.CallAnswerVideoActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_voip"/>
     </application>
+
 </manifest>
