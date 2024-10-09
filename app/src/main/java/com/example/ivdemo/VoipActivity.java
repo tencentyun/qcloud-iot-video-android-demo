@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.tencent.iot.video.device.VideoNativeInterface;
-import com.tencent.iot.video.device.consts.StreamType;
+import com.tencent.iot.video.device.annotations.StreamType;
 import com.tencent.iot.voipdemo.R;
 import com.tencent.iotvideo.link.CameraRecorder;
 import com.tencent.iotvideo.link.adapter.UserListAdapter;
