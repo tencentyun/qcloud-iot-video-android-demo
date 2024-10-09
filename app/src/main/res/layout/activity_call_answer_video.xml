@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="app呼叫来电"
+            android:text="小程序呼叫来电"
             android:textSize="48sp" />
 
         <Button
