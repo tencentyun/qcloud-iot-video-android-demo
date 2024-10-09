@@ -1,80 +1,77 @@
-package com.example.ivdemo;
+package com.example.ivdemo
 
-import android.graphics.SurfaceTexture;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Surface;
-import android.view.TextureView;
+import android.graphics.SurfaceTexture
+import android.os.Bundle
+import android.util.Log
+import android.view.Surface
+import android.view.TextureView.SurfaceTextureListener
+import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
+import com.tencent.iotvideo.link.CameraRecorder
+import com.tencent.iotvideo.link.SimplePlayer
 
-import com.tencent.iot.voipdemo.R;
-import com.tencent.iotvideo.link.CameraRecorder;
+private val TAG: String = DuplexVideoActivity::class.java.simpleName
+
+class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
+
+    private val player = SimplePlayer()
+
+    private val cameraRecorder = CameraRecorder()
+
+    private var localPreviewSurface: SurfaceTexture? = null
+
+    private var remotePreviewSurface: SurfaceTexture? = null
 
 
-public class DuplexVideoActivity extends IPCActivity implements TextureView.SurfaceTextureListener {
-    private static final String TAG = DuplexVideoActivity.class.getSimpleName();
+    private val listener = object : SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+            if (surface == binding.textureViewDuplex.surfaceTexture) {
+                // Initialize the SurfaceTexture object
+                localPreviewSurface = surface
 
-    @Override
-    protected void initWidget() {
-        setContentView(R.layout.activity_duplex_video);
+                // Start the camera encoder
+                cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+            } else if (surface == binding.surfaceViewDuplex.surfaceTexture) {
+                remotePreviewSurface = surface
+            }
+        }
 
-        mTextDevinfo = findViewById(R.id.text_duplex_devinfo);
-        mTextureView = findViewById(R.id.textureView_duplex);
-        // Set the SurfaceTextureListener on the TextureView
-        mTextureView.setSurfaceTextureListener(this);
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+            // Not used in this example
+        }
 
-        mRemoteView = findViewById(R.id.surfaceView_duplex);
-        mPlayer = new SimplePlayer();
-        mCameraRecorder = new CameraRecorder();
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+            if (surface == binding.textureViewDuplex.surfaceTexture) {
+                // Stop the camera encoder
+                cameraRecorder.closeCamera()
+            }
+            return true
+        }
+
+        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+            // Not used in this example
+        }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "start create");
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "start create")
+        super.onCreate(savedInstanceState)
     }
 
-    @Override
-    public int onStartRecvVideoStream(int visitor, int channel, int type, int height, int width, int frameRate) {
-        if (mRemotePreviewSurface != null) {
-            return mPlayer.startVideoPlay(new Surface(mRemotePreviewSurface), visitor, type, height, width);
+    override fun getViewBinding(): ActivityDuplexVideoBinding =
+        ActivityDuplexVideoBinding.inflate(layoutInflater)
+
+    override fun initView() {
+        binding.textureViewDuplex.surfaceTextureListener = listener
+    }
+
+    override fun onStartRecvVideoStream(
+        visitor: Int, channel: Int, type: Int, height: Int, width: Int, frameRate: Int
+    ): Int {
+        return if (remotePreviewSurface != null) {
+            player.startVideoPlay(Surface(remotePreviewSurface), visitor, type, height, width)
         } else {
-            Log.d(TAG, "IvStartRecvVideoStream mRemotePreviewSurface is null visitor " + visitor);
-            return -1;
+            Log.d(TAG, "IvStartRecvVideoStream mRemotePreviewSurface is null visitor $visitor")
+            -1
         }
-    }
-
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-
-        if (surfaceTexture.equals(mTextureView.getSurfaceTexture())) {
-            // Initialize the SurfaceTexture object
-            mLocalPreviewSurface = surfaceTexture;
-
-            // Start the camera encoder
-            mCameraRecorder.openCamera(mLocalPreviewSurface, this);
-        } else if (surfaceTexture.equals(mRemoteView.getSurfaceTexture())) {
-            mRemotePreviewSurface = surfaceTexture;
-        }
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-        // Not used in this example
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-
-        if (surfaceTexture.equals(mTextureView.getSurfaceTexture())) {
-            // Stop the camera encoder
-            mCameraRecorder.closeCamera();
-        }
-
-        return true;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-        // Not used in this example
     }
 }
