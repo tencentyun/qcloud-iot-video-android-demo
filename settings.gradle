@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "IVDemo"
+rootProject.name = "TWcallDeviceDemo"
 include ':app'
