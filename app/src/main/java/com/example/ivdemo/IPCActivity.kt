@@ -1,9 +1,10 @@
 package com.example.ivdemo
 
 import android.widget.Toast
+import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityIpcBinding
 import com.tencent.iot.video.device.VideoNativeInterface
-import com.tencent.iot.video.device.consts.StreamType
+import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
@@ -17,7 +18,10 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
     override fun getViewBinding(): ActivityIpcBinding = ActivityIpcBinding.inflate(layoutInflater)
     override fun initView() {
         with(binding) {
-            textIpcDevinfo.text = "$productId/$deviceName"
+            titleLayout.tvTitle.text = getString(R.string.title_ipc)
+            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            textDevinfo.text =
+                String.format((getString(R.string.text_device_info)), "$productId/$deviceName")
             btnIpcCall.setOnClickListener {
                 val time = System.currentTimeMillis()
                 val timeD = time - lastClickTime

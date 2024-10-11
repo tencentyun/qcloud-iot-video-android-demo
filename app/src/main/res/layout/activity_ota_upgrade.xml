@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/title_layout"
+        layout="@layout/menu_back_layout" />
+
+    <TextView
+        android:id="@+id/text_devinfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="@string/text_device_info"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+        android:textColor="@color/light_blue_900"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/dev_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btn_ota_upgrade"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="80dp"
+        android:background="@drawable/background_blue_cell_btn"
+        android:text="@string/title_ota_upgrade"
+        android:textColor="@color/blue_0052D9"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/btn_exit_ota"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="80dp"
+        android:background="@drawable/background_blue_cell_btn"
+        android:text="@string/text_exit_ota"
+        android:textColor="@color/blue_0052D9"
+        android:textSize="20sp" />
+
+
+</LinearLayout>
