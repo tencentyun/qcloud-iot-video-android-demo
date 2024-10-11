@@ -16,7 +16,7 @@ class VoipLoginActivity : AppCompatActivity() {
     private val mProductId by lazy { intent.getStringExtra("productId") ?: "" }
     private val mDeviceName by lazy { intent.getStringExtra("deviceName") ?: "" }
     private val mDeviceKey by lazy { intent.getStringExtra("deviceKey") ?: "" }
-    private val voipSetting by lazy { VoipSetting.getInstance(this)}
+    private val voipSetting by lazy { VoipSetting.getInstance(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
