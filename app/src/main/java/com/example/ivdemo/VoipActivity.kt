@@ -15,7 +15,7 @@ import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityVoipBinding
 import com.tencent.iot.twcall.databinding.SettingLayoutBinding
 import com.tencent.iot.video.device.VideoNativeInterface
-import com.tencent.iot.video.device.consts.StreamType
+import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.adapter.UserListAdapter
@@ -366,8 +366,8 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         return 0
     }
 
-    override fun onStopRealPlay(visitor: Int, channel: Int, res_type: Int) {
-        super.onStopRealPlay(visitor, channel, res_type)
+    override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
+        super.onStopRealPlay(visitor, channel, videoResType)
         lifecycleScope.launch { updateVideoUI(false) }
     }
 
