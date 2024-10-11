@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
+import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
@@ -62,6 +63,10 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
 
     override fun initView() {
         binding.textureViewDuplex.surfaceTextureListener = listener
+        binding.titleLayout.tvTitle.text = getString(R.string.title_audio_video_call)
+        binding.titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+        binding.textDevinfo.text =
+            String.format((getString(R.string.text_device_info)), "$productId/$deviceName")
     }
 
     override fun onStartRecvVideoStream(

@@ -13,8 +13,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.tencent.bugly.crashreport.CrashReport
 import com.tencent.iot.twcall.databinding.ActivityMainBinding
+import com.tencent.iot.twcall.databinding.SettingLayoutBinding
 import com.tencent.iotvideo.link.popup.DeviceSettingDialog
 import com.tencent.iotvideo.link.util.VoipSetting
+import com.tencent.iotvideo.link.util.showPopupWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -62,7 +64,12 @@ class MainActivity : AppCompatActivity() {
             }
             btnLoginVoip.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
+
                 startActivity(VoipLoginActivity::class.java)
+            }
+            btnOtaUpgrade.setOnClickListener {
+                if (!checkDeviceInfo()) return@setOnClickListener
+                startActivity(OTAUpgradeActivity::class.java)
             }
             btnSettingDevice.setOnClickListener {
                 DeviceSettingDialog(this@MainActivity).show()

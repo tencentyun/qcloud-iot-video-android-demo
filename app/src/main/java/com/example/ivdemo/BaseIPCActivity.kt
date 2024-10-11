@@ -16,6 +16,7 @@ import com.tencent.iot.video.device.model.AvtInitInfo
 import com.tencent.iot.video.device.model.SysInitInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 private val TAG = IPCActivity::class.java.simpleName
 
@@ -161,13 +162,13 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         visitor: Int,
         channel: Int,
         videoResType: Int,
-        args: Any?
-    ): Int {
+        args: String?
+    ): String {
         Log.d(
             TAG,
             "onRecvCommand command $command visitor $visitor channel$channel   videoResType$videoResType   args$args"
         )
-        val msg:String = when (command) {
+        val msg: String = when (command) {
             CommandType.IV_AVT_COMMAND_USR_DATA -> {
                 Log.d(TAG, "receive command: user data")
                 "user data"
@@ -274,11 +275,14 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
             }
         }
         showToast(msg)
-        return 0
+        val res = JSONObject()
+        res.put("code", 0)
+        res.put("msg", "success")
+        return res.toString()
     }
 
-    override fun onDownloadFile(status: Int, visitor: Int, channel: Int, args: Any?): Int {
-        Log.d(TAG, "onDownloadFile status $status visitor $visitor channel$channel   args$args")
+    override fun onDownloadFile(status: Int, visitor: Int, channel: Int): Int {
+        Log.d(TAG, "onDownloadFile status $status visitor $visitor channel$channel")
         return 0
     }
 

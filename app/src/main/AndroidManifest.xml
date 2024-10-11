@@ -38,6 +38,11 @@
             android:theme="@style/Theme.TWAppTheme" />
 
         <activity
+            android:name="com.example.ivdemo.OTAUpgradeActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/Theme.TWAppTheme" />
+
+        <activity
             android:name="com.example.ivdemo.SettingActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/Theme.TWAppTheme" />
