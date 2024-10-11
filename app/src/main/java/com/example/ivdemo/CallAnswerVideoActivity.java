@@ -59,7 +59,7 @@ public class CallAnswerVideoActivity extends IPCActivity implements TextureView.
         mRemoteView.setSurfaceTextureListener(this);
         mPlayer = new SimplePlayer();
         mCameraRecorder = new CameraRecorder();
-
+        mCameraRecorder.isSaveRecord(true);
         clCall = findViewById(R.id.cl_call);
         btnRejectListen = findViewById(R.id.btn_reject_listen);
         tip = findViewById(R.id.tip_text);

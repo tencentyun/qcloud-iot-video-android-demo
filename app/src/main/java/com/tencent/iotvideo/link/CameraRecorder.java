@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.tencent.iot.video.device.VideoNativeInterface;
@@ -18,6 +19,9 @@ import com.tencent.iotvideo.link.param.VideoEncodeParam;
 import com.tencent.iotvideo.link.util.CameraUtils;
 import com.tencent.iotvideo.link.util.QualitySetting;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener {
     private static final String TAG = "CameraEncoder";
@@ -48,8 +54,21 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private Activity mActivity = null;
     private static Timer bitRateTimer;
 
+    private boolean isSaveRecord = false;
+
+    private FileOutputStream fos;
+
+    private String speakH264FilePath = "/sdcard/video.h264";
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     // for test only
 //    private FileOutputStream mOutputStream = null;
+
+    public void isSaveRecord(boolean isSaveRecord) {
+        this.isSaveRecord = isSaveRecord;
+        recordSpeakH264(isSaveRecord);
+    }
 
     public void openCamera(SurfaceTexture surfaceTexture, Activity activity) {
         try {
@@ -57,7 +76,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
-            mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate()*1000;
+            mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
             mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
@@ -186,6 +205,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     private int stat_cnt = 0;
+
     @Override
     public void onVideoEncoded(byte[] datas, long pts, long seq, boolean isKeyFrame) {
 //        Log.d(TAG, "encoded video data len " + datas.length + " pts " + pts);
@@ -204,7 +224,20 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 if ((stat_cnt++ % 50) == 0) {
                     int buf_size = iv.getSendStreamBuf(visitor, res_type);
                     int link_mode = iv.getSendStreamStatus(visitor, res_type);
-                    Log.d(TAG, "visitor "+ visitor + " buf size " + buf_size + " link mode " + link_mode);
+                    Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + link_mode);
+                }
+                if (isSaveRecord) {
+                    if (executor.isShutdown()) return;
+                    executor.submit(() -> {
+                        if (fos != null) {
+                            try {
+                                fos.write(datas);
+                                fos.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                 }
             }
         }
@@ -229,7 +262,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     public class AdapterBitRateTask extends TimerTask {
         @Override
         public void run() {
-            System.out.println("检测时间到:" +new Date());
+            System.out.println("检测时间到:" + new Date());
 
             if (mVideoEncoder != null) {
 
@@ -239,7 +272,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int now_video_rate = mVideoEncoder.getVideoBitRate();
                 int now_frame_rate = mVideoEncoder.getVideoFrameRate();
 
-                Log.e(TAG,"send_bufsize==" + bufsize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
+                Log.e(TAG, "send_bufsize==" + bufsize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
 
                 // 降码率
                 // 当发现p2p的水线超过一定值时，降低视频码率，这是一个经验值，一般来说要大于 [视频码率/2]
@@ -249,15 +282,15 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int video_rate_byte = (now_video_rate / 8) * 3 / 4;
                 if (p2p_wl_avg > video_rate_byte) {
 
-                    mVideoEncoder.setVideoBitRate(now_video_rate/2);
-                    mVideoEncoder.setVideoFrameRate(now_frame_rate/3);
+                    mVideoEncoder.setVideoBitRate(now_video_rate / 2);
+                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
 
-                }else if (p2p_wl_avg <  (now_video_rate / 8) / 3) {
+                } else if (p2p_wl_avg < (now_video_rate / 8) / 3) {
 
                     // 升码率
                     // 测试发现升码率的速度慢一些效果更好
                     // p2p水线经验值一般小于[视频码率/2]，网络良好的情况会小于 [视频码率/3] 甚至更低
-                    mVideoEncoder.setVideoBitRate(now_video_rate + (now_video_rate-p2p_wl_avg*8)/5);
+                    mVideoEncoder.setVideoBitRate(now_video_rate + (now_video_rate - p2p_wl_avg * 8) / 5);
                     mVideoEncoder.setVideoFrameRate(now_frame_rate * 5 / 4);
                 }
             }
@@ -269,12 +302,33 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
 //        IvNativeInterface.getInstance().resetAvg();
         bitRateTimer = new Timer();
-        bitRateTimer.schedule(new AdapterBitRateTask(),3000,1000);
+        bitRateTimer.schedule(new AdapterBitRateTask(), 3000, 1000);
     }
 
     private void stopBitRateAdapter() {
         if (bitRateTimer != null) {
             bitRateTimer.cancel();
+        }
+    }
+
+    public void recordSpeakH264(boolean isRecord) {
+        if (isRecord && !TextUtils.isEmpty(speakH264FilePath)) {
+            File file = new File(speakH264FilePath);
+            Log.i(TAG, "speak cache h264 file path:" + speakH264FilePath);
+            if (file.exists()) {
+                file.delete();
+            }
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                fos = new FileOutputStream(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Log.e(TAG, "临时缓存文件未找到");
+            }
         }
     }
 }
