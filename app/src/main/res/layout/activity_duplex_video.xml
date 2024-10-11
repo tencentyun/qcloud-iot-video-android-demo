@@ -5,19 +5,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <include
+        android:id="@+id/title_layout"
+        layout="@layout/menu_back_layout" />
+
     <TextView
-        android:id="@+id/text_duplex_devinfo"
+        android:id="@+id/text_devinfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="Hello World!"
+        android:text="@string/text_device_info"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
-        android:textSize="16dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/title_layout" />
 
     <TextureView
         android:id="@+id/surfaceView_duplex"
@@ -25,7 +30,7 @@
         android:layout_height="320dp"
         android:layout_marginTop="20dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_duplex_devinfo" />
+        app:layout_constraintTop_toBottomOf="@+id/text_devinfo" />
 
     <TextureView
         android:id="@+id/textureView_duplex"
