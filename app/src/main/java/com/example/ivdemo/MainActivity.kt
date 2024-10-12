@@ -64,8 +64,7 @@ class MainActivity : AppCompatActivity() {
             }
             btnLoginVoip.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
-
-                startActivity(VoipLoginActivity::class.java)
+                startActivity(VoipActivity::class.java)
             }
             btnOtaUpgrade.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
@@ -115,6 +114,13 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("productId", productId)
         intent.putExtra("deviceName", deviceName)
         intent.putExtra("deviceKey", deviceKey)
+        if (clazz.simpleName == VoipActivity::class.java.simpleName) {
+            intent.putExtra("voip_model_id", voipSetting.modelId)
+            intent.putExtra("voip_device_id", voipSetting.sn)
+            intent.putExtra("voip_wxa_appid", voipSetting.appId)
+            intent.putExtra("voip_sn_ticket", voipSetting.snTicket)
+            intent.putExtra("miniprogramVersion", 0)
+        }
         startActivity(intent)
     }
 
