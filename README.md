@@ -2,6 +2,7 @@
 
 初次体验demo请查看demo使用教程：
 * [demo使用教程](app)
+* [OTA升级说明](docs/OTA升级说明.md)
 
 **目录**
 
