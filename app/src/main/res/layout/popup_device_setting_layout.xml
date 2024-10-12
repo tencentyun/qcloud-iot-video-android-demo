@@ -6,74 +6,85 @@
     android:layout_height="match_parent"
     android:background="@color/dialog_background">
 
-    <ScrollView
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/background_setting_layout"
+        android:orientation="vertical"
+        android:paddingVertical="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout2">
+
+        <EditText
+            android:id="@+id/et_json_copy"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:gravity="top"
+            android:hint="@string/voip_setting_json_input"
+            android:inputType="textMultiLine"
+            android:lines="6"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/et_login_product_id"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="20dp"
+            android:hint="@string/product_id"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/et_login_device_name"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:hint="@string/device_name"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/et_login_device_key"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:hint="@string/device_pwd"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_setting_layout"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/btn_confirm"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="vertical">
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/background_blue_cell_btn"
+            android:gravity="center"
+            android:paddingVertical="8dp"
+            android:text="@string/conform"
+            android:textColor="@color/blue_0052D9"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/et_json_copy"
-                android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:gravity="top"
-                android:hint="@string/voip_setting_json_input"
-                android:inputType="textMultiLine"
-                android:lines="6"
-                android:textSize="15sp" />
-
-            <EditText
-                android:id="@+id/et_login_product_id"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="20dp"
-                android:hint="@string/product_id"
-                android:inputType="text"
-                android:maxLines="1"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/et_login_device_name"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:hint="@string/device_name"
-                android:inputType="text"
-                android:maxLines="1"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/et_login_device_key"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:hint="@string/device_pwd"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:textSize="20sp" />
-
-            <Button
-                android:id="@+id/btn_confirm"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="80dp"
-                android:layout_marginTop="40dp"
-                android:layout_marginEnd="80dp"
-                android:layout_marginBottom="40dp"
-                android:text="@string/conform"
-                android:textSize="20sp" />
-        </LinearLayout>
-    </ScrollView>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

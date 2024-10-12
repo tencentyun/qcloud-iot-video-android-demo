@@ -171,7 +171,9 @@
             android:layout_marginTop="40dp"
             android:layout_marginEnd="80dp"
             android:layout_marginBottom="40dp"
+            android:background="@drawable/background_blue_cell_btn"
             android:text="@string/conform"
+            android:textColor="@color/blue_0052D9"
             android:textSize="20sp" />
     </LinearLayout>
 
