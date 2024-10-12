@@ -57,8 +57,10 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private boolean isSaveRecord = false;
 
     private FileOutputStream fos;
+    private FileOutputStream nv21fos;
 
     private String speakH264FilePath = "/sdcard/video.h264";
+    private String speakNv21FilePath = "/sdcard/video.nv21";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -81,20 +83,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mCamera = Camera.open(mCameraId);
             mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
             Camera.Parameters parameters = mCamera.getParameters();
-            // 选择合适的预览尺寸
-            List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();
-            // 如果sizeList只有一个我们也没有必要做什么了，因为就他一个别无选择
-            if (sizeList.size() > 1) {
-                Iterator<Camera.Size> itor = sizeList.iterator();
-                while (itor.hasNext()) {
-                    Camera.Size cur = itor.next();
-                    if (cur.width >= mVideoWidth && cur.height >= mVideoHeight) {
-                        mVideoWidth = cur.width;
-                        mVideoHeight = cur.height;
-                        break;
-                    }
-                }
-            }
             parameters.setPreviewSize(mVideoWidth, mVideoHeight);
             parameters.setPreviewFormat(ImageFormat.NV21);
             parameters.setPreviewFrameRate(15);
@@ -256,6 +244,19 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
 
         mVideoEncoder.encoderH264(data, false);
+        if (isSaveRecord) {
+            if (executor.isShutdown()) return;
+            executor.submit(() -> {
+                if (nv21fos != null) {
+                    try {
+                        nv21fos.write(data);
+                        nv21fos.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
 
 
@@ -312,23 +313,35 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     public void recordSpeakH264(boolean isRecord) {
-        if (isRecord && !TextUtils.isEmpty(speakH264FilePath)) {
-            File file = new File(speakH264FilePath);
-            Log.i(TAG, "speak cache h264 file path:" + speakH264FilePath);
-            if (file.exists()) {
-                file.delete();
+        if (isRecord) {
+            if (!TextUtils.isEmpty(speakH264FilePath)) {
+                try {
+                    File file = getFile(speakH264FilePath);
+                    fos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, speakH264FilePath + "临时缓存文件未找到");
+                }
             }
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                fos = new FileOutputStream(file);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Log.e(TAG, "临时缓存文件未找到");
+            if (!TextUtils.isEmpty(speakNv21FilePath)) {
+                try {
+                    File file = getFile(speakNv21FilePath);
+                    nv21fos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, speakNv21FilePath + "临时缓存文件未找到");
+                }
             }
         }
+    }
+
+    public File getFile(String path) throws IOException {
+        File file = new File(path);
+        Log.i(TAG, "speak cache h264 file path:" + path);
+        if (file.exists()) {
+            file.delete();
+        }
+        file.createNewFile();
+        return file;
     }
 }
