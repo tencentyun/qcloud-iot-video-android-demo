@@ -5,6 +5,13 @@ public class UserEntity {
     String userHeadIcon;
     boolean isSelect = false;
 
+    public UserEntity() {
+    }
+
+    public UserEntity(String openId) {
+        this.openId = openId;
+    }
+
     public String getOpenId() {
         return openId;
     }
