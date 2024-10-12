@@ -32,9 +32,6 @@ private val TAG: String = VoipActivity::class.java.simpleName
 
 class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
 
-    private var userListAdapter: UserListAdapter? = null
-    private var usersData: ArrayList<UserEntity>? = null
-
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
     private var selectedPosition = RecyclerView.NO_POSITION
@@ -58,15 +55,23 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     private var dialog: ProgressDialog? = null
 
     // wx voip init
-    private val modelId by lazy { intent.getStringExtra("voip_model_id") }
-    private val voipDeviceId by lazy { intent.getStringExtra("voip_device_id") }
-    private val wxaAppId by lazy { intent.getStringExtra("voip_wxa_appid") }
+    private var modelId: String? = null
+    private var deviceId: String? = null
+    private var wxaAppId: String? = null
+    private var snTicket: String? = null
+
     private var openId: String = ""
-    private val sNTicket by lazy { intent.getStringExtra("voip_sn_ticket") }
     private val miniProgramVersion by lazy {
-        intent.getIntExtra("miniprogramVersion", 0)
+        intent.getIntExtra(
+            "miniprogramVersion", 0
+        )
     } //0 "正式版", 1  "开发版", 2 "体验版"
+
     private val voipSetting by lazy { VoipSetting.getInstance(this) }
+
+    private val userListAdapter by lazy { UserListAdapter(this, getUsersData()) }
+    private val usersData = arrayListOf<UserEntity>()
+
 
     private val surfaceTextureListener = object : SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -104,26 +109,29 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     }
 
     private fun getUsersData(): ArrayList<UserEntity> {
-        if (usersData == null) {
-            usersData = arrayListOf()
-            val user1 = UserEntity()
-            user1.openId = voipSetting.openId1
-            usersData?.add(user1)
-            val user2 = UserEntity()
-            user2.openId = voipSetting.openId2
-            usersData?.add(user2)
-            val user3 = UserEntity()
-            user3.openId = voipSetting.openId3
-            usersData?.add(user3)
+        if (voipSetting.openId1.isNotEmpty()) {
+            usersData.add(UserEntity(voipSetting.openId1))
         }
-        return usersData!!
+        if (voipSetting.openId2.isNotEmpty()) {
+            usersData.add(UserEntity(voipSetting.openId2))
+        }
+        if (voipSetting.openId3.isNotEmpty()) {
+            usersData.add(UserEntity(voipSetting.openId3))
+        }
+        return usersData
     }
 
+    override fun checkPerformCreate(): Boolean {
+        if (!checkWxAppInfo()) {
+            jumpSetting("wx_setting")
+            return false
+        }
+        return true
+    }
 
     override fun getViewBinding(): ActivityVoipBinding = ActivityVoipBinding.inflate(layoutInflater)
 
     override fun initView() {
-        openId = intent.getStringExtra("voip_open_id") ?: ""
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_voip)
             titleLayout.ivRightBtn.isVisible = true
@@ -140,11 +148,11 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
                     dialog.dismiss()
                 }
             }
+            txWelcomeSn.text = String.format(getString(R.string.text_voip_sn), deviceId)
             // 如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
             rvUserList.setHasFixedSize(true)
             // 设置适配器，刷新展示用户列表
-            userListAdapter = UserListAdapter(this@VoipActivity, getUsersData())
-            userListAdapter?.setOnSelectedListener { position: Int -> selectedPosition = position }
+            userListAdapter.setOnSelectedListener { position: Int -> selectedPosition = position }
             rvUserList.setAdapter(userListAdapter)
             textureViewVoip.requestFocus()
             textureViewVoip.surfaceTextureListener = surfaceTextureListener
@@ -180,6 +188,28 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         }
     }
 
+    private fun parseIntent(intent: Intent) {
+        modelId = intent.getStringExtra("voip_model_id")
+        deviceId = intent.getStringExtra("voip_device_id")
+        wxaAppId = intent.getStringExtra("voip_wxa_appid")
+        snTicket = intent.getStringExtra("voip_sn_ticket")
+    }
+
+    private fun checkWxAppInfo(): Boolean {
+        parseIntent(intent)
+        return !(modelId.isNullOrEmpty() || deviceId.isNullOrEmpty() || snTicket.isNullOrEmpty() || wxaAppId.isNullOrEmpty())
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == -1) {
+            onBackPressedDispatcher.onBackPressed()
+        } else if (modelId.isNullOrEmpty() || deviceId.isNullOrEmpty() || wxaAppId.isNullOrEmpty() || snTicket.isNullOrEmpty()) {
+            intent = data
+            onPerformCreate()
+        }
+    }
+
     private fun initVoip() {
         if (!executor.isShutdown) {
             executor.submit {
@@ -200,13 +230,13 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
      */
     private fun initWxCloudVoip(): Int {
         val initStatus = VideoNativeInterface.getInstance()
-            .initWxCloudVoip(modelId, voipDeviceId, wxaAppId, miniProgramVersion)
+            .initWxCloudVoip(modelId, deviceId, wxaAppId, miniProgramVersion)
         Log.i(TAG, "reInitWxCloudVoip initStatus: $initStatus")
         if (initStatus == 0) {
             val registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered()
             Log.i(TAG, "isAvtVoipRegistered: $registeredState")
             if (registeredState == 0) {
-                val registerRes = VideoNativeInterface.getInstance().registerAvtVoip(sNTicket)
+                val registerRes = VideoNativeInterface.getInstance().registerAvtVoip(snTicket)
                 Log.i(TAG, "registerAvtVoip registerRes: $registerRes")
             }
             dismissDialog()
@@ -246,11 +276,11 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
                 val calleeCameraSwitch = QualitySetting.getInstance(this@VoipActivity).isWxCameraOn
                 val ret = if (isVideo) {
                     VideoNativeInterface.getInstance().doWxCloudVoipCall(
-                        modelId, wxaAppId, openId, voipDeviceId, recvPixel, calleeCameraSwitch
+                        modelId, wxaAppId, openId, deviceId, recvPixel, calleeCameraSwitch
                     )
                 } else {
                     VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(
-                        modelId, wxaAppId, openId, voipDeviceId
+                        modelId, wxaAppId, openId, deviceId
                     )
                 }
 
@@ -275,7 +305,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         if (!executor.isShutdown) {
             executor.submit {
                 val ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
-                    productId, deviceName, openId, voipDeviceId
+                    productId, deviceName, openId, deviceId
                 )
                 val result = if (ret == 0) "已挂断" else "挂断失败"
                 Log.i(TAG, "VOIP call result: $result")
@@ -422,8 +452,10 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     }
 
     private fun jumpSetting(type: String) {
+        val parentIntent = intent
         val intent = Intent(this, SettingActivity::class.java)
+        intent.replaceExtras(parentIntent.extras)
         intent.putExtra("type", type)
-        startActivity(intent)
+        startActivityForResult(intent, 100)
     }
 }
