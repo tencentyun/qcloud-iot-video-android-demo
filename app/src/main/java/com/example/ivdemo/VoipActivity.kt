@@ -172,7 +172,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
                     ProgressDialog.show(this@VoipActivity, "", "呼叫中doWxCloudVoipAudioCall", true)
                 callVoip(false)
             }
-            btnVoipHangUp.setOnClickListener {
+            llVoipHangUp.setOnClickListener {
                 if (initStatus == -1) {
                     showToast("initWxCloudVoip还未完成初始化")
                     return@setOnClickListener
@@ -431,7 +431,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
             surfaceViewVoipBg.isVisible = isCalling
             surfaceViewVoip.isVisible = isCalling
             textureViewVoip.isVisible = isCalling
-            btnVoipHangUp.isVisible = isCalling
+            llVoipHangUp.isVisible = isCalling
             llButtons.isVisible = !isCalling
             rvUserList.isVisible = !isCalling
         }
@@ -441,7 +441,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         with(binding) {
             tvTips.isVisible = isCalling
             ivAudio.isVisible = isCalling
-            btnVoipHangUp.isVisible = isCalling
+            llVoipHangUp.isVisible = isCalling
             llButtons.isVisible = !isCalling
             rvUserList.isVisible = !isCalling
         }

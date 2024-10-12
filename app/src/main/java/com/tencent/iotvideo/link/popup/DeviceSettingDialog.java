@@ -8,6 +8,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tencent.iot.twcall.R;
@@ -21,7 +22,7 @@ public class DeviceSettingDialog extends IosCenterStyleDialog {
     private EditText mProductEt;
     private EditText mDeviceNameEt;
     private EditText mDeviceKeyEt;
-    private Button mConfirmBtn;
+    private TextView mConfirmBtn;
 
     public DeviceSettingDialog(Context context) {
         super(context, R.layout.popup_device_setting_layout);

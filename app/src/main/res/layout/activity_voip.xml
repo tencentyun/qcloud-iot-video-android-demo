@@ -29,6 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
+        android:layout_marginBottom="16dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent">
@@ -111,12 +112,12 @@
         android:id="@+id/iv_audio"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="128dp"
         android:background="@drawable/microphone_record_voice_mic_icon"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_tips" />
+        app:layout_constraintTop_toBottomOf="@id/title_layout" />
 
     <View
         android:id="@+id/surfaceView_voip_bg"
@@ -164,17 +165,32 @@
         app:layout_constraintRight_toRightOf="@+id/surfaceView_voip"
         app:layout_constraintTop_toTopOf="@+id/surfaceView_voip" />
 
-    <Button
-        android:id="@+id/btn_voip_hang_up"
+    <LinearLayout
+        android:id="@+id/ll_voip_hang_up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/voip_hangup"
-        android:textSize="16sp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/surfaceView_voip"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/icon_hang_up" />
+
+        <TextView
+            android:id="@+id/btn_voip_hang_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="@string/voip_hangup"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
