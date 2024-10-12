@@ -48,4 +48,5 @@ json格式填充粘贴的数据到此输入框</string>
     <string name="text_device_info">设备信息：%s</string>
     <string name="text_remind">强提醒消息</string>
     <string name="text_exit_ota">OTA退出升级</string>
+    <string name="text_voip_sn">voip sn:%s</string>
 </resources>

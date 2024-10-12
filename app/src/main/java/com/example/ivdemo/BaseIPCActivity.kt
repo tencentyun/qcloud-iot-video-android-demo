@@ -30,7 +30,14 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!checkPerformCreate()) return
         // set device info
+        onPerformCreate()
+    }
+
+    protected open fun checkPerformCreate() = true
+
+    protected fun onPerformCreate() {
         Log.d(TAG, "run iot_video_demo for ${productId}/${deviceName}")
         initVideoNative()
         setContentView(binding.root)
@@ -64,10 +71,12 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
 
     override fun onOnline(netDateTime: Long) {
         Log.d(TAG, "onOnline  netDateTime--->$netDateTime")
+        showToast("设备上线")
     }
 
     override fun onOffline(status: Int) {
         Log.d(TAG, "onOffline  status--->$status")
+        showToast("设备下线")
     }
 
     override fun onModuleStatus(moduleStatus: Int) {

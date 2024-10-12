@@ -23,7 +23,6 @@ class SettingActivity : AppCompatActivity() {
 
     private val wxSettingLayoutBinding by lazy { ActivityWxSettingBinding.inflate(layoutInflater) }
     private val qualitySettingBinding by lazy { ActivityQualitySettingBinding.inflate(layoutInflater) }
-//    private val wxSettingLayoutBinding by lazy { ActivityWxSettingBinding.inflate(layoutInflater) }
 
     private val localResolutionArray = ArrayList<ResolutionEntity>()
 
@@ -43,6 +42,7 @@ class SettingActivity : AppCompatActivity() {
 
     private var needShowDefaultValue = true
 
+    private val voipSetting by lazy { VoipSetting.getInstance(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,18 +62,18 @@ class SettingActivity : AppCompatActivity() {
             setContentView(root)
             titleLayout.tvTitle.text = getString(R.string.setting)
             titleLayout.ivBack.setOnClickListener {
-                onBackPressedDispatcher.onBackPressed()
+                onBackPressed()
             }
-            etVoipModelId.setText(VoipSetting.getInstance(this@SettingActivity).modelId)
-            etVoipSn.setText(VoipSetting.getInstance(this@SettingActivity).sn)
-            etVoipSnTicket.setText(VoipSetting.getInstance(this@SettingActivity).snTicket)
-            etVoipWxAppId.setText(VoipSetting.getInstance(this@SettingActivity).appId)
+            etVoipModelId.setText(voipSetting.modelId)
+            etVoipSn.setText(voipSetting.sn)
+            etVoipSnTicket.setText(voipSetting.snTicket)
+            etVoipWxAppId.setText(voipSetting.appId)
             btnConfirm.setOnClickListener(View.OnClickListener {
-                if (!checkWxAppInfo()) return@OnClickListener
                 saveWxAppInfo()
+                if (!checkWxAppInfo()) return@OnClickListener
                 Toast.makeText(this@SettingActivity, "保存成功！", Toast.LENGTH_LONG).show()
                 it.postDelayed({
-                    onBackPressedDispatcher.onBackPressed()
+                    onBackPressed()
                 }, 500)
             })
         }
@@ -84,7 +84,7 @@ class SettingActivity : AppCompatActivity() {
             setContentView(root)
             titleLayout.tvTitle.text = getString(R.string.setting)
             titleLayout.ivBack.setOnClickListener {
-                onBackPressedDispatcher.onBackPressed()
+                onBackPressed()
             }
             // 控件初始值设定
             if (spVoipLocalResolution != null) {
@@ -200,18 +200,14 @@ class SettingActivity : AppCompatActivity() {
                             + "， CameraSetting:" + selectedWxCameraSetting + "****========== "
                 )
                 it.postDelayed({
-                    onBackPressedDispatcher.onBackPressed()
+                    onBackPressed()
                 }, 500)
             }
         }
     }
 
     private fun checkWxAppInfo(): Boolean {
-        val modelId: String = wxSettingLayoutBinding.etVoipModelId.getText().toString()
-        val sn: String = wxSettingLayoutBinding.etVoipSn.getText().toString()
-        val snTicket: String = wxSettingLayoutBinding.etVoipSnTicket.getText().toString()
-        val appId: String = wxSettingLayoutBinding.etVoipWxAppId.getText().toString()
-        if (modelId.isEmpty() || sn.isEmpty() || snTicket.isEmpty() || appId.isEmpty()) {
+        if (voipSetting.modelId.isEmpty() || voipSetting.sn.isEmpty() || voipSetting.snTicket.isEmpty() || voipSetting.appId.isEmpty()) {
             Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_LONG).show()
             return false
         }
@@ -219,13 +215,13 @@ class SettingActivity : AppCompatActivity() {
     }
 
     private fun saveWxAppInfo() {
-        VoipSetting.getInstance(this)
+        voipSetting
             .setModelId(wxSettingLayoutBinding.etVoipModelId.getText().toString())
-        VoipSetting.getInstance(this)
+        voipSetting
             .setSn(wxSettingLayoutBinding.etVoipSn.getText().toString())
-        VoipSetting.getInstance(this)
+        voipSetting
             .setSnTicket(wxSettingLayoutBinding.etVoipSnTicket.getText().toString())
-        VoipSetting.getInstance(this)
+        voipSetting
             .setAppId(wxSettingLayoutBinding.etVoipWxAppId.getText().toString())
     }
 
@@ -349,5 +345,20 @@ class SettingActivity : AppCompatActivity() {
         camera.setPreviewCallback(null)
         camera.stopPreview()
         camera.release()
+    }
+
+    override fun onBackPressed() {
+        if (intent.getStringExtra("type") == "wx_setting") {
+            if (!checkWxAppInfo()) {
+                setResult(-1)
+            } else {
+                intent.putExtra("voip_model_id", voipSetting.modelId)
+                intent.putExtra("voip_device_id", voipSetting.sn)
+                intent.putExtra("voip_wxa_appid", voipSetting.appId)
+                intent.putExtra("voip_sn_ticket", voipSetting.snTicket)
+                setResult(0,intent)
+            }
+        }
+        super.onBackPressed()
     }
 }

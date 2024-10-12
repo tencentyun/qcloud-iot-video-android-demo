@@ -6,9 +6,22 @@
 
     <include
         android:id="@+id/title_layout"
-        layout="@layout/menu_back_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        layout="@layout/menu_back_layout" />
+
+    <TextView
+        android:id="@+id/tx_welcome_sn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="@string/text_voip_sn"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+        android:textColor="@color/light_blue_900"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_layout" />
 
     <LinearLayout
         android:id="@+id/ll_buttons"
@@ -26,7 +39,9 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
+            android:background="@drawable/background_blue_cell_btn"
             android:text="@string/voip_video_call"
+            android:textColor="@color/blue_0052D9"
             android:textSize="16sp" />
 
         <Button
@@ -35,7 +50,9 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
+            android:background="@drawable/background_blue_cell_btn"
             android:text="@string/voip_audio_call"
+            android:textColor="@color/blue_0052D9"
             android:textSize="16sp" />
 
     </LinearLayout>
@@ -43,7 +60,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_user_list"
         android:layout_width="0dp"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/ll_buttons"
         app:layout_constraintEnd_toEndOf="parent"
