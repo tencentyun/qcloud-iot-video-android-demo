@@ -111,12 +111,12 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             return;
         }
         mVisitorInfo.put(new Integer(visitor), new Integer(res_type));
-        VideoEncodeParam encodeParam = new VideoEncodeParam();
-        encodeParam.setHeight(mVideoHeight);
-        encodeParam.setWidth(mVideoWidth);
-        encodeParam.setFrameRate(mVideoFrameRate);
-        encodeParam.setBitRate(mVideoBitRate);
-        mVideoEncoder = new VideoEncoder(encodeParam, mActivity);
+        VideoEncodeParam.Builder builder = new VideoEncodeParam.Builder();
+        builder.setSize(mVideoWidth, mVideoHeight);
+        builder.setFrameRate(mVideoFrameRate);
+        builder.setBitRate(mVideoWidth * mVideoHeight * 4);
+        VideoEncodeParam param = builder.build();
+        mVideoEncoder = new VideoEncoder(param, mActivity);
         mVideoEncoder.setEncoderListener(this);
 
         MicParam micParam = new MicParam();
