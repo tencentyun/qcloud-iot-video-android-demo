@@ -64,41 +64,41 @@ public class VideoEncodeParam {
         this.bitRate = bitRate;
     }
 
-//    public static class Builder {
-//        private VideoEncodeParam videoEncodeParam;
-//
-//        public Builder() {
-//            videoEncodeParam = new VideoEncodeParam();
-//        }
-//
-//        public Builder setSize(int width, int height) {
-//            videoEncodeParam.setWidth(width);
-//            videoEncodeParam.setHeight(height);
-//            return this;
-//        }
-//
-//        public Builder setFrameRate(int frameRate) {
-//            videoEncodeParam.setFrameRate(frameRate);
-//            return this;
-//        }
-//
-//        public Builder setIFrameInterval(int iFrameInterval) {
-//            videoEncodeParam.setiFrameInterval(iFrameInterval);
-//            return this;
-//        }
-//
-//        public Builder setMime(String mime) {
-//            videoEncodeParam.setMime(mime);
-//            return this;
-//        }
-//
-//        public Builder setBitRate(int bitRate) {
-//            videoEncodeParam.setBitRate(bitRate);
-//            return this;
-//        }
-//
-//        public VideoEncodeParam build() {
-//            return videoEncodeParam;
-//        }
-//    }
+    public static class Builder {
+        private VideoEncodeParam videoEncodeParam;
+
+        public Builder() {
+            videoEncodeParam = new VideoEncodeParam();
+        }
+
+        public Builder setSize(int width, int height) {
+            videoEncodeParam.setWidth(width);
+            videoEncodeParam.setHeight(height);
+            return this;
+        }
+
+        public Builder setFrameRate(int frameRate) {
+            videoEncodeParam.setFrameRate(frameRate);
+            return this;
+        }
+
+        public Builder setIFrameInterval(int iFrameInterval) {
+            videoEncodeParam.setiFrameInterval(iFrameInterval);
+            return this;
+        }
+
+        public Builder setMime(String mime) {
+            videoEncodeParam.setMime(mime);
+            return this;
+        }
+
+        public Builder setBitRate(int bitRate) {
+            videoEncodeParam.setBitRate(bitRate);
+            return this;
+        }
+
+        public VideoEncodeParam build() {
+            return videoEncodeParam;
+        }
+    }
 }
