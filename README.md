@@ -133,7 +133,6 @@ VideoNativeInterface.getInstance().exitIvSys()
 * isAvtVoipRegistered()  检测设备是否已经注册
 * sendMsgNotice() 发送消息(通知)
 * doWxCloudVoipCall() voip呼叫
-* doWxCloudVoipAudioCall() voip呼叫
 * doWxCloudVoipHangUp() voip挂断
 * isWxCloudVoipBusy() voip是否占线
 * sendFinishStream() 设备端主动结束P2P视频传输
@@ -227,7 +226,7 @@ voip模块退出，释放资源。
 | ------ | ---- |
 | 无     | 无   |
 
-### doWxCloudVoipCall() \ doWxCloudVoipAudioCall() voip呼叫
+### doWxCloudVoipCall() voip呼叫
 
 **功能描述**  
 发起 voip 呼叫，该接口为阻塞接口，阻塞时长视网络情况而定。
@@ -235,11 +234,11 @@ voip模块退出，释放资源。
 **参数说明**  
 | 参数名称             | 类型                | 描述                                                                                               | 输入/输出 |
 | -------------------- | ------------------- | -------------------------------------------------------------------------------------------------- | --------- |
-| type                 | iv_cm_stream_type_e | 呼叫类型，支持音视频、或仅音频                                                                     | 输入      |
 | open_id              | const char *        | voip open_id                                                                                       | 输入      |
 | device_id            | const char *        | voip device_id                                                                                     | 输入      |
 | model_id             | const char *        | voip model_id                                                                                      | 输入      |
 | wxa_appid            | const char *        | voip 微信小程序 wxa_appid                                                                          | 输入      |
+| call_type            | int                 | voip 呼叫类型                                                                         | 输入      |
 | v_info               | voip_video_info_s   | 设备端指定收发视频格式信息                                                                         | 输入      |
 | caller_camera_switch | uint32_t            | 主叫端摄像头开关，0关闭，1开启，如果设备端不具备摄像头或不需要开启摄像头，请设置为关闭             | 输入      |
 | callee_camera_switch | uint32_t            | 被叫端摄像头开关，0关闭，1开启，如果设备端不具备屏幕或不需要查看微信用户的摄像头内容，请设置为关闭 | 输入      |
