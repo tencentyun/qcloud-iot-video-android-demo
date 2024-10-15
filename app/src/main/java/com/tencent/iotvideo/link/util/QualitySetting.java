@@ -2,21 +2,8 @@ package com.tencent.iotvideo.link.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.os.Environment;
-import android.text.TextUtils;
-import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.tencent.iot.video.device.annotations.PixelType;
 
 public class QualitySetting {
     private static String TAG = QualitySetting.class.getSimpleName();
@@ -29,6 +16,7 @@ public class QualitySetting {
     private int height = 360;
     private int frameRate = 15;
     private int bitRate = 800;
+    @PixelType
     private int wxResolution = 0;  //{"可变自适应" : 0, "240x320": 1, "320x240": 2, "480x352" : 3, "480x640" : 4};
     private boolean wxCameraOn = true;
 
