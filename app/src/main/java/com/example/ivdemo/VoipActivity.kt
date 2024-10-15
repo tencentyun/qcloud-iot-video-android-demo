@@ -15,6 +15,8 @@ import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityVoipBinding
 import com.tencent.iot.twcall.databinding.SettingLayoutBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import com.tencent.iot.video.device.annotations.CallType
+import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
@@ -272,18 +274,16 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         if (!executor.isShutdown) {
             executor.submit {
                 // voip call
-                val recvPixel = QualitySetting.getInstance(this@VoipActivity).wxResolution
-                val calleeCameraSwitch = QualitySetting.getInstance(this@VoipActivity).isWxCameraOn
-                val ret = if (isVideo) {
-                    VideoNativeInterface.getInstance().doWxCloudVoipCall(
-                        modelId, wxaAppId, openId, deviceId, recvPixel, calleeCameraSwitch
-                    )
-                } else {
-                    VideoNativeInterface.getInstance().doWxCloudVoipAudioCall(
-                        modelId, wxaAppId, openId, deviceId
-                    )
-                }
-
+                @PixelType val recvPixel =
+                    QualitySetting.getInstance(this@VoipActivity).wxResolution
+                val calleeCameraSwitch =
+                    if (isVideo) QualitySetting.getInstance(this@VoipActivity).isWxCameraOn else true
+                val callType =
+                    if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
+                val ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
+                    modelId, wxaAppId, openId, deviceId,
+                    callType, recvPixel, true, calleeCameraSwitch
+                )
                 val result = when (ret) {
                     -2 -> "通话中"
                     0 -> "呼叫成功"
