@@ -13,7 +13,7 @@ public class QualitySetting {
     private static QualitySetting instance;
 
     private int width = 640;
-    private int height = 360;
+    private int height = 480;
     private int frameRate = 15;
     private int bitRate = 800;
     @PixelType
@@ -46,10 +46,10 @@ public class QualitySetting {
 
     public void loadData() {
         SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-        this.width = preferences.getInt("width", 0);
-        this.height = preferences.getInt("height", 0);
-        this.frameRate = preferences.getInt("frameRate", 0);
-        this.bitRate = preferences.getInt("bitRate", 0);
+        this.width = preferences.getInt("width", 640);
+        this.height = preferences.getInt("height", 480);
+        this.frameRate = preferences.getInt("frameRate", 15);
+        this.bitRate = preferences.getInt("bitRate", 800);
         this.wxResolution = preferences.getInt("wxResolution", 0);
         this.wxCameraOn = preferences.getBoolean("wxCameraOn", true);
     }

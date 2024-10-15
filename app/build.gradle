@@ -62,4 +62,5 @@ dependencies {
     implementation libs.androidx.core.ktx
     implementation libs.kotlinx.coroutines.android
     implementation 'com.tencent.iot.video:video-device-android:1.0.3-SNAPSHOT'
+    implementation 'com.tencent.iot.explorer:explorer-device-android:3.3.23'
 }
