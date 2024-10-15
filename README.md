@@ -35,9 +35,7 @@
 ## 1.2 使用步骤
 
 一、打开demo app，点击配置设备，将准备的json字符串复制进底部弹窗内，点击确定
-![1728983404300.jpg](..%2F..%2FDownloads%2F1728983404300.jpg)![WechatIMG47.jpg](..%2F..%2FDownloads%2FWechatIMG47.jpg)
 二、点击VOIP,进入VOIP页面，此页面中右上角设置按钮点击选择WX SETTING可单独设置准备好json字符串中的某些值
-![1728983715014.jpg](..%2F..%2FDownloads%2F1728983715014.jpg)
 三、点击LOGIN,进入选择对应填入的voip_openid1以后，点击视频通过或者音频通过就可以使用了
 
 # 2. 接入方式
