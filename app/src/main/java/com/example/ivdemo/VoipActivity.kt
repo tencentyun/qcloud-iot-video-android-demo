@@ -18,6 +18,7 @@ import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
+import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.adapter.UserListAdapter
@@ -347,6 +348,15 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         }
     }
 
+    override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
+        return AvDataInfo.createDefaultAvDataInfo(videoResType)
+    }
+
+    override fun onStartRealPlay(visitor: Int, channel: Int, videoResType: Int) {
+        super.onStartRealPlay(visitor, channel, videoResType)
+        cameraRecorder.startRecording(visitor, videoResType)
+    }
+
     override fun onStartRecvAudioStream(
         visitor: Int,
         channel: Int,
@@ -359,9 +369,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     ): Int {
         Log.d(TAG, "IvStartRecvAudioStream visitor $visitor")
         lifecycleScope.launch { binding.tvTips.text = "通话中" }
-        return super.onStartRecvAudioStream(
-            visitor, channel, type, option, mode, width, sample_rate, sample_num
-        )
+        return player.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num)
     }
 
     override fun onStartRecvVideoStream(
@@ -420,6 +428,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
 
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStopRealPlay(visitor, channel, videoResType)
+        cameraRecorder.stopRecording(visitor, videoResType)
         lifecycleScope.launch { updateVideoUI(false) }
     }
 

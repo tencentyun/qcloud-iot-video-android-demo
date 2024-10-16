@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/title_layout"
@@ -16,31 +16,65 @@
         android:layout_marginTop="40dp"
         android:gravity="center"
         android:text="@string/voip_welcome"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_layout" />
 
-    <Button
-        android:id="@+id/btn_login_voip"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="80dp"
-        android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/voip_login"
-        android:textColor="@color/blue_0052D9"
-        android:textSize="20sp" />
+    <TextView
+        android:id="@+id/tv_select_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="@string/text_select_version"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tx_welcome_sn" />
+
+    <RadioGroup
+        android:id="@+id/rg_select_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_select_version">
+
+        <RadioButton
+            android:id="@+id/rb_formal_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/text_formal_version" />
+
+        <RadioButton
+            android:id="@+id/rb_develop_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_develop_version" />
+
+        <RadioButton
+            android:id="@+id/rb_experience_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_experience_version" />
+    </RadioGroup>
 
     <Button
         android:id="@+id/btn_wx_setting"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginStart="80dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="80dp"
         android:background="@drawable/background_blue_cell_btn"
         android:text="@string/voip_wx_setting"
         android:textColor="@color/blue_0052D9"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@+id/rg_select_version"
+        tools:layout_editor_absoluteX="80dp" />
 
     <Button
         android:id="@+id/btn_quality_setting"
@@ -52,6 +86,20 @@
         android:background="@drawable/background_blue_cell_btn"
         android:text="@string/voip_quality_setting"
         android:textColor="@color/blue_0052D9"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@+id/btn_wx_setting" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/btn_login_voip"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="80dp"
+        android:background="@drawable/background_blue_cell_btn"
+        android:text="@string/voip_login"
+        android:textColor="@color/blue_0052D9"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@+id/btn_quality_setting" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
