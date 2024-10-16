@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             }
             btnLoginVoip.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
-                startActivity(VoipActivity::class.java)
+                startActivity(VoipLoginActivity::class.java)
             }
             btnOtaUpgrade.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         val deviceName = voipSetting.deviceName
         val deviceKey = voipSetting.deviceKey
         if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) {
-            Toast.makeText(this@MainActivity, "请输入设备信息！", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@MainActivity, "请输入设备信息！", Toast.LENGTH_SHORT).show()
             return false
         }
         return true

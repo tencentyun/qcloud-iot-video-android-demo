@@ -138,6 +138,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
             titleLayout.tvTitle.text = getString(R.string.title_voip)
             titleLayout.ivRightBtn.isVisible = true
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivRightBtn.isVisible = false
             titleLayout.ivRightBtn.setOnClickListener {
                 val settingBinding = SettingLayoutBinding.inflate(layoutInflater)
                 val dialog = showPopupWindow(it, settingBinding.root)
@@ -357,7 +358,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         sample_num: Int
     ): Int {
         Log.d(TAG, "IvStartRecvAudioStream visitor $visitor")
-        binding.tvTips.text = "通话中"
+        lifecycleScope.launch { binding.tvTips.text = "通话中" }
         return super.onStartRecvAudioStream(
             visitor, channel, type, option, mode, width, sample_rate, sample_num
         )

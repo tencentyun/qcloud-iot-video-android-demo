@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TWCallDeviceSDK</string>
+    <string name="app_name">TWCallDeviceDemo</string>
     <string name="title_activity_duplex_video">Duplex Video</string>
     <string name="title_activity_voip">WX VOIP demo</string>
 

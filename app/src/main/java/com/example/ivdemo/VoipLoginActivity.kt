@@ -54,7 +54,7 @@ class VoipLoginActivity : AppCompatActivity() {
         val snTicket = voipSetting.snTicket
         val appId = voipSetting.appId
         if (modelId.isEmpty() || sn.isEmpty() || snTicket.isEmpty() || appId.isEmpty()) {
-            Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_SHORT).show()
             return false
         }
         return true

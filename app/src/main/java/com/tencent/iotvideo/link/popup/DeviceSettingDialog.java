@@ -83,7 +83,7 @@ public class DeviceSettingDialog extends IosCenterStyleDialog {
         String deviceName = mDeviceNameEt.getText().toString();
         String deviceKey = mDeviceKeyEt.getText().toString();
         if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) {
-            Toast.makeText(getContext(), "请输入设备信息！", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "请输入设备信息！", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
