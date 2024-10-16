@@ -2,6 +2,7 @@ package com.example.ivdemo
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.RadioButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.tencent.iot.twcall.R
@@ -17,14 +18,23 @@ class VoipLoginActivity : AppCompatActivity() {
     private val mDeviceName by lazy { intent.getStringExtra("deviceName") ?: "" }
     private val mDeviceKey by lazy { intent.getStringExtra("deviceKey") ?: "" }
     private val voipSetting by lazy { VoipSetting.getInstance(this) }
+    private var miniProgramVersion: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
         with(binding) {
-            titleLayout.tvTitle.text = getString(R.string.title_voip)
+            titleLayout.tvTitle.text = getString(R.string.title_voip_login)
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            rgSelectVersion.setOnCheckedChangeListener { group, checkedId ->
+                val text = group.findViewById<RadioButton>(checkedId).text
+                miniProgramVersion = when (text) {
+                    getString(R.string.text_develop_version) -> 1
+                    getString(R.string.text_experience_version) -> 2
+                    else -> 0
+                }
+            }
             // Set button click listeners
             btnLoginVoip.setOnClickListener {
                 if (!checkWxAppInfo()) return@setOnClickListener
@@ -69,7 +79,7 @@ class VoipLoginActivity : AppCompatActivity() {
         intent.putExtra("productId", mProductId)
         intent.putExtra("deviceName", mDeviceName)
         intent.putExtra("deviceKey", mDeviceKey)
-        intent.putExtra("miniprogramVersion", 0)
+        intent.putExtra("miniprogramVersion", miniProgramVersion)
         startActivity(intent)
     }
 }
