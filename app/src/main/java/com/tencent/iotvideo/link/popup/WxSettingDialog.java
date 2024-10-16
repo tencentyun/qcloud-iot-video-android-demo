@@ -53,7 +53,7 @@ public class WxSettingDialog extends IosCenterStyleDialog {
         String snTicket = mSNTicketEt.getText().toString();
         String appId = mAppIDEt.getText().toString();
         if (modelId.isEmpty() || sn.isEmpty() || snTicket.isEmpty() || appId.isEmpty()) {
-            Toast.makeText(getContext(), "请输入小程序信息！", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "请输入小程序信息！", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
