@@ -389,9 +389,30 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         }
     }
 
+    override fun onRecvStream(
+        visitor: Int,
+        streamType: Int,
+        data: ByteArray?,
+        len: Int,
+        pts: Long,
+        seq: Long
+    ): Int {
+        if (streamType == 1) {
+            return player.playVideoStream(visitor, data, len, pts, seq)
+        } else if (streamType == 0) {
+            return player.playAudioStream(visitor, data, len, pts, seq)
+        }
+        return 0
+    }
+
     override fun onStopRecvStream(visitor: Int, channel: Int, streamType: Int): Int {
         super.onStopRecvStream(visitor, channel, streamType)
         if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO || streamType == StreamType.IV_AVT_STREAM_TYPE_AV) {
+            if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO) {
+                player.stopVideoPlay(visitor)
+            } else {
+                player.stopAudioPlay(visitor)
+            }
             lifecycleScope.launch { updateVideoUI(false) }
         }
         return 0
