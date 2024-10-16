@@ -49,4 +49,9 @@ json格式填充粘贴的数据到此输入框</string>
     <string name="text_remind">强提醒消息</string>
     <string name="text_exit_ota">OTA退出升级</string>
     <string name="text_voip_sn">voip sn:%s</string>
+    <string name="text_select_version">请选择下面通信的小程序版本</string>
+    <string name="text_formal_version">正式版</string>
+    <string name="text_develop_version">开发版</string>
+    <string name="text_experience_version">体验版</string>
+    <string name="title_voip_login">VOIP LOGIN</string>
 </resources>
