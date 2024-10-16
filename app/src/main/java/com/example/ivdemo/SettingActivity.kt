@@ -71,7 +71,7 @@ class SettingActivity : AppCompatActivity() {
             btnConfirm.setOnClickListener(View.OnClickListener {
                 saveWxAppInfo()
                 if (!checkWxAppInfo()) return@OnClickListener
-                Toast.makeText(this@SettingActivity, "保存成功！", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SettingActivity, "保存成功！", Toast.LENGTH_SHORT).show()
                 it.postDelayed({
                     onBackPressed()
                 }, 500)
@@ -208,7 +208,7 @@ class SettingActivity : AppCompatActivity() {
 
     private fun checkWxAppInfo(): Boolean {
         if (voipSetting.modelId.isEmpty() || voipSetting.sn.isEmpty() || voipSetting.snTicket.isEmpty() || voipSetting.appId.isEmpty()) {
-            Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "请输入小程序信息！", Toast.LENGTH_SHORT).show()
             return false
         }
         return true
