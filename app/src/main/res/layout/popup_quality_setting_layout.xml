@@ -17,7 +17,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:background="@drawable/background_setting_layout"
             android:orientation="vertical">
 
             <TextView
@@ -156,7 +156,9 @@
                 android:layout_marginTop="40dp"
                 android:layout_marginEnd="80dp"
                 android:layout_marginBottom="40dp"
+                android:background="@drawable/background_blue_cell_btn"
                 android:text="@string/conform"
+                android:textColor="@color/blue_0052D9"
                 android:textSize="20sp" />
         </LinearLayout>
     </ScrollView>
