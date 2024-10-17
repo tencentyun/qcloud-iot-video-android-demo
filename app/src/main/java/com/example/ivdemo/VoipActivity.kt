@@ -66,7 +66,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     private var openId: String = ""
     private val miniProgramVersion by lazy {
         intent.getIntExtra(
-            "miniprogramVersion", 0
+            "miniProgramVersion", 0
         )
     } //0 "正式版", 1  "开发版", 2 "体验版"
 
