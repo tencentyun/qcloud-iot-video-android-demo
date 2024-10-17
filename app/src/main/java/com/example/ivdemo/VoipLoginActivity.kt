@@ -7,8 +7,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityVoipLoginBinding
-import com.tencent.iotvideo.link.popup.QualitySettingDialog
-import com.tencent.iotvideo.link.popup.WxSettingDialog
+import com.example.ivdemo.popup.QualitySettingDialog
+import com.example.ivdemo.popup.WxSettingDialog
 import com.tencent.iotvideo.link.util.VoipSetting
 
 class VoipLoginActivity : AppCompatActivity() {
@@ -42,13 +42,13 @@ class VoipLoginActivity : AppCompatActivity() {
             }
             btnWxSetting.setOnClickListener {
                 val dialog = WxSettingDialog(this@VoipLoginActivity)
-                dialog.show()
-                dialog.setOnDismisListener {
+                dialog.show(supportFragmentManager)
+                dialog.setOnDismissListener {
                     txWelcomeSn.text = String.format("Welcome: %s", voipSetting.sn)
                 }
             }
             btnQualitySetting.setOnClickListener {
-                QualitySettingDialog(this@VoipLoginActivity).show()
+                QualitySettingDialog(this@VoipLoginActivity).show(supportFragmentManager)
             }
         }
     }
@@ -79,7 +79,7 @@ class VoipLoginActivity : AppCompatActivity() {
         intent.putExtra("productId", mProductId)
         intent.putExtra("deviceName", mDeviceName)
         intent.putExtra("deviceKey", mDeviceKey)
-        intent.putExtra("miniprogramVersion", miniProgramVersion)
+        intent.putExtra("miniProgramVersion", miniProgramVersion)
         startActivity(intent)
     }
 }
