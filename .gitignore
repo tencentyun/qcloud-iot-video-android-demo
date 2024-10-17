@@ -1,6 +1,7 @@
 # Gradle files
 .gradle/
 build/
+!app/build/outputs/apk/*.apk
 
 # Local configuration file (sdk path, etc)
 local.properties
