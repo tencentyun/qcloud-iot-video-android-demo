@@ -54,4 +54,6 @@ json格式填充粘贴的数据到此输入框</string>
     <string name="text_develop_version">开发版</string>
     <string name="text_experience_version">体验版</string>
     <string name="title_voip_login">VOIP LOGIN</string>
+    <string name="text_fps">%d fps</string>
+    <string name="text_kbps">%d kbps</string>
 </resources>
