@@ -38,10 +38,7 @@ android {
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
             def newApkName = "${getAppName()}-${variant.buildType.name}-${variant.versionName}.apk"
-            if (output != null && outputFile.name.endsWith('.apk')) {
-                def newApk = "./../../../../../output_dir/${newApkName}"
-                outputFileName = new File(newApk)
-            }
+            outputFileName = newApkName
         }
     }
 }
