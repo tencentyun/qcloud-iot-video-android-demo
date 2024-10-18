@@ -63,8 +63,9 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
     }
 
     override fun onFirmwareUpdate(firmwareName: String, firmwareLen: Int) {
-        Toast.makeText(this@OTAUpgradeActivity, "onFirmwareUpdate", Toast.LENGTH_SHORT)
-            .show()
+        Log.d(TAG, "onFirmwareUpdate   firmwareName:$firmwareName  firmwareLen:$firmwareLen")
+//        Toast.makeText(this@OTAUpgradeActivity, "onFirmwareUpdate", Toast.LENGTH_SHORT)
+//            .show()
         var fileInputStream: FileInputStream? = null
         val firmwareFile = File(firmwareName)
 
@@ -121,10 +122,15 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
         return 0
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        exitOTAUpgrade()
+    }
+
     companion object {
         private val TAG: String = OTAUpgradeActivity::class.java.simpleName
 
-        private const val OTA_FIRMWARE_PATH = "/tmp"
-        private const val OTA_FIRMWARE_VERSION = "2.0.0"
+        private const val OTA_FIRMWARE_PATH = "/sdcard/temp"
+        private const val OTA_FIRMWARE_VERSION = "3.0.0"
     }
 }
