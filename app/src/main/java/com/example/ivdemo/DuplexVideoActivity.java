@@ -23,6 +23,7 @@ public class DuplexVideoActivity extends IPCActivity implements TextureView.Surf
         mTextureView.setSurfaceTextureListener(this);
 
         mRemoteView = findViewById(R.id.surfaceView_duplex);
+        mRemoteView.setSurfaceTextureListener(this);
         mPlayer = new SimplePlayer();
         mCameraRecorder = new CameraRecorder();
     }
