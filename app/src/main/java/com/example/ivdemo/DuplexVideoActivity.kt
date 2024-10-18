@@ -65,6 +65,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
 
     override fun initView() {
         binding.textureViewDuplex.surfaceTextureListener = listener
+        binding.surfaceViewDuplex.surfaceTextureListener = listener
         binding.titleLayout.tvTitle.text = getString(R.string.title_audio_video_call)
         binding.titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
         binding.textDevinfo.text =
