@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import com.tencent.iot.video.device.annotations.LogLevelType
 import com.tencent.iot.video.device.callback.IvAvtCallback
 import com.tencent.iot.video.device.callback.IvDeviceCallback
 import com.tencent.iot.video.device.consts.CommandType
@@ -49,6 +50,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
      */
     private fun initVideoNative() {
         // start run JNI iot_video_demo
+        VideoNativeInterface.getInstance().initLog(LogLevelType.IV_eLOG_DEBUG)
         val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
         VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
         VideoNativeInterface.getInstance().initIvDm()
