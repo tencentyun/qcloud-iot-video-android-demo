@@ -13,6 +13,7 @@
         - [updateOTAProgress](#updateOTAProgress)
         - [onFirmwareUpdate](#onFirmwareUpdate)
         - [onOTAPrepare](#onOTAPrepare)
+        - [onDownloadSize](#onDownloadSize)
 - [4. 数据结构](#4-数据结构)
     - [数据结构列表](#数据结构列表)
     - [数据结构描述](#数据结构描述)
@@ -163,7 +164,8 @@ int onOTAPrepare();
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------- | ---- | ---- | --------- |
-| 无       | 无   | 无   | 无        |
+| newFirmwareVersion       | String   | 查询到新固件的版本号   | 无        |
+| newFirmwareSize       | int   | 查询到新固件的版本大小   | 无        |
 
 **返回值**  
 | 返回值 | 描述             |
@@ -171,6 +173,25 @@ int onOTAPrepare();
 | 0      | 已准备好进行升级 |
 | 非0    | 未准备好进行升级 |
 
+### onDownloadSize
+
+**功能描述**  
+OTA升级时，SDK使用此回调函数向用户输出当前下载固件大小。
+
+**函数原型**
+```
+void onDownloadSize();
+```
+
+**参数说明**  
+| 参数名称 | 类型 | 描述 | 输入/输出 |
+| -------- | ---- | ---- | --------- |
+| size       | int   | 下载固件进度大小   | 无        |
+
+**返回值**  
+| 返回值 | 描述             |
+| ------ | ---------------- |
+| 无      | 无 |
 
 # 4. 数据结构
 
