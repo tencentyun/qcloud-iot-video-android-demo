@@ -57,5 +57,5 @@ dependencies {
     implementation libs.crashreport
     implementation libs.androidx.core.ktx
     implementation libs.kotlinx.coroutines.android
-    implementation 'com.tencent.iot.video:video-device-android:1.0.4-SNAPSHOT'
+    implementation 'com.tencent.iot.video:video-device-android:1.0.5-SNAPSHOT'
 }
