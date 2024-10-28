@@ -18,8 +18,11 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
     private var isOnline = false
 
     private fun initOTAUpgrade() {
-        VideoNativeInterface.getInstance()
-            .initOTA(OTA_FIRMWARE_PATH, OTA_FIRMWARE_VERSION, this)
+        val hasDir = checkAndCreateDirectory(OTA_FIRMWARE_PATH)
+        if (hasDir) {
+            VideoNativeInterface.getInstance()
+                .initOTA(OTA_FIRMWARE_PATH, OTA_FIRMWARE_VERSION, this)
+        }
     }
 
     private fun exitOTAUpgrade() {
@@ -118,13 +121,27 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
         }
     }
 
-    override fun onOTAPrepare(): Int {
+    override fun onPrepare(newFirmwareVersion: String?, newFirmwareSize: Int): Int {
+        Log.d(TAG, "newFirmwareVersion:$newFirmwareVersion   newFirmwareSize:$newFirmwareSize")
         return 0
     }
+
+    override fun onDownloadSize(size: Int) {
+        Log.d(TAG, "current download progress:$size")
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()
         exitOTAUpgrade()
+    }
+
+    private fun checkAndCreateDirectory(path: String): Boolean {
+        val dir = File(path)
+        if (!dir.exists()) {
+            return dir.mkdirs()
+        }
+        return true
     }
 
     companion object {
