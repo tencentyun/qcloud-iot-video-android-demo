@@ -10,12 +10,12 @@
         layout="@layout/menu_back_layout" />
 
     <TextView
-        android:id="@+id/tx_welcome_sn"
+        android:id="@+id/tv_device_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:gravity="center"
-        android:text="@string/voip_welcome"
+        android:text="@string/text_device_info"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,7 +30,7 @@
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tx_welcome_sn" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_device_info" />
 
     <RadioGroup
         android:id="@+id/rg_select_version"
@@ -70,7 +70,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="80dp"
         android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/voip_wx_setting"
+        android:text="@string/twe_call_wx_setting"
         android:textColor="@color/blue_0052D9"
         android:textSize="20sp"
         app:layout_constraintTop_toBottomOf="@+id/rg_select_version"
@@ -84,20 +84,20 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="80dp"
         android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/voip_quality_setting"
+        android:text="@string/twe_call_quality_setting"
         android:textColor="@color/blue_0052D9"
         android:textSize="20sp"
         app:layout_constraintTop_toBottomOf="@+id/btn_wx_setting" />
 
     <Button
-        android:id="@+id/btn_login_voip"
+        android:id="@+id/btn_login_twe_call"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginStart="80dp"
         android:layout_marginTop="50dp"
         android:layout_marginEnd="80dp"
         android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/voip_login"
+        android:text="@string/twe_call_login"
         android:textColor="@color/blue_0052D9"
         android:textSize="20sp"
         app:layout_constraintTop_toBottomOf="@+id/btn_quality_setting" />

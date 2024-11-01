@@ -63,10 +63,13 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     protected abstract fun initView()
 
     override fun onDestroy() {
-        lifecycleScope.launch(Dispatchers.Default) {
-            VideoNativeInterface.getInstance().exitIvAvt()
-            VideoNativeInterface.getInstance().exitIvDm()
-            VideoNativeInterface.getInstance().exitIvSys()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
+            Log.d(TAG, "exit avt res:$exitIvAvt")
+            val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
+            Log.d(TAG, "exit dm res:$exitIvDm")
+            val exitIvSys = VideoNativeInterface.getInstance().exitIvSys()
+            Log.d(TAG, "exit sys res:$exitIvSys")
         }
         super.onDestroy()
     }
@@ -301,9 +304,9 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         Log.d(TAG, "onGetPeerOuterNet visitor $visitor channel $channel netInfo$netInfo")
     }
 
-    private fun showToast(msg: String) {
+    fun showToast(msg: String) {
         lifecycleScope.launch {
-            Toast.makeText(this@BaseIPCActivity, msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this@BaseIPCActivity.applicationContext, msg, Toast.LENGTH_SHORT).show();
         }
     }
 }

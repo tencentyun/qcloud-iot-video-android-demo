@@ -9,12 +9,12 @@
         layout="@layout/menu_back_layout" />
 
     <TextView
-        android:id="@+id/tx_welcome_sn"
+        android:id="@+id/text_dev_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="@string/text_voip_sn"
+        android:text="@string/text_device_info"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
@@ -35,41 +35,80 @@
         app:layout_constraintRight_toRightOf="parent">
 
         <Button
-            android:id="@+id/btn_voip_video_call"
+            android:id="@+id/btn_twe_call_video_call"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:layout_weight="1"
             android:background="@drawable/background_blue_cell_btn"
-            android:text="@string/voip_video_call"
+            android:text="@string/twe_call_video_call"
             android:textColor="@color/blue_0052D9"
             android:textSize="16sp" />
 
         <Button
-            android:id="@+id/btn_voip_audio_call"
+            android:id="@+id/btn_twe_call_audio_call"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:layout_weight="1"
             android:background="@drawable/background_blue_cell_btn"
-            android:text="@string/voip_audio_call"
+            android:text="@string/twe_call_audio_call"
             android:textColor="@color/blue_0052D9"
             android:textSize="16sp" />
-
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_user_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/text_openid"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_user_list"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/background_blue_cell_btn"
+        android:padding="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_user_list" />
+
+    <LinearLayout
+        android:id="@+id/ll_openid"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp"
         app:layout_constraintBottom_toTopOf="@+id/ll_buttons"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/tv_openid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_open_id"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_openid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/text_open_id_tip"
+            android:textSize="14sp" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/text_voip_iv_devinfo"
+        android:id="@+id/text_twe_call_iv_dev_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -78,25 +117,25 @@
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
-        android:textSize="16dp"
+        android:textSize="16sp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/text_voip_device"
+        android:id="@+id/text_twe_call_device"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:gravity="center"
-        android:text="VOIP device"
+        android:text="twe call device"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
-        android:textSize="16dp"
+        android:textSize="16sp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_voip_iv_devinfo" />
+        app:layout_constraintTop_toBottomOf="@+id/text_twe_call_iv_dev_info" />
 
     <TextView
         android:id="@+id/tv_tips"
@@ -120,18 +159,18 @@
         app:layout_constraintTop_toBottomOf="@id/title_layout" />
 
     <View
-        android:id="@+id/surfaceView_voip_bg"
+        android:id="@+id/surfaceView_twe_call_bg"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/black"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/surfaceView_voip"
+        app:layout_constraintBottom_toBottomOf="@+id/surfaceView_twe_call"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/surfaceView_voip" />
+        app:layout_constraintTop_toTopOf="@+id/surfaceView_twe_call" />
 
     <View
-        android:id="@+id/surfaceView_voip_bg1"
+        android:id="@+id/surfaceView_twe_call_bg1"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
@@ -144,7 +183,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextureView
-        android:id="@+id/surfaceView_voip"
+        android:id="@+id/surfaceView_twe_call"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
@@ -158,15 +197,15 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextureView
-        android:id="@+id/textureView_voip"
+        android:id="@+id/textureView_twe_call"
         android:layout_width="144dp"
         android:layout_height="192dp"
         android:visibility="gone"
-        app:layout_constraintRight_toRightOf="@+id/surfaceView_voip"
-        app:layout_constraintTop_toTopOf="@+id/surfaceView_voip" />
+        app:layout_constraintRight_toRightOf="@+id/surfaceView_twe_call"
+        app:layout_constraintTop_toTopOf="@+id/surfaceView_twe_call" />
 
     <LinearLayout
-        android:id="@+id/ll_voip_hang_up"
+        android:id="@+id/ll_twe_call_hang_up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
@@ -183,14 +222,13 @@
             android:src="@mipmap/icon_hang_up" />
 
         <TextView
-            android:id="@+id/btn_voip_hang_up"
+            android:id="@+id/btn_twe_call_hang_up"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:gravity="center"
-            android:text="@string/voip_hangup"
+            android:text="@string/twe_call_hangup"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
