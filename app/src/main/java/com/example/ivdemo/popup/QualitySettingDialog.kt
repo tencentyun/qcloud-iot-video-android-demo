@@ -42,9 +42,9 @@ class QualitySettingDialog(private val context: Context) :
         with(binding) {
 
             // 控件初始值设定
-            spVoipLocalResolution.adapter =
+            spTweCallLocalResolution.adapter =
                 ArrayAdapter(context, android.R.layout.simple_spinner_item, localResolutionArray)
-            spVoipWxResolution.adapter =
+            spTweCallWxResolution.adapter =
                 ArrayAdapter(context, android.R.layout.simple_spinner_item, wxResolutionArray)
 
             if (QualitySetting.getInstance(context).width != 0) {
@@ -62,16 +62,16 @@ class QualitySettingDialog(private val context: Context) :
                     setSelectedLocalResolution(0)
                 }
             }
-            spVoipLocalResolution.setSelection(selectedLocalResolution)
+            spTweCallLocalResolution.setSelection(selectedLocalResolution)
 
-            sbVoipLocalFrameRate.max = 24 - 10
-            sbVoipLocalFrameRate.progress = selectedFrameRate - 10
+            sbTweCallLocalFrameRate.max = 24 - 10
+            sbTweCallLocalFrameRate.progress = selectedFrameRate - 10
             setSelectedFrameRate(selectedFrameRate)
-            spVoipWxResolution.setSelection(selectedWxResolution)
-            swVoipWxCameraIsOpen.isChecked = selectedWxCameraSetting
+            spTweCallWxResolution.setSelection(selectedWxResolution)
+            swTweCallWxCameraIsOpen.isChecked = selectedWxCameraSetting
 
             //控件事件
-            spVoipLocalResolution.onItemSelectedListener =
+            spTweCallLocalResolution.onItemSelectedListener =
                 object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(
                         adapterView: AdapterView<*>?,
@@ -86,7 +86,7 @@ class QualitySettingDialog(private val context: Context) :
                     override fun onNothingSelected(adapterView: AdapterView<*>?) {}
                 }
 
-            sbVoipLocalFrameRate.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+            sbTweCallLocalFrameRate.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                     if (fromUser) {
                         setSelectedFrameRate(progress + 10)
@@ -97,7 +97,7 @@ class QualitySettingDialog(private val context: Context) :
                 override fun onStopTrackingTouch(seekBar: SeekBar) {}
             })
 
-            sbVoipLocalBitRate.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
+            sbTweCallLocalBitRate.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                     if (fromUser) {
                         setSelectedBitRate(progress + minBitRateSbValue)
@@ -107,7 +107,7 @@ class QualitySettingDialog(private val context: Context) :
                 override fun onStartTrackingTouch(seekBar: SeekBar) {}
                 override fun onStopTrackingTouch(seekBar: SeekBar) {}
             })
-            spVoipWxResolution.onItemSelectedListener =
+            spTweCallWxResolution.onItemSelectedListener =
                 object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(
                         adapterView: AdapterView<*>?,
@@ -122,11 +122,11 @@ class QualitySettingDialog(private val context: Context) :
                     }
                 }
 
-            swVoipWxCameraIsOpen.setOnCheckedChangeListener { compoundButton, checked ->
+            swTweCallWxCameraIsOpen.setOnCheckedChangeListener { compoundButton, checked ->
                 selectedWxCameraSetting = checked
             }
             btnConfirm.setOnClickListener {
-                val entity = localResolutionArray!![selectedLocalResolution]
+                val entity = localResolutionArray[selectedLocalResolution]
                 QualitySetting.getInstance(context).width = entity.width
                 QualitySetting.getInstance(context).height = entity.height
                 QualitySetting.getInstance(context).frameRate = selectedFrameRate
@@ -154,8 +154,7 @@ class QualitySettingDialog(private val context: Context) :
         get() {
             val camera = Camera.open(CameraConstants.facing.BACK)
             //获取相机参数
-            val parameters = camera.parameters
-            val list = parameters.supportedPreviewSizes
+            val list = camera.parameters.supportedPreviewSizes
             for (size in list) {
                 Log.e(TAG, "****========== " + size.width + " " + size.height)
                 if (size.width == 640 && size.height == 360) {
@@ -172,16 +171,13 @@ class QualitySettingDialog(private val context: Context) :
                     localResolutionArray.add(entity)
                 }
             }
-            camera.setPreviewCallback(null)
-            camera.stopPreview()
-            camera.release()
         }
 
     private fun setSpinnerDefaultValue(defaultValue: String): Boolean {
         localResolutionArray.forEachIndexed { index, resolutionEntity ->
             if (localResolutionArray[index].simpleName == defaultValue) {
                 setSelectedLocalResolution(index)
-                binding.spVoipLocalResolution.setSelection(index)
+                binding.spTweCallLocalResolution.setSelection(index)
                 return true
             }
         }
@@ -192,7 +188,7 @@ class QualitySettingDialog(private val context: Context) :
         localResolutionArray.forEachIndexed { index, resolutionEntity ->
             if (resolutionEntity.width == width && resolutionEntity.height == height) {
                 setSelectedLocalResolution(index)
-                binding.spVoipLocalResolution.setSelection(index)
+                binding.spTweCallLocalResolution.setSelection(index)
                 return true
             }
         }
@@ -205,48 +201,48 @@ class QualitySettingDialog(private val context: Context) :
         when (entity.simpleName) {
             "360p" -> {
                 minBitRateSbValue = 200
-                binding.sbVoipLocalBitRate.max = 1000 - minBitRateSbValue
+                binding.sbTweCallLocalBitRate.max = 1000 - minBitRateSbValue
                 if (needShowDefaultValue && QualitySetting.getInstance(context).bitRate != 0) {
                     setSelectedBitRate(QualitySetting.getInstance(context).bitRate)
-                    binding.sbVoipLocalBitRate.progress = selectedBitRate - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = selectedBitRate - minBitRateSbValue
                 } else {
-                    binding.sbVoipLocalBitRate.progress = 800 - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = 800 - minBitRateSbValue
                     setSelectedBitRate(800)
                 }
             }
 
             "540p" -> {
                 minBitRateSbValue = 400
-                binding.sbVoipLocalBitRate.max = 1600 - minBitRateSbValue
+                binding.sbTweCallLocalBitRate.max = 1600 - minBitRateSbValue
                 if (needShowDefaultValue && QualitySetting.getInstance(context).bitRate != 0) {
                     setSelectedBitRate(QualitySetting.getInstance(context).bitRate)
-                    binding.sbVoipLocalBitRate.progress = selectedBitRate - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = selectedBitRate - minBitRateSbValue
                 } else {
-                    binding.sbVoipLocalBitRate.progress = 900 - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = 900 - minBitRateSbValue
                     setSelectedBitRate(900)
                 }
             }
 
             "720p" -> {
                 minBitRateSbValue = 500
-                binding.sbVoipLocalBitRate.max = 2000 - minBitRateSbValue
+                binding.sbTweCallLocalBitRate.max = 2000 - minBitRateSbValue
                 if (needShowDefaultValue && QualitySetting.getInstance(context).bitRate != 0) {
                     setSelectedBitRate(QualitySetting.getInstance(context).bitRate)
-                    binding.sbVoipLocalBitRate.progress = selectedBitRate - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = selectedBitRate - minBitRateSbValue
                 } else {
-                    binding.sbVoipLocalBitRate.progress = 1250 - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = 1250 - minBitRateSbValue
                     setSelectedBitRate(1250)
                 }
             }
 
             "1080p" -> {
                 minBitRateSbValue = 800
-                binding.sbVoipLocalBitRate.max = 3000 - minBitRateSbValue
+                binding.sbTweCallLocalBitRate.max = 3000 - minBitRateSbValue
                 if (needShowDefaultValue && QualitySetting.getInstance(context).bitRate != 0) {
                     setSelectedBitRate(QualitySetting.getInstance(context).bitRate)
-                    binding.sbVoipLocalBitRate.progress = selectedBitRate - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = selectedBitRate - minBitRateSbValue
                 } else {
-                    binding.sbVoipLocalBitRate.progress = 1900 - minBitRateSbValue
+                    binding.sbTweCallLocalBitRate.progress = 1900 - minBitRateSbValue
                     setSelectedBitRate(1900)
                 }
             }
@@ -255,13 +251,13 @@ class QualitySettingDialog(private val context: Context) :
 
     fun setSelectedFrameRate(selectedFrameRate: Int) {
         this.selectedFrameRate = selectedFrameRate
-        binding.tvVoipLocalFrameRateTip.text =
+        binding.tvTweCallLocalFrameRateTip.text =
             String.format(context.getString(R.string.text_fps), selectedFrameRate)
     }
 
     fun setSelectedBitRate(selectedBitRate: Int) {
         this.selectedBitRate = selectedBitRate
-        binding.tvVoipLocalFrameBitTip.text =
+        binding.tvTweCallLocalFrameBitTip.text =
             String.format(context.getString(R.string.text_kbps), selectedBitRate)
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -9,45 +10,92 @@
         layout="@layout/menu_back_layout" />
 
     <TextView
-        android:id="@+id/text_devinfo"
+        android:id="@+id/text_dev_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:gravity="center"
         android:text="@string/text_device_info"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@+id/title_layout" />
 
-    <TextView
-        android:id="@+id/dev_info"
+    <LinearLayout
+        android:id="@+id/ll_state"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_dev_info">
+
+        <TextView
+            android:id="@+id/tv_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_state" />
+
+        <TextView
+            android:id="@+id/tv_state_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/light_blue_900" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fl_show_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_state">
+
+        <ProgressBar
+            android:id="@+id/pb_upgrade"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginHorizontal="32dp"
+            android:max="100"
+            android:progress="0"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_show_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <Button
         android:id="@+id/btn_ota_upgrade"
-        android:layout_width="match_parent"
+        android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="80dp"
-        android:background="@drawable/background_blue_cell_btn"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/background_grey_cell_btn"
         android:text="@string/title_ota_upgrade"
-        android:textColor="@color/blue_0052D9"
-        android:textSize="20sp" />
+        android:textColor="@color/white_0052D9"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fl_show_content" />
 
     <Button
         android:id="@+id/btn_exit_ota"
-        android:layout_width="match_parent"
+        android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="80dp"
-        android:background="@drawable/background_blue_cell_btn"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/background_grey_cell_btn"
         android:text="@string/text_exit_ota"
-        android:textColor="@color/blue_0052D9"
-        android:textSize="20sp" />
+        android:textColor="@color/white_0052D9"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_ota_upgrade" />
 
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

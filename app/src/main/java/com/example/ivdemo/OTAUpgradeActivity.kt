@@ -3,12 +3,18 @@ package com.example.ivdemo
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import com.google.errorprone.annotations.CheckReturnValue
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityOtaUpgradeBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.OTAFailType
 import com.tencent.iot.video.device.annotations.OTAProgressType
 import com.tencent.iot.video.device.callback.IvOTACallback
+import com.tencent.iotvideo.link.util.updateOperate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -16,18 +22,8 @@ import java.io.IOException
 class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACallback {
 
     private var isOnline = false
-
-    private fun initOTAUpgrade() {
-        val hasDir = checkAndCreateDirectory(OTA_FIRMWARE_PATH)
-        if (hasDir) {
-            VideoNativeInterface.getInstance()
-                .initOTA(OTA_FIRMWARE_PATH, OTA_FIRMWARE_VERSION, this)
-        }
-    }
-
-    private fun exitOTAUpgrade() {
-        VideoNativeInterface.getInstance().exitOTA()
-    }
+    private var newFirmwareSize: Int = 0
+    private var isUpgrade = false
 
     override fun getViewBinding(): ActivityOtaUpgradeBinding =
         ActivityOtaUpgradeBinding.inflate(layoutInflater)
@@ -36,28 +32,65 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ota_upgrade)
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
-            textDevinfo.text =
-                String.format((getString(R.string.text_device_info)), "$productId/$deviceName")
+            textDevInfo.text =
+                String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
+            updateState(getString(R.string.text_ota_prepare))
             btnOtaUpgrade.setOnClickListener(View.OnClickListener {
                 if (!isOnline) {
-                    Toast.makeText(this@OTAUpgradeActivity, "设备未上线", Toast.LENGTH_SHORT).show()
+                    showToast("设备未上线")
                     return@OnClickListener
                 }
-                initOTAUpgrade()
+                if (newFirmwareSize == 0) {
+                    showToast("暂未检查到新固件")
+                    return@OnClickListener
+                }
+                startOTAUpgrade()
+                binding.btnOtaUpgrade.isEnabled = false
+                binding.btnOtaUpgrade.updateOperate(false)
             })
             btnExitOta.setOnClickListener(View.OnClickListener {
                 if (!isOnline) {
-                    Toast.makeText(this@OTAUpgradeActivity, "设备未上线", Toast.LENGTH_SHORT).show()
+                    showToast("设备未上线")
                     return@OnClickListener
                 }
                 exitOTAUpgrade()
+                binding.btnExitOta.isEnabled = false
+                binding.btnExitOta.updateOperate(false)
             })
         }
     }
 
+    private fun updateState(value: String) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            binding.tvStateValue.text = value
+        }
+    }
+
+    private fun checkForNewFirmware() {
+        val hasDir = checkAndCreateDirectory(OTA_FIRMWARE_PATH)
+        if (hasDir) {
+            VideoNativeInterface.getInstance()
+                .initOTA(OTA_FIRMWARE_PATH, OTA_FIRMWARE_VERSION, this)
+        }
+    }
+
+    private fun startOTAUpgrade() {
+        isUpgrade = true
+        binding.pbUpgrade.isVisible = true
+        binding.tvShowContent.isVisible = true
+        binding.tvShowContent.text = "0%"
+    }
+
+    private fun exitOTAUpgrade() {
+        VideoNativeInterface.getInstance().exitOTA()
+    }
+
     override fun onOnline(netDateTime: Long) {
         super.onOnline(netDateTime)
+        updateState(getString(R.string.text_ota_check))
+        checkForNewFirmware()
         isOnline = true
+        binding.btnExitOta.updateOperate(true)
     }
 
     override fun onOffline(status: Int) {
@@ -123,17 +156,37 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
 
     override fun onPrepare(newFirmwareVersion: String?, newFirmwareSize: Int): Int {
         Log.d(TAG, "newFirmwareVersion:$newFirmwareVersion   newFirmwareSize:$newFirmwareSize")
-        return 0
+        this.newFirmwareSize = newFirmwareSize
+        updateState(
+            String.format(
+                getString(R.string.text_new_firmware), newFirmwareVersion, newFirmwareSize
+            )
+        )
+        lifecycleScope.launch {
+            binding.btnOtaUpgrade.updateOperate(!isUpgrade)
+        }
+        return if (isUpgrade) 0 else 1
     }
 
     override fun onDownloadSize(size: Int) {
         Log.d(TAG, "current download progress:$size")
+        lifecycleScope.launch(Dispatchers.Main) {
+            val progress = (size.toDouble() / newFirmwareSize.toDouble()) * 100
+            binding.pbUpgrade.progress = progress.toInt()
+            binding.tvShowContent.text = if (progress.toInt() == 100) {
+                "下载完成${String.format("%.2f", progress)}%"
+            } else {
+                "下载中${String.format("%.2f", progress)}%"
+            }
+        }
     }
 
 
     override fun onDestroy() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            exitOTAUpgrade()
+        }
         super.onDestroy()
-        exitOTAUpgrade()
     }
 
     private fun checkAndCreateDirectory(path: String): Boolean {
