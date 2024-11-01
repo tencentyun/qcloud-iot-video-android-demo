@@ -14,7 +14,8 @@ import androidx.lifecycle.lifecycleScope
 import com.tencent.bugly.crashreport.CrashReport
 import com.tencent.iot.twcall.databinding.ActivityMainBinding
 import com.example.ivdemo.popup.DeviceSettingDialog
-import com.tencent.iotvideo.link.util.VoipSetting
+import com.tencent.iotvideo.link.util.DeviceSetting
+import com.tencent.iotvideo.link.util.updateOperate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
-    private val voipSetting by lazy { VoipSetting.getInstance(this) }
+    private val deviceSetting by lazy { DeviceSetting.getInstance() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,27 +52,40 @@ class MainActivity : AppCompatActivity() {
             }
         }
         with(binding) {
+            updateBtnState()
             // Set button click listeners
-            btnLoginIPC.setOnClickListener {
-                if (!checkDeviceInfo()) return@setOnClickListener
-                startActivity(IPCActivity::class.java)
-            }
             btnLoginDuplexVideo.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
-                startActivity(DuplexVideoActivity::class.java)
+                if (deviceSetting.ipcType == 2) {
+                    startActivity(DuplexVideoActivity::class.java)
+                } else {
+                    startActivity(IPCActivity::class.java)
+                }
             }
-            btnLoginVoip.setOnClickListener {
+            btnTweCall.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
-                startActivity(VoipLoginActivity::class.java)
+                startActivity(TweCallLoginActivity::class.java)
             }
             btnOtaUpgrade.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 startActivity(OTAUpgradeActivity::class.java)
             }
             btnSettingDevice.setOnClickListener {
-                DeviceSettingDialog(this@MainActivity).show(supportFragmentManager)
+                val dialog = DeviceSettingDialog(this@MainActivity)
+                dialog.setDismissListener {
+                    updateBtnState()
+                }
+                dialog.show(supportFragmentManager)
             }
         }
+    }
+
+    private fun updateBtnState() {
+        val isOperate =
+            !(deviceSetting.productId.isEmpty() || deviceSetting.deviceName.isEmpty() || deviceSetting.deviceKey.isEmpty())
+        binding.btnLoginDuplexVideo.updateOperate(isOperate)
+        binding.btnTweCall.updateOperate(isOperate)
+        binding.btnOtaUpgrade.updateOperate(isOperate)
     }
 
     override fun onRequestPermissionsResult(
@@ -86,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                 checkFilesToastAfterPermissions()
                 LogcatHelper.getInstance(this).start()
             } else {
-                Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this.applicationContext, "Permissions denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -105,29 +119,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startActivity(clazz: Class<*>) {
-        val productId = voipSetting.productId
-        val deviceName = voipSetting.deviceName
-        val deviceKey = voipSetting.deviceKey
+        val productId = deviceSetting.productId
+        val deviceName = deviceSetting.deviceName
+        val deviceKey = deviceSetting.deviceKey
         val intent = Intent(this, clazz)
         intent.putExtra("productId", productId)
         intent.putExtra("deviceName", deviceName)
         intent.putExtra("deviceKey", deviceKey)
-        if (clazz.simpleName == VoipActivity::class.java.simpleName) {
-            intent.putExtra("voip_model_id", voipSetting.modelId)
-            intent.putExtra("voip_device_id", voipSetting.sn)
-            intent.putExtra("voip_wxa_appid", voipSetting.appId)
-            intent.putExtra("voip_sn_ticket", voipSetting.snTicket)
-            intent.putExtra("miniprogramVersion", 0)
-        }
         startActivity(intent)
     }
 
     private fun checkDeviceInfo(): Boolean {
-        val productId = voipSetting.productId
-        val deviceName = voipSetting.deviceName
-        val deviceKey = voipSetting.deviceKey
+        val productId = deviceSetting.productId
+        val deviceName = deviceSetting.deviceName
+        val deviceKey = deviceSetting.deviceKey
         if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) {
-            Toast.makeText(this@MainActivity, "请输入设备信息！", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity.applicationContext, "请先配置设备信息！", Toast.LENGTH_SHORT).show()
             return false
         }
         return true
@@ -139,7 +146,6 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "is first install or reinstall: $installFlag")
         if (!installFlag) {
             saveFileFromAssertToSDCard("device_key")
-            saveFileFromAssertToSDCard("voip_setting.json")
             val editor = preferences.edit()
             editor.putBoolean("installFlag", true)
             editor.apply()
@@ -147,17 +153,7 @@ class MainActivity : AppCompatActivity() {
             if (!isFileExists("device_key")) {
                 saveFileFromAssertToSDCard("device_key")
             }
-            if (!isFileExists("voip_setting.json")) {
-                saveFileFromAssertToSDCard("voip_setting.json")
-            }
         }
-        Toast.makeText(
-            this,
-            "voip_setting.json是否在sdcard下：" + isFileExists("voip_setting.json") + ", json是否合法：" + VoipSetting.isJSONString(
-                voipSetting.loadData()
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     private fun isFileExists(fileName: String): Boolean {

@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
+import androidx.core.view.isVisible
+import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
 import com.tencent.iot.video.device.annotations.StreamType
@@ -68,8 +70,17 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         binding.surfaceViewDuplex.surfaceTextureListener = listener
         binding.titleLayout.tvTitle.text = getString(R.string.title_audio_video_call)
         binding.titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
-        binding.textDevinfo.text =
-            String.format((getString(R.string.text_device_info)), "$productId/$deviceName")
+        binding.titleLayout.ivRightBtn.isVisible = true
+        binding.titleLayout.ivRightBtn.setOnClickListener {
+            val dialog = QualitySettingDialog(this@DuplexVideoActivity)
+            dialog.setOnDismissListener {
+                cameraRecorder.closeCamera()
+                cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+            }
+            dialog.show(supportFragmentManager)
+        }
+        binding.textDevInfo.text =
+            String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
     }
 
     override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
