@@ -1,35 +1,32 @@
 <resources>
     <string name="app_name">TWCallDeviceDemo</string>
     <string name="title_activity_duplex_video">Duplex Video</string>
-    <string name="title_activity_voip">WX VOIP demo</string>
+    <string name="title_activity_twe_call">twe call demo</string>
 
 
     <string name="title_ipc">IPC</string>
-    <string name="title_audio_video_call">双向音视频</string>
-    <string name="title_voip">VOIP</string>
-    <string name="title_voip_lib_demo">VOIP LIB DEMO</string>
+    <string name="title_audio_video_call">音视频传输</string>
+    <string name="title_tweCall">TWe Call</string>
+    <string name="title_twe_call_lib_demo">TWE CALL LIB DEMO</string>
     <string name="title_setting_device">配置设备</string>
     <string name="model_id">Model ID</string>
     <string name="sn">SN</string>
     <string name="sn_ticket">SN Ticket</string>
     <string name="wx_app_id">AppID(小程序ID)</string>
 
-    <string name="voip_welcome">Welcome: </string>
-    <string name="voip_login">LOGIN</string>
-    <string name="voip_wx_setting">WX SETTING</string>
-    <string name="voip_quality_setting">画质设置</string>
-    <string name="voip_openid">请输入Openid</string>
+    <string name="twe_call_login">LOGIN</string>
+    <string name="twe_call_wx_setting">WX SETTING</string>
+    <string name="twe_call_quality_setting">画质设置</string>
+    <string name="twe_call_openid">请输入Openid</string>
 
-    <string name="voip_setting_json_input">可以按照{\"productId\":\"\",\"deviceName\":\"\",\"deviceKey\":\"\",\"voip_model_id\":\"\",\"voip_sn\":\"\",\"voip_sn_ticket\":\"\",\"voip_wxa_appid\":\"\",\"voip_openid1\":\"\",\"voip_openid2\":\"\",\"voip_openid3\":\"\"}
-json格式填充粘贴的数据到此输入框</string>
-    <string name="product_id">Product ID</string>
-    <string name="device_name">Device Name</string>
-    <string name="device_pwd">Device Key</string>
+    <string name="product_id">请输入Product ID</string>
+    <string name="device_name">请输入Device Name</string>
+    <string name="device_pwd">请输入Device Key</string>
     <string name="conform">确定</string>
 
-    <string name="voip_video_call">视频通话</string>
-    <string name="voip_audio_call">音频通话</string>
-    <string name="voip_hangup">挂断</string>
+    <string name="twe_call_video_call">视频通话</string>
+    <string name="twe_call_audio_call">音频通话</string>
+    <string name="twe_call_hangup">挂断</string>
 
     <string name="local_resolution">请选择本地分辨率</string>
     <string name="local_frame_rate">请选择本地帧率</string>
@@ -45,15 +42,37 @@ json格式填充粘贴的数据到此输入框</string>
     <string name="quality_setting_text">画质设置</string>
     <string name="setting">设置</string>
     <string name="title_ota_upgrade">OTA升级</string>
+    <string name="text_device_info_label">设备信息</string>
     <string name="text_device_info">设备信息：%s</string>
-    <string name="text_remind">强提醒消息</string>
+    <string name="text_p2p_info">P2P信息：%s</string>
     <string name="text_exit_ota">OTA退出升级</string>
-    <string name="text_voip_sn">voip sn:%s</string>
     <string name="text_select_version">请选择下面通信的小程序版本</string>
     <string name="text_formal_version">正式版</string>
     <string name="text_develop_version">开发版</string>
     <string name="text_experience_version">体验版</string>
-    <string name="title_voip_login">VOIP LOGIN</string>
+    <string name="title_twe_call_login">Twe Call Login</string>
     <string name="text_fps">%d fps</string>
     <string name="text_kbps">%d kbps</string>
+    <string name="text_video_link">视频链路</string>
+    <string name="text_one_way">单向：设备向小程序/APP传输视频</string>
+    <string name="text_two_way">双向：设备与小程序/APP双向传输视频</string>
+    <string name="text_product_id">产品ID</string>
+    <string name="text_device_name">设备名称</string>
+    <string name="text_device_key">设备密钥</string>
+    <string name="text_device_info_tip">温馨提示：产品ID、设备名称、设备密钥在腾讯云物联网开发平台上创建设备获取</string>
+    <string name="text_copy">复制</string>
+    <string name="text_cloud_storage">上报云存事件</string>
+    <string name="text_cloud_ware">上报告警事件</string>
+    <string name="text_custom_command">自定义信令</string>
+    <string name="text_p2p_state">P2P状态：%s</string>
+    <string name="text_cloud_storage_state">云存状态：%s</string>
+    <string name="text_openid">微信用户openid</string>
+    <string name="text_open_id">OpenId:</string>
+    <string name="text_open_id_tip">请输入OpenId</string>
+    <string name="text_state">当前状态：</string>
+    <string name="text_ota_prepare">初始化中</string>
+    <string name="text_ota_check">检查更新中</string>
+    <string name="text_new_firmware">新固件：%s 大小：%d</string>
+    <string name="text_download">下载中%s%</string>
+    <string name="text_download_finish">下载完成%s%</string>
 </resources>

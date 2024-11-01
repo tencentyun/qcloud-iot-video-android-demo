@@ -10,9 +10,10 @@
         layout="@layout/menu_back_layout" />
 
     <TextView
-        android:id="@+id/text_devinfo"
+        android:id="@+id/text_dev_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:gravity="center"
         android:text="@string/text_device_info"
@@ -20,23 +21,95 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
         android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title_layout" />
 
+    <TextView
+        android:id="@+id/tv_p2p_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/text_p2p_info"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+        android:textColor="@color/light_blue_900"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
+
+    <TextView
+        android:id="@+id/tv_copy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:background="@color/white_0052D9"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="2dp"
+        android:text="@string/text_copy"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_p2p_info"
+        app:layout_constraintStart_toEndOf="@+id/tv_p2p_info"
+        app:layout_constraintTop_toTopOf="@+id/tv_p2p_info"
+        tools:ignore="SmallSp" />
+
+    <TextView
+        android:id="@+id/tv_p2p_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/text_p2p_state"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+        android:textColor="@color/light_blue_900"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
+
+    <View
+        android:id="@+id/bg_surfaceView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="32dp"
+        android:background="@color/black_4D000000"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_p2p_state" />
+
     <TextureView
         android:id="@+id/surfaceView_duplex"
-        android:layout_width="240dp"
-        android:layout_height="320dp"
-        android:layout_marginTop="20dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/bg_surfaceView"
+        app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
+        app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
+        app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
+
+    <View
+        android:id="@+id/bg_textureView"
+        android:layout_width="140dp"
+        android:layout_height="180dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/black_4D000000"
+        app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_devinfo" />
+        app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
 
     <TextureView
         android:id="@+id/textureView_duplex"
-        android:layout_width="240dp"
-        android:layout_height="320dp"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/surfaceView_duplex" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/bg_textureView"
+        app:layout_constraintEnd_toEndOf="@+id/bg_textureView"
+        app:layout_constraintStart_toStartOf="@+id/bg_textureView"
+        app:layout_constraintTop_toTopOf="@+id/bg_textureView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,6 +12,11 @@ public class UserEntity {
         this.openId = openId;
     }
 
+    public UserEntity(String openId, boolean isSelect) {
+        this.isSelect = isSelect;
+        this.openId = openId;
+    }
+
     public String getOpenId() {
         return openId;
     }
