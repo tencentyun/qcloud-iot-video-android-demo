@@ -3,6 +3,7 @@ package com.example.ivdemo
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -35,6 +36,11 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
+    private val moreThan30permissions = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
     private val deviceSetting by lazy { DeviceSetting.getInstance() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,7 +50,11 @@ class MainActivity : AppCompatActivity() {
 
         // Request permissions
         if (!hasPermissions()) {
-            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
+            ActivityCompat.requestPermissions(
+                this,
+                if (Build.VERSION.SDK_INT >= 30) moreThan30permissions else permissions,
+                PERMISSION_REQUEST_CODE
+            )
         } else {
             checkFilesToastAfterPermissions()
             lifecycleScope.launch(Dispatchers.Main) {
@@ -98,24 +108,38 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (hasPermissions()) {
                 checkFilesToastAfterPermissions()
-                LogcatHelper.getInstance(this).start()
+                LogcatHelper.getInstance(this.applicationContext).start()
             } else {
-                Toast.makeText(this.applicationContext, "Permissions denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this.applicationContext, "Permissions denied", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 
     private fun hasPermissions(): Boolean {
-        return (ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED) && ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
+        return if (Build.VERSION.SDK_INT >= 30) {
+            ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.MANAGE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            (ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED) && ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
     private fun startActivity(clazz: Class<*>) {
@@ -134,7 +158,11 @@ class MainActivity : AppCompatActivity() {
         val deviceName = deviceSetting.deviceName
         val deviceKey = deviceSetting.deviceKey
         if (productId.isEmpty() || deviceName.isEmpty() || deviceKey.isEmpty()) {
-            Toast.makeText(this@MainActivity.applicationContext, "请先配置设备信息！", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this@MainActivity.applicationContext,
+                "请先配置设备信息！",
+                Toast.LENGTH_SHORT
+            ).show()
             return false
         }
         return true
