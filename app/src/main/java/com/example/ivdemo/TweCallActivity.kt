@@ -363,7 +363,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     override fun onDestroy() {
         Log.d(TAG, "destory")
-        lifecycleScope.launch(Dispatchers.IO) {
+        defaultScope.launch {
             //        VideoNativeInterface.getInstance().exitWxCloudVoip()
             val exitWxCloudVoipV2 = VideoNativeInterface.getInstance().exitWxCloudVoipV2()
             Log.d(TAG, "exit twecall v2 res:$exitWxCloudVoipV2")
