@@ -183,9 +183,7 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
 
 
     override fun onDestroy() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            exitOTAUpgrade()
-        }
+        defaultScope.launch { exitOTAUpgrade() }
         super.onDestroy()
     }
 
