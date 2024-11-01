@@ -15,7 +15,9 @@ import com.tencent.iot.video.device.consts.P2pEventType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iot.video.device.model.AvtInitInfo
 import com.tencent.iot.video.device.model.SysInitInfo
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -23,6 +25,7 @@ private val TAG = IPCActivity::class.java.simpleName
 
 abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDeviceCallback,
     IvAvtCallback {
+    protected val defaultScope = CoroutineScope(Dispatchers.Default)
     protected val productId: String? by lazy { intent.getStringExtra("productId") }
     protected val deviceName: String? by lazy { intent.getStringExtra("deviceName") }
     protected val deviceKey: String? by lazy { intent.getStringExtra("deviceKey") }
@@ -63,15 +66,16 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     protected abstract fun initView()
 
     override fun onDestroy() {
-        lifecycleScope.launch(Dispatchers.IO) {
+        super.onDestroy()
+        defaultScope.launch(Dispatchers.Default) {
             val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
             Log.d(TAG, "exit avt res:$exitIvAvt")
             val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
             Log.d(TAG, "exit dm res:$exitIvDm")
             val exitIvSys = VideoNativeInterface.getInstance().exitIvSys()
             Log.d(TAG, "exit sys res:$exitIvSys")
+            cancel()
         }
-        super.onDestroy()
     }
 
     override fun onOnline(netDateTime: Long) {
