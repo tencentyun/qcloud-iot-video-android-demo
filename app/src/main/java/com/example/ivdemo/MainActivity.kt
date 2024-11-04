@@ -1,20 +1,23 @@
 package com.example.ivdemo
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.ivdemo.popup.DeviceSettingDialog
 import com.tencent.bugly.crashreport.CrashReport
 import com.tencent.iot.twcall.databinding.ActivityMainBinding
-import com.example.ivdemo.popup.DeviceSettingDialog
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.updateOperate
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +28,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
+
 private const val PERMISSION_REQUEST_CODE = 1
 private val TAG: String = MainActivity::class.java.simpleName
 
@@ -34,11 +38,7 @@ class MainActivity : AppCompatActivity() {
     private val permissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
-    private val moreThan30permissions = arrayOf(
-        Manifest.permission.CAMERA,
-        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
     private val deviceSetting by lazy { DeviceSetting.getInstance() }
@@ -50,11 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         // Request permissions
         if (!hasPermissions()) {
-            ActivityCompat.requestPermissions(
-                this,
-                if (Build.VERSION.SDK_INT >= 30) moreThan30permissions else permissions,
-                PERMISSION_REQUEST_CODE
-            )
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
         } else {
             checkFilesToastAfterPermissions()
             lifecycleScope.launch(Dispatchers.Main) {
@@ -112,22 +108,20 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this.applicationContext, "Permissions denied", Toast.LENGTH_SHORT)
                     .show()
+                goManagerFileAccess()
             }
         }
     }
 
     private fun hasPermissions(): Boolean {
         return if (Build.VERSION.SDK_INT >= 30) {
-            ContextCompat.checkSelfPermission(
+            (ContextCompat.checkSelfPermission(
                 this.applicationContext,
                 Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+            ) == PackageManager.PERMISSION_GRANTED) && ContextCompat.checkSelfPermission(
                 this.applicationContext,
                 Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                this.applicationContext,
-                Manifest.permission.MANAGE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED && Environment.isExternalStorageManager()
         } else {
             (ContextCompat.checkSelfPermission(
                 this.applicationContext,
@@ -138,9 +132,33 @@ class MainActivity : AppCompatActivity() {
             ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
                 this.applicationContext,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
+
+    /**
+     * 进入Android 11或更高版本的文件访问权限页面
+     */
+    private fun goManagerFileAccess() {
+        // Android 11 (Api 30)或更高版本的写文件权限需要特殊申请，需要动态申请管理所有文件的权限
+        if (Build.VERSION.SDK_INT >= 30) {
+            val appIntent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            appIntent.setData(Uri.parse("package:$packageName"))
+            //appIntent.setData(Uri.fromParts("package", activity.getPackageName(), null));
+            try {
+                startActivity(appIntent)
+            } catch (ex: ActivityNotFoundException) {
+                ex.printStackTrace()
+                val allFileIntent =
+                    Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                startActivity(allFileIntent)
+            }
+        }
+    }
+
 
     private fun startActivity(clazz: Class<*>) {
         val productId = deviceSetting.productId
