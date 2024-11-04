@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 private val TAG: String = TweCallActivity::class.java.simpleName
+private const val DATA_PATH = "/storage/emulated/0/"
 
 class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback {
 
@@ -204,7 +205,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
      */
     private fun initWxCloudTweCall(): Int {
         val initStatus = VideoNativeInterface.getInstance()
-            .initWxCloudVoip(modelId, deviceId, wxaAppId, miniProgramVersion)
+            .initWxCloudVoip(DATA_PATH, modelId, deviceId, wxaAppId, miniProgramVersion)
         Log.i(TAG, "reInitWxCloudTweCall initStatus: $initStatus")
         if (initStatus == 0) {
             val registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered()
@@ -225,7 +226,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
      */
     private fun initWxCloudTweCallV2(): Int {
         val initStatus = VideoNativeInterface.getInstance()
-            .initWxCloudVoipV2(modelId, wxaAppId, miniProgramVersion, this)
+            .initWxCloudVoipV2(DATA_PATH, modelId, wxaAppId, miniProgramVersion, this)
         Log.i(TAG, "initWxCloudVoipV2 initStatus: $initStatus")
         if (initStatus == 0) {
             dismissDialog()
