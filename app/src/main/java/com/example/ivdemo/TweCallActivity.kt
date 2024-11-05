@@ -191,7 +191,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 initStatus = initWxCloudTweCallV2()
                 if (initStatus == 19) {
                     //把device_key文件删掉
-                    deleteDeviceKeyFile()
+                    deleteDeviceKeyFile(DATA_PATH)
                     initStatus = initWxCloudTweCallV2()
                 }
             }
@@ -457,7 +457,6 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             } else {
                 player.stopAudioPlay(visitor)
             }
-            lifecycleScope.launch { updateVideoUI(false) }
         }
         return 0
     }
@@ -465,16 +464,17 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStopRealPlay(visitor, channel, videoResType)
         cameraRecorder.stopRecording(visitor, videoResType)
-        lifecycleScope.launch { updateVideoUI(false) }
+        lifecycleScope.launch {
+            updateVideoUI(false)
+            updateAudioUI(false)
+        }
     }
 
-    private fun deleteDeviceKeyFile() {
-        // 假设SD卡的路径是 /sdcard
-        val sdCardPath = "/sdcard"
+    private fun deleteDeviceKeyFile(path: String) {
         val fileName = "device_key"
 
         // 创建一个File对象，表示device_key文件
-        val deviceKeyFile = File(sdCardPath, fileName)
+        val deviceKeyFile = File(path, fileName)
 
         // 检查文件是否存在
         if (deviceKeyFile.exists()) {
