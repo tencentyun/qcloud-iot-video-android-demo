@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
         if (!hasPermissions()) {
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
         } else {
-            checkFilesToastAfterPermissions()
             lifecycleScope.launch(Dispatchers.Main) {
                 LogcatHelper.getInstance(this@MainActivity).start()
             }
@@ -103,7 +102,6 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (hasPermissions()) {
-                checkFilesToastAfterPermissions()
                 LogcatHelper.getInstance(this.applicationContext).start()
             } else {
                 Toast.makeText(this.applicationContext, "Permissions denied", Toast.LENGTH_SHORT)
@@ -186,71 +184,72 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun checkFilesToastAfterPermissions() {
-        val preferences = getSharedPreferences("InstallConfig", MODE_PRIVATE)
-        val installFlag = preferences.getBoolean("installFlag", false)
-        Log.d(TAG, "is first install or reinstall: $installFlag")
-        if (!installFlag) {
-            saveFileFromAssertToSDCard("device_key")
-            val editor = preferences.edit()
-            editor.putBoolean("installFlag", true)
-            editor.apply()
-        } else {
-            if (!isFileExists("device_key")) {
-                saveFileFromAssertToSDCard("device_key")
-            }
-        }
-    }
+//    private fun checkFilesToastAfterPermissions() {
+//        val preferences = getSharedPreferences("InstallConfig", MODE_PRIVATE)
+//        val installFlag = preferences.getBoolean("installFlag", false)
+//        Log.d(TAG, "is first install or reinstall: $installFlag")
+//        if (!installFlag) {
+//            saveFileFromAssertToSDCard("device_key")
+//            val editor = preferences.edit()
+//            editor.putBoolean("installFlag", true)
+//            editor.apply()
+//        } else {
+//            if (!isFileExists("device_key")) {
+//                saveFileFromAssertToSDCard("device_key")
+//            }
+//        }
+//    }
 
-    private fun isFileExists(fileName: String): Boolean {
-        val file = File(Environment.getExternalStorageDirectory(), fileName)
-        if (file.exists()) {
-            Log.d(TAG, fileName + "File exists")
-            return true
-        } else {
-            Log.d(TAG, fileName + "File does not exist")
-            return false
-        }
-    }
+//    private fun isFileExists(fileName: String): Boolean {
+//        val file = File(Environment.getExternalStorageDirectory(), fileName)
+//        if (file.exists()) {
+//            Log.d(TAG, fileName + "File exists")
+//            return true
+//        } else {
+//            Log.d(TAG, fileName + "File does not exist")
+//            return false
+//        }
+//    }
 
-    private fun saveFileFromAssertToSDCard(fileName: String) {
-        val assetManager = assets
-        var input: InputStream? = null
-        var output: OutputStream? = null
+//    private fun saveFileFromAssertToSDCard(fileName: String) {
+//        val assetManager = assets
+//        var input: InputStream? = null
+//        var output: OutputStream? = null
+//
+//        try {
+//            input = assetManager.open(fileName)
+//            val outFile = File(Environment.getExternalStorageDirectory(), fileName)
+//            Log.d(TAG,"outFile path:"+outFile.path)
+//            output = FileOutputStream(outFile)
+//            copyFile(input, output)
+//        } catch (e: IOException) {
+//            Log.e(TAG, "Failed to copy asset file: $fileName", e)
+//        } finally {
+//            if (input != null) {
+//                try {
+//                    input.close()
+//                } catch (e: IOException) {
+//                    // NOOP
+//                    Log.e(TAG, "in.close Failed to copy asset file: $fileName", e)
+//                }
+//            }
+//            if (output != null) {
+//                try {
+//                    output.close()
+//                } catch (e: IOException) {
+//                    // NOOP
+//                    Log.e(TAG, "out.close Failed to copy asset file: $fileName", e)
+//                }
+//            }
+//        }
+//    }
 
-        try {
-            input = assetManager.open(fileName)
-            val outFile = File(Environment.getExternalStorageDirectory(), fileName)
-            output = FileOutputStream(outFile)
-            copyFile(input, output)
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to copy asset file: $fileName", e)
-        } finally {
-            if (input != null) {
-                try {
-                    input.close()
-                } catch (e: IOException) {
-                    // NOOP
-                    Log.e(TAG, "in.close Failed to copy asset file: $fileName", e)
-                }
-            }
-            if (output != null) {
-                try {
-                    output.close()
-                } catch (e: IOException) {
-                    // NOOP
-                    Log.e(TAG, "out.close Failed to copy asset file: $fileName", e)
-                }
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    private fun copyFile(input: InputStream, output: OutputStream) {
-        val buffer = ByteArray(1024)
-        var read: Int
-        while ((input.read(buffer).also { read = it }) != -1) {
-            output.write(buffer, 0, read)
-        }
-    }
+//    @Throws(IOException::class)
+//    private fun copyFile(input: InputStream, output: OutputStream) {
+//        val buffer = ByteArray(1024)
+//        var read: Int
+//        while ((input.read(buffer).also { read = it }) != -1) {
+//            output.write(buffer, 0, read)
+//        }
+//    }
 }
