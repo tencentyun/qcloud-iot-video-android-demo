@@ -1,5 +1,8 @@
 package com.tencent.iotvideo.link.util
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +10,7 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.tencent.iot.twcall.R
 
 
@@ -42,4 +46,13 @@ fun TextView.updateOperate(
         setTextColor(ContextCompat.getColor(this.context, enableTextColorRes))
         setBackgroundResource(R.drawable.background_grey_cell_btn)
     }
+}
+
+fun copyTextToClipboard(context: Context, text: String) {
+    // 获取剪贴板管理器
+    val clipboard: ClipboardManager? = getSystemService(context, ClipboardManager::class.java)
+    // 创建一个剪贴板数据对象
+    val clip = ClipData.newPlainText("label", text)
+    // 将剪贴板数据设置到剪贴板管理器
+    clipboard?.setPrimaryClip(clip)
 }
