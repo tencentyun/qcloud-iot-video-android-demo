@@ -1,18 +1,27 @@
 package com.example.ivdemo
 
 import android.graphics.SurfaceTexture
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
+import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
+import com.tencent.iotvideo.link.util.copyTextToClipboard
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private val TAG: String = DuplexVideoActivity::class.java.simpleName
 
@@ -26,6 +35,8 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
 
     private var remotePreviewSurface: SurfaceTexture? = null
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val UPDATE_P2P_INFO_TOKEN = "update_p2p_info_token"
 
     private val listener = object : SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -81,6 +92,41 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         }
         binding.textDevInfo.text =
             String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
+        binding.tvCopy.setOnClickListener {
+            copyTextToClipboard(
+                this@DuplexVideoActivity,
+                binding.tvP2pInfo.text.toString().substringAfter(":")
+            )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun updateP2pInfo() {
+        val p2pInfo = VideoNativeInterface.getInstance().p2pInfo
+        if (!binding.tvP2pInfo.text.toString().contains(p2pInfo)) {
+            showToast("P2PInfo 已更新")
+        }
+        binding.tvP2pInfo.text = String.format(getString(R.string.text_p2p_info), p2pInfo)
+        handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 60000)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private val taskRunnable = Runnable {
+        updateP2pInfo()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(UPDATE_P2P_INFO_TOKEN)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    override fun onOnline(netDateTime: Long) {
+        super.onOnline(netDateTime)
+        lifecycleScope.launch(Dispatchers.Main) {
+            updateP2pInfo()
+            handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 60000)
+        }
     }
 
     override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
