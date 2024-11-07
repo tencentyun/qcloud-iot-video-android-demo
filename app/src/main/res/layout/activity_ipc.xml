@@ -26,15 +26,18 @@
 
     <TextView
         android:id="@+id/tv_p2p_info"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:text="@string/text_p2p_info"
-        android:textAlignment="center"
+        android:textAlignment="textStart"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
         android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@+id/tv_copy"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
 
@@ -43,6 +46,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:background="@color/white_0052D9"
         android:paddingHorizontal="4dp"
         android:paddingVertical="2dp"
@@ -51,37 +55,22 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/tv_p2p_info"
-        app:layout_constraintStart_toEndOf="@+id/tv_p2p_info"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tv_p2p_info"
         tools:ignore="SmallSp" />
 
     <TextView
-        android:id="@+id/tv_p2p_state"
+        android:id="@+id/tv_cloud_storage_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="4dp"
-        android:text="@string/text_p2p_state"
+        android:text="@string/text_cloud_storage_state"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:textColor="@color/light_blue_900"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
-
-    <TextView
-        android:id="@+id/tv_cloud_storage_state"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:text="@string/text_cloud_storage_state"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-        android:textColor="@color/light_blue_900"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_p2p_state"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_p2p_state" />
 
     <View
         android:id="@+id/textureView_ipc_bg"
@@ -93,7 +82,7 @@
         app:layout_constraintBottom_toTopOf="@+id/ll_action"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_p2p_state" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_cloud_storage_state" />
 
     <TextureView
         android:id="@+id/textureView_ipc"
