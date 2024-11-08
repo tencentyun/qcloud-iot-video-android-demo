@@ -1,15 +1,20 @@
 package com.example.ivdemo
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.SurfaceTexture
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.TextureView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.example.ivdemo.popup.CustomCommandDialog
 import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityIpcBinding
@@ -17,12 +22,12 @@ import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CsChannelType
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.model.AvDataInfo
-import com.tencent.iot.video.device.model.CsBalanceInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.util.copyTextToClipboard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
 class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
 
@@ -32,6 +37,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
     private var localPreviewSurface: SurfaceTexture? = null
     private val handler = Handler(Looper.getMainLooper())
     private val UPDATE_P2P_INFO_TOKEN = "update_p2p_info_token"
+    private var customCommandDialog: CustomCommandDialog? = null
 
     private val listener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -85,6 +91,38 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
             tvCopy.setOnClickListener {
                 copyTextToClipboard(this@IPCActivity, tvP2pInfo.text.toString().substringAfter(":"))
             }
+            btnCloudStorageReport.setOnClickListener {
+                if (!isOnline) {
+                    showToast("设备未上线")
+                    return@setOnClickListener
+                }
+                VideoNativeInterface.getInstance()
+                    .startCsEvent(CsChannelType.CS_SINGLE_CH, 1, "report test cs info")
+            }
+            btnCloudWareReport.setOnClickListener {
+                if (!isOnline) {
+                    showToast("设备未上线")
+                    return@setOnClickListener
+                }
+                val drawable = ContextCompat.getDrawable(this@IPCActivity, R.drawable.mom)
+                drawable?.let {
+                    VideoNativeInterface.getInstance().reportCsEventDirectly(
+                        CsChannelType.CS_SINGLE_CH,
+                        1,
+                        "report test cs info",
+                        0,
+                        bitmapToByteArray(drawableToBitmap(it))
+                    )
+                }
+            }
+            btnCustomCommand.setOnClickListener {
+                if (!isOnline) {
+                    showToast("设备未上线")
+                    return@setOnClickListener
+                }
+                customCommandDialog = CustomCommandDialog(this@IPCActivity, visitor)
+                customCommandDialog?.show(supportFragmentManager)
+            }
 //            btnIpcCall.setOnClickListener {
 //                val time = System.currentTimeMillis()
 //                val timeD = time - lastClickTime
@@ -107,12 +145,28 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
             showToast("P2PInfo 已更新")
         }
         binding.tvP2pInfo.text = String.format(getString(R.string.text_p2p_info), p2pInfo)
-        handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 60000)
+        handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
+    }
+
+    private var shouldGetCs = true
+    private fun updateCsState() {
+        if (shouldGetCs) {
+            val info =
+                VideoNativeInterface.getInstance().getCsBalanceInfo(CsChannelType.CS_SINGLE_CH, 10)
+            if (info != null) {
+                shouldGetCs = false
+                binding.tvCloudStorageState.text = String.format(
+                    getString(R.string.text_cloud_storage_state),
+                    if (info.csSwitch) "已开通" else "未开通"
+                )
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
     private val taskRunnable = Runnable {
         updateP2pInfo()
+        updateCsState()
     }
 
     override fun onDestroy() {
@@ -125,14 +179,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
         super.onOnline(netDateTime)
         lifecycleScope.launch(Dispatchers.Main) {
             updateP2pInfo()
-            val info = VideoNativeInterface.getInstance()
-                .getCsBalanceInfo(CsChannelType.CS_MULTI_CH1, 1000)
             handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 60000)
-            Log.d(
-                "hhh",
-                "info:${info.csDays}   ${info.csType}   ${info.csSwitch}  ${info.freeTrialRemainingSec}"
-            )
-//            binding.tvCloudStorageState.text =info.
         }
     }
 
@@ -195,5 +242,36 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
             return player.playAudioStream(visitor, data, len, pts, seq)
         }
         return 0
+    }
+
+    override fun onRecvCommand(
+        command: Int,
+        visitor: Int,
+        channel: Int,
+        videoResType: Int,
+        args: String?
+    ): String {
+        return customCommandDialog?.receiveCommand(args ?: "null").toString()
+    }
+
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        }
+
+        val width = drawable.intrinsicWidth
+        val height = drawable.intrinsicHeight
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
+    }
+
+    // 将Bitmap转换为byte数组
+    private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        return stream.toByteArray()
     }
 }

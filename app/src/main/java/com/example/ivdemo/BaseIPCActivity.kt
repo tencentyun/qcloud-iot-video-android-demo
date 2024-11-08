@@ -30,6 +30,10 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     protected val deviceName: String? by lazy { intent.getStringExtra("deviceName") }
     protected val deviceKey: String? by lazy { intent.getStringExtra("deviceKey") }
     protected val binding by lazy { getViewBinding() }
+    protected var visitor: Int = 0
+    protected var channel: Int = 0
+    protected var videoResType: Int = 0
+    protected var isOnline = false
     private val region = "china"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,11 +84,13 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
 
     override fun onOnline(netDateTime: Long) {
         Log.d(TAG, "onOnline  netDateTime--->$netDateTime")
+        isOnline = true
         showToast("设备上线")
     }
 
     override fun onOffline(status: Int) {
         Log.d(TAG, "onOffline  status--->$status")
+        isOnline = false
         showToast("设备下线")
     }
 
@@ -93,14 +99,23 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     }
 
     override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
+        this.visitor = visitor
+        this.channel = channel
+        this.videoResType = videoResType
         return AvDataInfo.createDefaultAvDataInfo(videoResType)
     }
 
     override fun onStartRealPlay(visitor: Int, channel: Int, videoResType: Int) {
+        this.visitor = visitor
+        this.channel = channel
+        this.videoResType = videoResType
         Log.d(TAG, "onStartRealPlay  visitor $visitor channel $channel res_type $videoResType")
     }
 
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
+        this.visitor = visitor
+        this.channel = channel
+        this.videoResType = videoResType
         Log.d(TAG, "onStopRealPlay  visitor $visitor channel $channel res_type $videoResType")
     }
 
@@ -114,6 +129,8 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         sample_rate: Int,
         sample_num: Int
     ): Int {
+        this.visitor = visitor
+        this.channel = channel
         Log.d(TAG, "onStartRecvAudioStream visitor $visitor")
         return 0
     }
@@ -126,11 +143,15 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         width: Int,
         frameRate: Int
     ): Int {
+        this.visitor = visitor
+        this.channel = channel
         Log.d(TAG, "onStartRecvVideoStream  video stream is not supported in this activity")
         return 0
     }
 
     override fun onStopRecvStream(visitor: Int, channel: Int, streamType: Int): Int {
+        this.visitor = visitor
+        this.channel = channel
         Log.d(TAG, "onStopRecvStream visitor $visitor stream_type $streamType stopped")
         return 0
     }
@@ -143,6 +164,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         pts: Long,
         seq: Long
     ): Int {
+        this.visitor = visitor
         Log.d(
             TAG,
             "onRecvStream visitor $visitor stream_type $streamType data$data  len$len   pts$pts   seq$seq"
@@ -151,6 +173,9 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     }
 
     override fun onNotify(event: Int, visitor: Int, channel: Int, videoResType: Int) {
+        this.visitor = visitor
+        this.channel = channel
+        this.videoResType = videoResType
         Log.w(TAG, "onNotify()")
         var msg = ""
         when (event) {
@@ -182,6 +207,9 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         videoResType: Int,
         args: String?
     ): String {
+        this.visitor = visitor
+        this.channel = channel
+        this.videoResType = videoResType
         Log.d(
             TAG,
             "onRecvCommand command $command visitor $visitor channel$channel   videoResType$videoResType   args$args"
@@ -300,11 +328,15 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     }
 
     override fun onDownloadFile(status: Int, visitor: Int, channel: Int): Int {
+        this.visitor = visitor
+        this.channel = channel
         Log.d(TAG, "onDownloadFile status $status visitor $visitor channel$channel")
         return 0
     }
 
     override fun onGetPeerOuterNet(visitor: Int, channel: Int, netInfo: String?) {
+        this.visitor = visitor
+        this.channel = channel
         Log.d(TAG, "onGetPeerOuterNet visitor $visitor channel $channel netInfo$netInfo")
     }
 

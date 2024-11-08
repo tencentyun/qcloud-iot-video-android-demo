@@ -41,7 +41,6 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     private var condition2 = false
     private val lock = Any()
 
-    private var visitor = 0
     private var type = 0
     private var height = 0
     private var width = 0
@@ -413,7 +412,6 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     ): Int {
         Log.d(TAG, "start video visitor $visitor h: $height w: $width")
         lifecycleScope.launch { updateVideoUI(true) }
-        this.visitor = visitor
         this.type = type
         this.height = height
         this.width = width
