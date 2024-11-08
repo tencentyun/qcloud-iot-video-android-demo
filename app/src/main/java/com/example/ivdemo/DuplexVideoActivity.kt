@@ -15,6 +15,7 @@ import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import com.tencent.iot.video.device.annotations.CsChannelType
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
@@ -107,7 +108,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
             showToast("P2PInfo 已更新")
         }
         binding.tvP2pInfo.text = String.format(getString(R.string.text_p2p_info), p2pInfo)
-        handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 60000)
+        handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
