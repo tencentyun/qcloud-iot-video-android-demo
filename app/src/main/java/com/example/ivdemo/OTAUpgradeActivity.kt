@@ -21,7 +21,6 @@ import java.io.IOException
 
 class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACallback {
 
-    private var isOnline = false
     private var newFirmwareSize: Int = 0
     private var isUpgrade = false
 
@@ -89,13 +88,11 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
         super.onOnline(netDateTime)
         updateState(getString(R.string.text_ota_check))
         checkForNewFirmware()
-        isOnline = true
         binding.btnExitOta.updateOperate(true)
     }
 
     override fun onOffline(status: Int) {
         super.onOffline(status)
-        isOnline = false
     }
 
     override fun onFirmwareUpdate(firmwareName: String, firmwareLen: Int) {
