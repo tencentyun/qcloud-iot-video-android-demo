@@ -7,43 +7,39 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
+import com.example.ivdemo.adapter.UserListAdapter
 import com.tencent.iot.twcall.R
-import com.tencent.iot.twcall.databinding.ActivityVoipBinding
-import com.tencent.iot.twcall.databinding.SettingLayoutBinding
+import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
+import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
-import com.tencent.iotvideo.link.adapter.UserListAdapter
 import com.tencent.iotvideo.link.entity.UserEntity
+import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
-import com.tencent.iotvideo.link.util.VoipSetting
-import com.tencent.iotvideo.link.util.showPopupWindow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-private val TAG: String = VoipActivity::class.java.simpleName
+private val TAG: String = TweCallActivity::class.java.simpleName
+private const val DATA_PATH = "/storage/emulated/0/"
 
-class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
+class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback {
 
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
-    private var selectedPosition = RecyclerView.NO_POSITION
 
     private var condition1 = false
     private var condition2 = false
     private val lock = Any()
 
-    private var visitor = 0
     private var type = 0
     private var height = 0
     private var width = 0
@@ -57,11 +53,10 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     private var remotePreviewSurface: SurfaceTexture? = null
     private var dialog: ProgressDialog? = null
 
-    // wx voip init
+    // wx twe call init
     private var modelId: String? = null
     private var deviceId: String? = null
     private var wxaAppId: String? = null
-    private var snTicket: String? = null
 
     private var openId: String = ""
     private val miniProgramVersion by lazy {
@@ -70,21 +65,19 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         )
     } //0 "正式版", 1  "开发版", 2 "体验版"
 
-    private val voipSetting by lazy { VoipSetting.getInstance(this) }
+    private val deviceSetting by lazy { DeviceSetting.getInstance(this@TweCallActivity) }
 
-    private val userListAdapter by lazy { UserListAdapter(this, getUsersData()) }
-    private val usersData = arrayListOf<UserEntity>()
-
+    private val userListAdapter = UserListAdapter()
 
     private val surfaceTextureListener = object : SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-            if (surface == binding.textureViewVoip.surfaceTexture) {
+            if (surface == binding.textureViewTweCall.surfaceTexture) {
                 // Initialize the SurfaceTexture object
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(localPreviewSurface, this@VoipActivity)
-            } else if (surface == binding.surfaceViewVoip.surfaceTexture) {
+                cameraRecorder.openCamera(localPreviewSurface, this@TweCallActivity)
+            } else if (surface == binding.surfaceViewTweCall.surfaceTexture) {
                 remotePreviewSurface = surface
                 synchronized(lock) {
                     condition1 = true
@@ -98,7 +91,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         }
 
         override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-            if (surface == binding.textureViewVoip.surfaceTexture) {
+            if (surface == binding.textureViewTweCall.surfaceTexture) {
                 // Stop the camera encoder
                 cameraRecorder.closeCamera()
             }
@@ -111,175 +104,165 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
 
     }
 
-    private fun getUsersData(): ArrayList<UserEntity> {
-        if (voipSetting.openId1.isNotEmpty()) {
-            usersData.add(UserEntity(voipSetting.openId1))
-        }
-        if (voipSetting.openId2.isNotEmpty()) {
-            usersData.add(UserEntity(voipSetting.openId2))
-        }
-        if (voipSetting.openId3.isNotEmpty()) {
-            usersData.add(UserEntity(voipSetting.openId3))
-        }
-        return usersData
-    }
-
     override fun checkPerformCreate(): Boolean {
-        if (!checkWxAppInfo()) {
-            jumpSetting("wx_setting")
-            return false
-        }
+        parseIntent(intent)
         return true
     }
 
-    override fun getViewBinding(): ActivityVoipBinding = ActivityVoipBinding.inflate(layoutInflater)
+    private fun parseIntent(intent: Intent) {
+        modelId = intent.getStringExtra("model_id")
+        deviceId = intent.getStringExtra("device_id")
+        wxaAppId = intent.getStringExtra("app_id")
+    }
+
+    override fun getViewBinding(): ActivityTweCallBinding =
+        ActivityTweCallBinding.inflate(layoutInflater)
 
     override fun initView() {
         with(binding) {
-            titleLayout.tvTitle.text = getString(R.string.title_voip)
+            titleLayout.tvTitle.text = getString(R.string.title_tweCall)
             titleLayout.ivRightBtn.isVisible = true
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
             titleLayout.ivRightBtn.isVisible = false
-            titleLayout.ivRightBtn.setOnClickListener {
-                val settingBinding = SettingLayoutBinding.inflate(layoutInflater)
-                val dialog = showPopupWindow(it, settingBinding.root)
-                settingBinding.tvWxSetting.setOnClickListener {
-                    jumpSetting("wx_setting")
-                    dialog.dismiss()
-                }
-                settingBinding.tvQualitySetting.setOnClickListener {
-                    jumpSetting("quality_setting")
-                    dialog.dismiss()
-                }
-            }
-            txWelcomeSn.text = String.format(getString(R.string.text_voip_sn), deviceId)
+            textDevInfo.text = String.format(getString(R.string.text_device_info), deviceId)
             // 如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
             rvUserList.setHasFixedSize(true)
             // 设置适配器，刷新展示用户列表
-            userListAdapter.setOnSelectedListener { position: Int -> selectedPosition = position }
-            rvUserList.setAdapter(userListAdapter)
-            textureViewVoip.requestFocus()
-            textureViewVoip.surfaceTextureListener = surfaceTextureListener
-            surfaceViewVoip.surfaceTextureListener = surfaceTextureListener
-            dialog =
-                ProgressDialog.show(this@VoipActivity, "", "正在加载初始化initWxCloudVoip", true)
-            btnVoipVideoCall.setOnClickListener {
-                textureViewVoip.isVisible = true
-                if (!checkCallCondition()) return@setOnClickListener
-                dialog = ProgressDialog.show(this@VoipActivity, "", "呼叫中doWxCloudVoipCall", true)
-                callVoip(true)
+            userListAdapter.setOnSelectListener { position: Int, userEntity: UserEntity ->
+                etOpenid.setText(userEntity.openId)
             }
-            btnVoipAudioCall.setOnClickListener {
-                textureViewVoip.isVisible = false
+            userListAdapter.submitList(deviceSetting.openIdList)
+            rvUserList.setAdapter(userListAdapter)
+            textureViewTweCall.requestFocus()
+            textureViewTweCall.surfaceTextureListener = surfaceTextureListener
+            surfaceViewTweCall.surfaceTextureListener = surfaceTextureListener
+            dialog =
+                ProgressDialog.show(
+                    this@TweCallActivity,
+                    "",
+                    "正在加载初始化initWxCloudTweCall",
+                    true
+                )
+            btnTweCallVideoCall.setOnClickListener {
+                textureViewTweCall.isVisible = true
                 if (!checkCallCondition()) return@setOnClickListener
                 dialog =
-                    ProgressDialog.show(this@VoipActivity, "", "呼叫中doWxCloudVoipAudioCall", true)
-                callVoip(false)
+                    ProgressDialog.show(this@TweCallActivity, "", "呼叫中doWxCloudTweCall", true)
+                executeCallV2(true)
             }
-            llVoipHangUp.setOnClickListener {
+            btnTweCallAudioCall.setOnClickListener {
+                textureViewTweCall.isVisible = false
+                if (!checkCallCondition()) return@setOnClickListener
+                dialog =
+                    ProgressDialog.show(
+                        this@TweCallActivity,
+                        "",
+                        "呼叫中doWxCloudTweCallAudioCall",
+                        true
+                    )
+                executeCallV2(false)
+            }
+            llTweCallHangUp.setOnClickListener {
                 if (initStatus == -1) {
-                    showToast("initWxCloudVoip还未完成初始化")
+                    showToast("initWxCloudTweCall还未完成初始化")
                     return@setOnClickListener
                 }
                 if (initStatus != 0) {
-                    showToast("initWxCloudVoip初始化失败：$initStatus")
+                    showToast("initWxCloudTweCall初始化失败：$initStatus")
                     return@setOnClickListener
                 }
-                dialog = ProgressDialog.show(this@VoipActivity, "", "挂断doWxCloudVoipHangUp", true)
-                hangUp()
+                dialog =
+                    ProgressDialog.show(
+                        this@TweCallActivity,
+                        "",
+                        "挂断doWxCloudTweCallHangUp",
+                        true
+                    )
+                hangUpV2()
             }
-            initVoip()
         }
     }
 
-    private fun parseIntent(intent: Intent) {
-        modelId = intent.getStringExtra("voip_model_id")
-        deviceId = intent.getStringExtra("voip_device_id")
-        wxaAppId = intent.getStringExtra("voip_wxa_appid")
-        snTicket = intent.getStringExtra("voip_sn_ticket")
-    }
-
-    private fun checkWxAppInfo(): Boolean {
-        parseIntent(intent)
-        return !(modelId.isNullOrEmpty() || deviceId.isNullOrEmpty() || snTicket.isNullOrEmpty() || wxaAppId.isNullOrEmpty())
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == -1) {
-            onBackPressedDispatcher.onBackPressed()
-        } else if (modelId.isNullOrEmpty() || deviceId.isNullOrEmpty() || wxaAppId.isNullOrEmpty() || snTicket.isNullOrEmpty()) {
-            intent = data
-            onPerformCreate()
-        }
-    }
-
-    private fun initVoip() {
+    private fun initTweCall() {
         if (!executor.isShutdown) {
             executor.submit {
-                initStatus = initWxCloudVoip()
+                initStatus = initWxCloudTweCallV2()
                 if (initStatus == 19) {
                     //把device_key文件删掉
-                    deleteDeviceKeyFile()
-                    initStatus = initWxCloudVoip()
+                    deleteDeviceKeyFile(DATA_PATH)
+                    initStatus = initWxCloudTweCallV2()
                 }
             }
         }
     }
 
     /**
-     * 初始化 voip
+     * 初始化 TweCall,暂停维护，请使用v2接口
      *
      * @return 初始化状态值
      */
-    private fun initWxCloudVoip(): Int {
+    private fun initWxCloudTweCall(): Int {
         val initStatus = VideoNativeInterface.getInstance()
-            .initWxCloudVoip(modelId, deviceId, wxaAppId, miniProgramVersion)
-        Log.i(TAG, "reInitWxCloudVoip initStatus: $initStatus")
+            .initWxCloudVoip(DATA_PATH, modelId, deviceId, wxaAppId, miniProgramVersion)
+        Log.i(TAG, "reInitWxCloudTweCall initStatus: $initStatus")
         if (initStatus == 0) {
             val registeredState = VideoNativeInterface.getInstance().isAvtVoipRegistered()
-            Log.i(TAG, "isAvtVoipRegistered: $registeredState")
+            Log.i(TAG, "isAvtTweCallRegistered: $registeredState")
             if (registeredState == 0) {
-                val registerRes = VideoNativeInterface.getInstance().registerAvtVoip(snTicket)
-                Log.i(TAG, "registerAvtVoip registerRes: $registerRes")
+                val registerRes = VideoNativeInterface.getInstance().registerAvtVoip("")
+                Log.i(TAG, "registerAvtTweCall registerRes: $registerRes")
             }
             dismissDialog()
         }
         return initStatus
     }
 
-    private fun checkCallCondition(): Boolean {
-        if (selectedPosition == RecyclerView.NO_POSITION) {
-            showToast("请勾选被呼叫的用户！")
-            return false
+    /**
+     * 初始化 TweCall
+     *
+     * @return 初始化状态值
+     */
+    private fun initWxCloudTweCallV2(): Int {
+        val initStatus = VideoNativeInterface.getInstance()
+            .initWxCloudVoipV2(DATA_PATH, modelId, wxaAppId, miniProgramVersion, this)
+        Log.i(TAG, "initWxCloudVoipV2 initStatus: $initStatus")
+        if (initStatus == 0) {
+            dismissDialog()
         }
-        setOpenId()
+        return initStatus
+    }
+
+    private fun checkCallCondition(): Boolean {
+        openId = binding.etOpenid.text.toString()
         if (TextUtils.isEmpty(openId)) {
             showToast("请输入被呼叫的用户openid！")
             return false
+        } else {
+            deviceSetting.addOnlyEntity(UserEntity(openId, true))
+            userListAdapter.notifyDataSetChanged()
         }
         if (initStatus == -1) {
-            showToast("initWxCloudVoip还未完成初始化")
+            showToast("initWxCloudTweCall还未完成初始化")
             return false
         } else if (initStatus != 0) {
-            showToast("initWxCloudVoip初始化失败：$initStatus")
+            showToast("initWxCloudTweCall初始化失败：$initStatus")
             return false
         }
         return true
     }
 
     /**
-     * 呼叫
+     * 呼叫,暂停维护，请使用v2接口
      * @param isVideo
      */
-    private fun callVoip(isVideo: Boolean) {
+    private fun executeCall(isVideo: Boolean) {
         if (!executor.isShutdown) {
             executor.submit {
-                // voip call
+                // call
                 @PixelType val recvPixel =
-                    QualitySetting.getInstance(this@VoipActivity).wxResolution
+                    QualitySetting.getInstance(this@TweCallActivity).wxResolution
                 val calleeCameraSwitch =
-                    if (isVideo) QualitySetting.getInstance(this@VoipActivity).isWxCameraOn else true
+                    if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
                 val callType =
                     if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
                 val ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
@@ -291,7 +274,7 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
                     0 -> "呼叫成功"
                     else -> "呼叫失败"
                 }
-                Log.i(TAG, "VOIP call result: $result, ret: $ret")
+                Log.i(TAG, " call result: $result, ret: $ret")
                 dismissDialog {
                     showToast(result)
                     if (isVideo) updateVideoUI(true) else updateAudioUI(true)
@@ -301,7 +284,37 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     }
 
     /**
-     * 挂断
+     * 呼叫
+     * @param isVideo
+     */
+    private fun executeCallV2(isVideo: Boolean) {
+        if (!executor.isShutdown) {
+            executor.submit {
+                // call
+                @PixelType val recvPixel =
+                    if (isVideo) QualitySetting.getInstance(this@TweCallActivity).wxResolution else PixelType.IV_CM_PIXEL_VARIABLE
+                val calleeCameraSwitch =
+                    if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
+                val callType =
+                    if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
+                val ret = VideoNativeInterface.getInstance()
+                    .doWxCloudVoipCallV2(openId, callType, recvPixel, true, calleeCameraSwitch)
+                val result = when (ret) {
+                    -2 -> "通话中"
+                    0 -> "呼叫成功"
+                    else -> "呼叫失败"
+                }
+                Log.i(TAG, " call result: $result, ret: $ret")
+                dismissDialog {
+                    showToast(result)
+                    if (isVideo) updateVideoUI(true) else updateAudioUI(true)
+                }
+            }
+        }
+    }
+
+    /**
+     * 挂断，暂停维护，请使用v2接口
      */
     private fun hangUp() {
         if (!executor.isShutdown) {
@@ -310,7 +323,26 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
                     productId, deviceName, openId, deviceId
                 )
                 val result = if (ret == 0) "已挂断" else "挂断失败"
-                Log.i(TAG, "VOIP call result: $result")
+                Log.i(TAG, "TweCall call result: $result")
+                dismissDialog {
+                    showToast(result)
+                    binding.tvTips.text = result
+                    updateVideoUI(false)
+                    updateAudioUI(false)
+                }
+            }
+        }
+    }
+
+    /**
+     * 挂断
+     */
+    private fun hangUpV2() {
+        if (!executor.isShutdown) {
+            executor.submit {
+                val ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUpV2()
+                val result = if (ret == 0) "已挂断" else "挂断失败"
+                Log.i(TAG, "TweCall call result: $result")
                 dismissDialog {
                     showToast(result)
                     binding.tvTips.text = result
@@ -330,22 +362,24 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
 
     override fun onDestroy() {
         Log.d(TAG, "destory")
+        defaultScope.launch {
+            //        VideoNativeInterface.getInstance().exitWxCloudVoip()
+            val exitWxCloudVoipV2 = VideoNativeInterface.getInstance().exitWxCloudVoipV2()
+            Log.d(TAG, "exit twecall v2 res:$exitWxCloudVoipV2")
+        }
         super.onDestroy()
         executor.shutdown()
-    }
-
-    private fun setOpenId() {
-        when (selectedPosition) {
-            0 -> openId = voipSetting.openId1
-            1 -> openId = voipSetting.openId2
-            2 -> openId = voipSetting.openId3
-        }
     }
 
     private fun checkConditions() {
         if (condition1 && condition2 && remotePreviewSurface != null) {
             player.startVideoPlay(Surface(remotePreviewSurface), visitor, type, height, width)
         }
+    }
+
+    override fun onOnline(netDateTime: Long) {
+        super.onOnline(netDateTime)
+        initTweCall()
     }
 
     override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
@@ -377,7 +411,6 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     ): Int {
         Log.d(TAG, "start video visitor $visitor h: $height w: $width")
         lifecycleScope.launch { updateVideoUI(true) }
-        this.visitor = visitor
         this.type = type
         this.height = height
         this.width = width
@@ -421,7 +454,6 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
             } else {
                 player.stopAudioPlay(visitor)
             }
-            lifecycleScope.launch { updateVideoUI(false) }
         }
         return 0
     }
@@ -429,16 +461,17 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStopRealPlay(visitor, channel, videoResType)
         cameraRecorder.stopRecording(visitor, videoResType)
-        lifecycleScope.launch { updateVideoUI(false) }
+        lifecycleScope.launch {
+            updateVideoUI(false)
+            updateAudioUI(false)
+        }
     }
 
-    private fun deleteDeviceKeyFile() {
-        // 假设SD卡的路径是 /sdcard
-        val sdCardPath = "/sdcard"
+    private fun deleteDeviceKeyFile(path: String) {
         val fileName = "device_key"
 
         // 创建一个File对象，表示device_key文件
-        val deviceKeyFile = File(sdCardPath, fileName)
+        val deviceKeyFile = File(path, fileName)
 
         // 检查文件是否存在
         if (deviceKeyFile.exists()) {
@@ -456,14 +489,16 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
     private fun updateVideoUI(isCalling: Boolean) {
         with(binding) {
             if (isCalling) {
-                surfaceViewVoip.bringToFront()
-                textureViewVoip.bringToFront()
+                surfaceViewTweCall.bringToFront()
+                textureViewTweCall.bringToFront()
             }
-            surfaceViewVoipBg.isVisible = isCalling
-            surfaceViewVoip.isVisible = isCalling
-            textureViewVoip.isVisible = isCalling
-            llVoipHangUp.isVisible = isCalling
+            surfaceViewTweCallBg.isVisible = isCalling
+            surfaceViewTweCall.isVisible = isCalling
+            textureViewTweCall.isVisible = isCalling
+            llTweCallHangUp.isVisible = isCalling
             llButtons.isVisible = !isCalling
+            llOpenid.isVisible = !isCalling
+            tvUserList.isVisible = !isCalling
             rvUserList.isVisible = !isCalling
         }
     }
@@ -472,21 +507,17 @@ class VoipActivity : BaseIPCActivity<ActivityVoipBinding>() {
         with(binding) {
             tvTips.isVisible = isCalling
             ivAudio.isVisible = isCalling
-            llVoipHangUp.isVisible = isCalling
+            llTweCallHangUp.isVisible = isCalling
             llButtons.isVisible = !isCalling
             rvUserList.isVisible = !isCalling
+            llOpenid.isVisible = !isCalling
+            tvUserList.isVisible = !isCalling
         }
     }
 
-    private fun showToast(text: String) {
-        Toast.makeText(this@VoipActivity, text, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun jumpSetting(type: String) {
-        val parentIntent = intent
-        val intent = Intent(this, SettingActivity::class.java)
-        intent.replaceExtras(parentIntent.extras)
-        intent.putExtra("type", type)
-        startActivityForResult(intent, 100)
+    //获取激活设备信息
+    override fun onUpdateAuthorizeStatus(openId: String?, status: Int): Int {
+        Log.d(TAG, "onUpdateAuthorizeStatus   penId:${openId}  status:$status")
+        return 0
     }
 }
