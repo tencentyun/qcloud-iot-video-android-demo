@@ -192,6 +192,10 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     deleteDeviceKeyFile(DATA_PATH)
                     initStatus = initWxCloudTweCallV2()
                 }
+                if (initStatus != 0) {
+                    dismissDialog()
+                    showToast("初始化失败，resCode:$initStatus")
+                }
             }
         }
     }
@@ -265,18 +269,18 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
                 val callType =
                     if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
-                val ret = VideoNativeInterface.getInstance().doWxCloudVoipCall(
+                val res = VideoNativeInterface.getInstance().doWxCloudVoipCall(
                     modelId, wxaAppId, openId, deviceId,
                     callType, recvPixel, true, calleeCameraSwitch
                 )
-                val result = when (ret) {
+                val result = when (res) {
                     -2 -> "通话中"
                     0 -> "呼叫成功"
                     else -> "呼叫失败"
                 }
-                Log.i(TAG, " call result: $result, ret: $ret")
+                Log.i(TAG, " call result: $result, resCode: $res")
                 dismissDialog {
-                    showToast(result)
+                    showToast("$result,resCode:$res")
                     if (isVideo) updateVideoUI(true) else updateAudioUI(true)
                 }
             }
@@ -297,16 +301,16 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
                 val callType =
                     if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
-                val ret = VideoNativeInterface.getInstance()
+                val res = VideoNativeInterface.getInstance()
                     .doWxCloudVoipCallV2(openId, callType, recvPixel, true, calleeCameraSwitch)
-                val result = when (ret) {
+                val result = when (res) {
                     -2 -> "通话中"
                     0 -> "呼叫成功"
                     else -> "呼叫失败"
                 }
-                Log.i(TAG, " call result: $result, ret: $ret")
+                Log.i(TAG, " call result: $result, resCode: $res")
                 dismissDialog {
-                    showToast(result)
+                    showToast("$result,resCode:$res")
                     if (isVideo) updateVideoUI(true) else updateAudioUI(true)
                 }
             }
@@ -319,13 +323,13 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     private fun hangUp() {
         if (!executor.isShutdown) {
             executor.submit {
-                val ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
+                val res = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
                     productId, deviceName, openId, deviceId
                 )
-                val result = if (ret == 0) "已挂断" else "挂断失败"
-                Log.i(TAG, "TweCall call result: $result")
+                val result = if (res == 0) "已挂断" else "挂断失败"
+                Log.i(TAG, "TweCall call result: $result  resCode:$res")
                 dismissDialog {
-                    showToast(result)
+                    showToast("$result,resCode:$res")
                     binding.tvTips.text = result
                     updateVideoUI(false)
                     updateAudioUI(false)
@@ -340,11 +344,11 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     private fun hangUpV2() {
         if (!executor.isShutdown) {
             executor.submit {
-                val ret = VideoNativeInterface.getInstance().doWxCloudVoipHangUpV2()
-                val result = if (ret == 0) "已挂断" else "挂断失败"
-                Log.i(TAG, "TweCall call result: $result")
+                val res = VideoNativeInterface.getInstance().doWxCloudVoipHangUpV2()
+                val result = if (res == 0) "已挂断" else "挂断失败"
+                Log.i(TAG, "TweCall call result: $result  resCode:$res")
                 dismissDialog {
-                    showToast(result)
+                    showToast("$result,resCode:$res")
                     binding.tvTips.text = result
                     updateVideoUI(false)
                     updateAudioUI(false)
@@ -365,7 +369,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         defaultScope.launch {
             //        VideoNativeInterface.getInstance().exitWxCloudVoip()
             val exitWxCloudVoipV2 = VideoNativeInterface.getInstance().exitWxCloudVoipV2()
-            Log.d(TAG, "exit twecall v2 res:$exitWxCloudVoipV2")
+            Log.d(TAG, "exit twecall v2 resCode:$exitWxCloudVoipV2")
         }
         super.onDestroy()
         executor.shutdown()
