@@ -46,6 +46,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private Activity mActivity = null;
     private static Timer bitRateTimer;
 
+    public boolean isRunning = false;
+
     // for test only
 //    private FileOutputStream mOutputStream = null;
 
@@ -60,6 +62,11 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mCamera = Camera.open(mCameraId);
             mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
             Camera.Parameters parameters = mCamera.getParameters();
+            if (parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            } else if (parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            }
             parameters.setPreviewSize(mVideoWidth, mVideoHeight);
             parameters.setPreviewFormat(ImageFormat.NV21);
             parameters.setPreviewFrameRate(mVideoFrameRate);
@@ -67,6 +74,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mCamera.setPreviewTexture(surfaceTexture);
             mCamera.setPreviewCallback(this);
             mCamera.startPreview();
+            isRunning = true;
         } catch (RuntimeException | IOException e) {
             e.printStackTrace();
         }
@@ -77,6 +85,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
             mCamera.release();
+            isRunning = false;
         } catch (RuntimeException e) {
             e.printStackTrace();
         }

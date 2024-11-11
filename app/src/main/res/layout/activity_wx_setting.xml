@@ -36,7 +36,7 @@
             android:background="@drawable/dashed_line" />
 
         <TextView
-            android:id="@+id/text_voip_wx_app_id"
+            android:id="@+id/text_twe_call_wx_app_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -48,7 +48,7 @@
             android:textSize="12sp" />
 
         <EditText
-            android:id="@+id/et_voip_wx_app_id"
+            android:id="@+id/et_twe_call_wx_app_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -59,7 +59,7 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/text_voip_model_id"
+            android:id="@+id/text_twe_call_model_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -69,7 +69,7 @@
             android:textSize="12sp" />
 
         <EditText
-            android:id="@+id/et_voip_model_id"
+            android:id="@+id/et_twe_call_model_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -80,7 +80,7 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/text_voip_sn"
+            android:id="@+id/text_twe_call_sn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -90,7 +90,7 @@
             android:textSize="12sp" />
 
         <EditText
-            android:id="@+id/et_voip_sn"
+            android:id="@+id/et_twe_call_sn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -101,7 +101,7 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/text_voip_sn_ticket"
+            android:id="@+id/text_twe_call_sn_ticket"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -111,7 +111,7 @@
             android:textSize="12sp" />
 
         <EditText
-            android:id="@+id/et_voip_sn_ticket"
+            android:id="@+id/et_twe_call_sn_ticket"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"

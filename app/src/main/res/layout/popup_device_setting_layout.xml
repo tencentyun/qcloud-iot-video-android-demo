@@ -13,52 +13,155 @@
         android:layout_marginBottom="16dp"
         android:background="@drawable/background_setting_layout"
         android:orientation="vertical"
-        android:paddingVertical="16dp"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout2">
 
-        <EditText
-            android:id="@+id/et_json_copy"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:gravity="top"
-            android:hint="@string/voip_setting_json_input"
-            android:inputType="textMultiLine"
-            android:lines="6"
-            android:textSize="15sp" />
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/text_device_info_label"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/et_login_product_id"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="20dp"
-            android:hint="@string/product_id"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textSize="20sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/background_blue_cell_btn">
 
-        <EditText
-            android:id="@+id/et_login_device_name"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:hint="@string/device_name"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textSize="20sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/text_video_link"
+                android:textColor="@color/black" />
 
-        <EditText
-            android:id="@+id/et_login_device_key"
+            <RadioGroup
+                android:id="@+id/rg_select_way"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_select_version">
+
+                <RadioButton
+                    android:id="@+id/rb_one_way"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="1"
+                    android:text="@string/text_one_way" />
+
+                <RadioButton
+                    android:id="@+id/rb_two_way"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:checked="true"
+                    android:tag="2"
+                    android:text="@string/text_two_way" />
+
+                <RadioButton
+                    android:id="@+id/rb_three_way"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:tag="3"
+                    android:text="@string/text_three_way" />
+            </RadioGroup>
+        </LinearLayout>
+
+
+        <!--        <EditText-->
+        <!--            android:id="@+id/et_json_copy"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="120dp"-->
+        <!--            android:gravity="top"-->
+        <!--            android:hint="@string/voip_setting_json_input"-->
+        <!--            android:inputType="textMultiLine"-->
+        <!--            android:lines="6"-->
+        <!--            android:textSize="15sp" />-->
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:hint="@string/device_pwd"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:textSize="20sp" />
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_product_id"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/et_login_product_id"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                android:hint="@string/product_id"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_device_name"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/et_login_device_name"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="@string/device_name"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_device_key"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/et_login_device_key"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="@string/device_pwd"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/text_device_info_tip" />
     </LinearLayout>
 
     <LinearLayout
@@ -71,17 +174,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
+        <Button
             android:id="@+id/btn_confirm"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
-            android:background="@drawable/background_blue_cell_btn"
+            android:background="@drawable/background_grey_cell_btn"
             android:gravity="center"
             android:paddingVertical="8dp"
             android:text="@string/conform"
-            android:textColor="@color/blue_0052D9"
+            android:textColor="@color/white_0052D9"
             android:textSize="20sp"
             android:textStyle="bold" />
 
