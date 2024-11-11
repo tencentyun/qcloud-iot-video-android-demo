@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
-    private val deviceSetting by lazy { DeviceSetting.getInstance() }
+    private val deviceSetting by lazy { DeviceSetting.getInstance(this@MainActivity) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +63,8 @@ class MainActivity : AppCompatActivity() {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 if (deviceSetting.ipcType == 2) {
                     startActivity(DuplexVideoActivity::class.java)
+                } else if (deviceSetting.ipcType == 3) {
+                    startActivity(CustomDuplexVideoActivity::class.java)
                 } else {
                     startActivity(IPCActivity::class.java)
                 }

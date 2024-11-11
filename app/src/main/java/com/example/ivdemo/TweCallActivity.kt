@@ -23,7 +23,6 @@ import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -66,7 +65,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         )
     } //0 "正式版", 1  "开发版", 2 "体验版"
 
-    private val deviceSetting by lazy { DeviceSetting.getInstance() }
+    private val deviceSetting by lazy { DeviceSetting.getInstance(this@TweCallActivity) }
 
     private val userListAdapter = UserListAdapter()
 
@@ -239,7 +238,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             showToast("请输入被呼叫的用户openid！")
             return false
         } else {
-            DeviceSetting.getInstance().addOnlyEntity(UserEntity(openId, true))
+            deviceSetting.addOnlyEntity(UserEntity(openId, true))
             userListAdapter.notifyDataSetChanged()
         }
         if (initStatus == -1) {
