@@ -21,7 +21,12 @@ import com.tencent.iot.twcall.databinding.ActivityIpcBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CsChannelType
 import com.tencent.iot.video.device.annotations.StreamType
+import com.tencent.iot.video.device.callback.IvCsInitCallback
 import com.tencent.iot.video.device.model.AvDataInfo
+import com.tencent.iot.video.device.model.CsBalanceInfo
+import com.tencent.iot.video.device.model.CsChannelInfo
+import com.tencent.iot.video.device.model.CsEventResultInfo
+import com.tencent.iot.video.device.model.CsNotifyMsgData
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.util.copyTextToClipboard
@@ -29,7 +34,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
-class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
+private const val TAG = "IPCActivity"
+
+class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 
     private val player = SimplePlayer()
     private val cameraRecorder = CameraRecorder()
@@ -38,6 +45,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
     private val handler = Handler(Looper.getMainLooper())
     private val UPDATE_P2P_INFO_TOKEN = "update_p2p_info_token"
     private var customCommandDialog: CustomCommandDialog? = null
+    private var avDataInfo: AvDataInfo? = null
+    private var isCsInit: Boolean = false
 
     private val listener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -67,7 +76,6 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
 
         override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
             // Not used in this example
-            Log.d("IPCActivity", "onSurfaceTextureUpdated")
         }
     }
 
@@ -96,23 +104,37 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
                     showToast("设备未上线")
                     return@setOnClickListener
                 }
-                VideoNativeInterface.getInstance()
+                val resCode = initCs()
+                if (resCode != 0) {
+                    showToast("初始化云存失败，res:$resCode")
+                }
+                val csEventRes = VideoNativeInterface.getInstance()
                     .startCsEvent(CsChannelType.CS_SINGLE_CH, 1, "report test cs info")
+                if (csEventRes == 0) {
+                    showToast("触发事件成功")
+                }
             }
             btnCloudWareReport.setOnClickListener {
                 if (!isOnline) {
                     showToast("设备未上线")
                     return@setOnClickListener
                 }
+                val resCode = initCs()
+                if (resCode != 0) {
+                    showToast("初始化云存失败，res:$resCode")
+                }
                 val drawable = ContextCompat.getDrawable(this@IPCActivity, R.drawable.mom)
                 drawable?.let {
-                    VideoNativeInterface.getInstance().reportCsEventDirectly(
+                    val reportRes = VideoNativeInterface.getInstance().reportCsEventDirectly(
                         CsChannelType.CS_SINGLE_CH,
                         1,
                         "report test cs info",
                         0,
                         bitmapToByteArray(drawableToBitmap(it))
                     )
+                    if (reportRes == 0) {
+                        showToast("告警事件上报成功")
+                    }
                 }
             }
             btnCustomCommand.setOnClickListener {
@@ -138,6 +160,25 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
         }
     }
 
+    private fun initCs(): Int {
+        if (!isCsInit) {
+            val csChannelInfo = arrayOfNulls<CsChannelInfo>(1)
+            for (i in csChannelInfo.indices) {
+                val channelInfo = CsChannelInfo()
+                channelInfo.channelId = i
+                channelInfo.u32MaxGopSize = 512 * 1024
+                channelInfo.csFormat = 0
+                if (avDataInfo != null) {
+                    channelInfo.avDataInfo = avDataInfo
+                }
+                csChannelInfo[i] = channelInfo
+            }
+            isCsInit = true
+            return VideoNativeInterface.getInstance().initCs(csChannelInfo, this)
+        }
+        return -1;
+    }
+
     @RequiresApi(Build.VERSION_CODES.P)
     private fun updateP2pInfo() {
         val p2pInfo = VideoNativeInterface.getInstance().p2pInfo
@@ -157,7 +198,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
                 shouldGetCs = false
                 binding.tvCloudStorageState.text = String.format(
                     getString(R.string.text_cloud_storage_state),
-                    if (info.csSwitch) "已开通" else "未开通"
+                    if (info.csSwitch == 1) "已开通" else "未开通"
                 )
             }
         }
@@ -184,7 +225,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
     }
 
     override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
-        return AvDataInfo.createDefaultAvDataInfo(videoResType)
+        avDataInfo = AvDataInfo.createDefaultAvDataInfo(videoResType)
+        return avDataInfo!!
     }
 
     override fun onStartRealPlay(visitor: Int, channel: Int, videoResType: Int) {
@@ -273,5 +315,66 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>() {
         val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         return stream.toByteArray()
+    }
+
+    override fun onStartPushStream(channel: Int): Int {
+        Log.d(TAG, "onStartPushStream  channel:$channel")
+        return 0
+    }
+
+    override fun onStopPushStream(channel: Int): Int {
+        Log.d(TAG, "onStopPushStream  channel:$channel")
+        return 0
+    }
+
+    override fun onAiServiceNotify(channel: Int, aiServerType: Int, utcExpire: Long) {
+        Log.d(TAG, "onAiServiceNotify  channel:$channel")
+    }
+
+    override fun onEventCapturePicture(
+        channel: Int,
+        eventId: Int,
+        pic: ByteArray?,
+        size: Int
+    ): Int {
+        Log.d(TAG, "onEventCapturePicture  channel:$channel")
+        return 0
+    }
+
+    override fun onEventPictureResult(channel: Int, pic: ByteArray?, errCode: Int): Int {
+        Log.d(TAG, "onEventPictureResult  channel:$channel")
+        return 0
+    }
+
+    override fun onEventReportResult(channel: Int, resultInfo: CsEventResultInfo?): Int {
+        Log.d(TAG, "onEventReportResult  channel:$channel")
+        return 0
+    }
+
+    override fun onNotify(channel: Int, notifyMsgType: Int, notifyData: CsNotifyMsgData?): Int {
+        Log.d(TAG, "onNotify  channel:$channel")
+        return 0
+    }
+
+    override fun onGetBalance(
+        channel: Int,
+        isValid: Boolean,
+        balanceInfo: CsBalanceInfo?,
+        timeoutMs: Int
+    ) {
+        Log.d(TAG, "onGetBalance  channel:$channel")
+    }
+
+    override fun onDumpFile(
+        channel: Int,
+        state: Int,
+        startTs: Long,
+        endTs: Long,
+        fileName: String?,
+        buf: ByteArray?,
+        len: Int
+    ): Int {
+        Log.d(TAG, "onDumpFile  channel:$channel")
+        return 0
     }
 }

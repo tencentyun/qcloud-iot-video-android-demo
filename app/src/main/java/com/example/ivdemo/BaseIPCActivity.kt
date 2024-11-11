@@ -21,7 +21,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-private val TAG = IPCActivity::class.java.simpleName
+private val TAG = BaseIPCActivity::class.java.simpleName
 
 abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDeviceCallback,
     IvAvtCallback {
@@ -341,6 +341,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     }
 
     fun showToast(msg: String) {
+        Log.d(TAG, "msg:$msg")
         lifecycleScope.launch {
             Toast.makeText(this@BaseIPCActivity.applicationContext, msg, Toast.LENGTH_SHORT).show();
         }
