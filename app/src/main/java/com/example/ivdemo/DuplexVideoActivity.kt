@@ -103,14 +103,16 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
 
     private fun updateP2pInfo() {
         val p2pInfo = VideoNativeInterface.getInstance().p2pInfo
-        if (!binding.tvP2pInfo.text.toString().contains(p2pInfo)) {
-            showToast("P2PInfo 已更新")
-        }
-        binding.tvP2pInfo.text = String.format(getString(R.string.text_p2p_info), p2pInfo)
-        if (Build.VERSION.SDK_INT >= 28) {
-            handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
-        } else {
-            handler.postDelayed(taskRunnable, 10000)
+        if (p2pInfo?.isNotEmpty() == true) {
+            if (!binding.tvP2pInfo.text.toString().contains(p2pInfo)) {
+                showToast("P2PInfo 已更新")
+            }
+            binding.tvP2pInfo.text = String.format(getString(R.string.text_p2p_info), p2pInfo)
+            if (Build.VERSION.SDK_INT >= 28) {
+                handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
+            } else {
+                handler.postDelayed(taskRunnable, 10000)
+            }
         }
     }
 
