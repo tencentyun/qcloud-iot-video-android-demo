@@ -53,11 +53,14 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
         } else {
             lifecycleScope.launch(Dispatchers.Main) {
-                LogcatHelper.getInstance(this@MainActivity).start()
+                LogcatHelper.getInstance(this@MainActivity.applicationContext).start()
             }
         }
         with(binding) {
             updateBtnState()
+            ivLogo.setOnClickListener {
+                startActivity(Intent(this@MainActivity, LogActivity::class.java))
+            }
             // Set button click listeners
             btnLoginDuplexVideo.setOnClickListener {
                 if (!checkDeviceInfo()) return@setOnClickListener

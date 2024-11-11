@@ -79,4 +79,5 @@
     <string name="text_download_finish">下载完成%s%</string>
     <string name="text_send_command">发送信令</string>
     <string name="text_send">发送</string>
+    <string name="title_log">Log</string>
 </resources>
