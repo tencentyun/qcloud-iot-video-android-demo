@@ -139,17 +139,19 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     private fun updateP2pInfo() {
         val p2pInfo = VideoNativeInterface.getInstance().p2pInfo
         if (!binding.tvP2pInfo.text.toString().contains(p2pInfo)) {
             showToast("P2PInfo 已更新")
         }
         binding.tvP2pInfo.text = String.format(getString(R.string.text_p2p_info), p2pInfo)
-        handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
+        if (Build.VERSION.SDK_INT >= 28) {
+            handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
+        } else {
+            handler.postDelayed(taskRunnable, 10000)
+        }
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     private val taskRunnable = Runnable {
         updateP2pInfo()
     }
@@ -159,12 +161,15 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         handler.removeCallbacksAndMessages(UPDATE_P2P_INFO_TOKEN)
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     override fun onOnline(netDateTime: Long) {
         super.onOnline(netDateTime)
         lifecycleScope.launch(Dispatchers.Main) {
             updateP2pInfo()
-            handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 60000)
+            if (Build.VERSION.SDK_INT >= 28) {
+                handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
+            } else {
+                handler.postDelayed(taskRunnable, 10000)
+            }
         }
     }
 
