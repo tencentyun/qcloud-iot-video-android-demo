@@ -59,10 +59,13 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         // start run JNI iot_video_demo
         VideoNativeInterface.getInstance().initLog(LogLevelType.IV_eLOG_DEBUG)
         val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
-        VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
-        VideoNativeInterface.getInstance().initIvDm()
+        val sysInit = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
+        Log.d(TAG, "initIvSystem,resCode:$sysInit")
+        val dmInit = VideoNativeInterface.getInstance().initIvDm()
+        Log.d(TAG, "initIvDm,resCode:$dmInit")
         val avtInitInfo = AvtInitInfo()
-        VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
+        val avtInit = VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
+        Log.d(TAG, "initIvAvt,resCode:$avtInit")
     }
 
     protected abstract fun getViewBinding(): VB
@@ -73,11 +76,11 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         super.onDestroy()
         defaultScope.launch(Dispatchers.Default) {
             val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
-            Log.d(TAG, "exit avt res:$exitIvAvt")
+            Log.d(TAG, "exit avt resCode:$exitIvAvt")
             val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
-            Log.d(TAG, "exit dm res:$exitIvDm")
+            Log.d(TAG, "exit dm resCode:$exitIvDm")
             val exitIvSys = VideoNativeInterface.getInstance().exitIvSys()
-            Log.d(TAG, "exit sys res:$exitIvSys")
+            Log.d(TAG, "exit sys resCode:$exitIvSys")
             cancel()
         }
     }
@@ -85,13 +88,13 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     override fun onOnline(netDateTime: Long) {
         Log.d(TAG, "onOnline  netDateTime--->$netDateTime")
         isOnline = true
-        showToast("设备上线")
+        showToast("设备上线,netDateTime:$netDateTime")
     }
 
     override fun onOffline(status: Int) {
         Log.d(TAG, "onOffline  status--->$status")
         isOnline = false
-        showToast("设备下线")
+        showToast("设备下线,status:$status")
     }
 
     override fun onModuleStatus(moduleStatus: Int) {
