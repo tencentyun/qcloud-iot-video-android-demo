@@ -67,6 +67,14 @@
                     android:checked="true"
                     android:tag="2"
                     android:text="@string/text_two_way" />
+
+                <RadioButton
+                    android:id="@+id/rb_three_way"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:tag="3"
+                    android:text="@string/text_three_way" />
             </RadioGroup>
         </LinearLayout>
 

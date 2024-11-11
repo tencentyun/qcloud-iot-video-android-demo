@@ -14,7 +14,7 @@ import com.tencent.iotvideo.link.util.updateOperate
 class DeviceSettingDialog(private val context: Context) :
     IosCenterStyleDialog<PopupDeviceSettingLayoutBinding>(context) {
 
-    private val deviceSetting by lazy { DeviceSetting.getInstance() }
+    private val deviceSetting by lazy { DeviceSetting.getInstance(context) }
     private var ipcType: Int = 2
     private val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(
@@ -53,6 +53,7 @@ class DeviceSettingDialog(private val context: Context) :
             ipcType = deviceSetting.ipcType
             rbOneWay.isChecked = ipcType == 1
             rbTwoWay.isChecked = ipcType == 2
+            rbThreeWay.isChecked = ipcType == 3
             rgSelectWay.setOnCheckedChangeListener { group, checkedId ->
                 ipcType = group.findViewById<RadioButton>(checkedId).tag.toString().toInt()
             }
