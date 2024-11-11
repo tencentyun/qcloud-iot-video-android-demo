@@ -6,6 +6,7 @@
 
     <string name="title_ipc">IPC</string>
     <string name="title_audio_video_call">音视频传输</string>
+    <string name="title_custom_audio_video_call">接听音视频传输</string>
     <string name="title_tweCall">TWe Call</string>
     <string name="title_twe_call_lib_demo">TWE CALL LIB DEMO</string>
     <string name="title_setting_device">配置设备</string>
@@ -56,6 +57,7 @@
     <string name="text_video_link">视频链路</string>
     <string name="text_one_way">单向：设备向小程序/APP传输视频</string>
     <string name="text_two_way">双向：设备与小程序/APP双向传输视频</string>
+    <string name="text_three_way">呼叫接听双向：设备与小程序/APP双向传输视频</string>
     <string name="text_product_id">产品ID</string>
     <string name="text_device_name">设备名称</string>
     <string name="text_device_key">设备密钥</string>

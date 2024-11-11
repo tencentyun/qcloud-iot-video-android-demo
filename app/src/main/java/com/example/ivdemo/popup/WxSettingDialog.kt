@@ -12,7 +12,7 @@ import com.tencent.iotvideo.link.util.updateOperate
 
 class WxSettingDialog(context: Context) :
     IosCenterStyleDialog<PopupWxSettingLayoutBinding>(context) {
-    private val deviceSetting by lazy { DeviceSetting.getInstance() }
+    private val deviceSetting by lazy { DeviceSetting.getInstance(context) }
     private val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(
             s: CharSequence?,

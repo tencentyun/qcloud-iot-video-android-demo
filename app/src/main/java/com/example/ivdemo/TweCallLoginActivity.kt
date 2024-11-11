@@ -15,7 +15,7 @@ import com.tencent.iotvideo.link.util.updateOperate
 class TweCallLoginActivity : AppCompatActivity() {
 
     private val binding by lazy { ActivityTweCallLoginBinding.inflate(layoutInflater) }
-    private val deviceSetting by lazy { DeviceSetting.getInstance() }
+    private val deviceSetting by lazy { DeviceSetting.getInstance(this) }
     private var miniProgramVersion: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
