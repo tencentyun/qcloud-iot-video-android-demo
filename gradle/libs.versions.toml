@@ -2,19 +2,23 @@
 agp = "8.4.0"
 crashreport = "4.1.9.3"
 appcompat = "1.7.0"
+gson = "2.11.0"
 kotlinxCoroutinesAndroid = "1.7.3"
 material = "1.12.0"
 activity = "1.9.1"
 constraintlayout = "2.1.4"
 coreKtx = "1.13.1"
+mmkv = "2.0.0"
 
 [libraries]
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 crashreport = { module = "com.tencent.bugly:crashreport", version.ref = "crashreport" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

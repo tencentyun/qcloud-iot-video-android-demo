@@ -15,14 +15,13 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true" />
 
-    <EditText
-        android:id="@+id/et_openid"
+    <TextView
+        android:id="@+id/tv_openid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_toStartOf="@+id/cb_select"
         android:layout_toEndOf="@id/iv_head_icon"
-        android:hint="@string/voip_openid"
         android:textSize="12sp" />
 
 </RelativeLayout>

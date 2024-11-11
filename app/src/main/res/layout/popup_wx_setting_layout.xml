@@ -36,7 +36,7 @@
             android:background="@drawable/dashed_line" />
 
         <TextView
-            android:id="@+id/text_voip_wx_app_id"
+            android:id="@+id/text_twe_call_wx_app_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -47,7 +47,7 @@
             android:textSize="16sp" />
 
         <EditText
-            android:id="@+id/et_voip_wx_app_id"
+            android:id="@+id/et_twe_call_wx_app_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -58,7 +58,7 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/text_voip_model_id"
+            android:id="@+id/text_twe_call_model_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -68,54 +68,12 @@
             android:textSize="16sp" />
 
         <EditText
-            android:id="@+id/et_voip_model_id"
+            android:id="@+id/et_twe_call_model_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
             android:hint="@string/model_id"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/text_voip_sn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:gravity="center"
-            android:text="@string/sn"
-            android:textAlignment="center"
-            android:textSize="16sp" />
-
-        <EditText
-            android:id="@+id/et_voip_sn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:hint="@string/sn"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/text_voip_sn_ticket"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:gravity="center"
-            android:text="@string/sn_ticket"
-            android:textAlignment="center"
-            android:textSize="16sp" />
-
-        <EditText
-            android:id="@+id/et_voip_sn_ticket"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:hint="@string/sn_ticket"
             android:inputType="text"
             android:maxLines="1"
             android:textSize="16sp" />
@@ -131,17 +89,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
+        <Button
             android:id="@+id/btn_confirm"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
-            android:background="@drawable/background_blue_cell_btn"
+            android:background="@drawable/background_grey_cell_btn"
             android:gravity="center"
             android:paddingVertical="8dp"
             android:text="@string/conform"
-            android:textColor="@color/blue_0052D9"
+            android:textColor="@color/white_0052D9"
             android:textSize="20sp"
             android:textStyle="bold" />
 

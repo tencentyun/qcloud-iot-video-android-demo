@@ -37,7 +37,7 @@
             android:background="@drawable/dashed_line" />
 
         <TextView
-            android:id="@+id/text_voip_local_resolution"
+            android:id="@+id/text_twe_call_local_resolution"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -48,7 +48,7 @@
             android:textSize="16sp" />
 
         <Spinner
-            android:id="@+id/sp_voip_local_resolution"
+            android:id="@+id/sp_twe_call_local_resolution"
             android:layout_width="150dp"
             android:layout_height="40dp"
             android:layout_marginStart="20dp"
@@ -57,7 +57,7 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/text_voip_local_frame_rate"
+            android:id="@+id/text_twe_call_local_frame_rate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -73,7 +73,7 @@
             android:orientation="horizontal">
 
             <SeekBar
-                android:id="@+id/sb_voip_local_frame_rate"
+                android:id="@+id/sb_twe_call_local_frame_rate"
                 android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="20dp"
@@ -82,7 +82,7 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/tv_voip_local_frame_rate_tip"
+                android:id="@+id/tv_twe_call_local_frame_rate_tip"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
@@ -92,7 +92,7 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/text_voip_local_bit_rate"
+            android:id="@+id/text_twe_call_local_bit_rate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -108,7 +108,7 @@
             android:orientation="horizontal">
 
             <SeekBar
-                android:id="@+id/sb_voip_local_bit_rate"
+                android:id="@+id/sb_twe_call_local_bit_rate"
                 android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="20dp"
@@ -117,7 +117,7 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/tv_voip_local_frame_bit_tip"
+                android:id="@+id/tv_twe_call_local_frame_bit_tip"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
@@ -127,7 +127,7 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/text_voip_wx_resolution"
+            android:id="@+id/text_twe_call_wx_resolution"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -137,7 +137,7 @@
             android:textSize="16sp" />
 
         <Spinner
-            android:id="@+id/sp_voip_wx_resolution"
+            android:id="@+id/sp_twe_call_wx_resolution"
             android:layout_width="150dp"
             android:layout_height="40dp"
             android:layout_marginStart="20dp"
@@ -146,7 +146,7 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/text_voip_wx_camera_is_open"
+            android:id="@+id/text_twe_call_wx_camera_is_open"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -156,7 +156,7 @@
             android:textSize="16sp" />
 
         <Switch
-            android:id="@+id/sw_voip_wx_camera_is_open"
+            android:id="@+id/sw_twe_call_wx_camera_is_open"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
