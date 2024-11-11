@@ -6,14 +6,19 @@ import android.hardware.Camera;
 import android.graphics.SurfaceTexture;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
+import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.tencent.iot.video.device.VideoNativeInterface;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
@@ -49,7 +54,20 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     public boolean isRunning = false;
 
     // for test only
-//    private FileOutputStream mOutputStream = null;
+    private boolean isSaveRecord = false;
+
+    private FileOutputStream fos;
+    private FileOutputStream nv21fos;
+
+    private String speakH264FilePath = "/sdcard/video.h264";
+    private String speakNv21FilePath = "/sdcard/video.nv21";
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    public void isSaveRecord(boolean isSaveRecord) {
+        this.isSaveRecord = isSaveRecord;
+        recordSpeakH264(isSaveRecord);
+    }
 
     public void openCamera(SurfaceTexture surfaceTexture, Activity activity) {
         try {
@@ -175,6 +193,19 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     int link_mode = iv.getSendStreamStatus(visitor, res_type);
                     Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + link_mode);
                 }
+                if (isSaveRecord) {
+                    if (executor.isShutdown()) return;
+                    executor.submit(() -> {
+                        if (fos != null) {
+                            try {
+                                fos.write(datas);
+                                fos.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
             }
         }
     }
@@ -185,6 +216,19 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             return;
         }
         mVideoEncoder.encoderH264(data, false);
+        if (isSaveRecord) {
+            if (executor.isShutdown()) return;
+            executor.submit(() -> {
+                if (nv21fos != null) {
+                    try {
+                        nv21fos.write(data);
+                        nv21fos.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
 
 
@@ -238,5 +282,38 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (bitRateTimer != null) {
             bitRateTimer.cancel();
         }
+    }
+
+    public void recordSpeakH264(boolean isRecord) {
+        if (isRecord) {
+            if (!TextUtils.isEmpty(speakH264FilePath)) {
+                try {
+                    File file = getFile(speakH264FilePath);
+                    fos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, speakH264FilePath + "临时缓存文件未找到");
+                }
+            }
+            if (!TextUtils.isEmpty(speakNv21FilePath)) {
+                try {
+                    File file = getFile(speakNv21FilePath);
+                    nv21fos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, speakNv21FilePath + "临时缓存文件未找到");
+                }
+            }
+        }
+    }
+
+    public File getFile(String path) throws IOException {
+        File file = new File(path);
+        Log.i(TAG, "speak cache h264 file path:" + path);
+        if (file.exists()) {
+            file.delete();
+        }
+        file.createNewFile();
+        return file;
     }
 }
