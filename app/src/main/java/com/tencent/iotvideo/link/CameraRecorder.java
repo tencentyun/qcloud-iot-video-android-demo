@@ -78,7 +78,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
-            mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
+//            mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
+            mCamera.setDisplayOrientation(90);
             Camera.Parameters parameters = mCamera.getParameters();
             if (parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
