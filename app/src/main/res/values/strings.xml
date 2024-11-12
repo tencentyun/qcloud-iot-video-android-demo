@@ -45,7 +45,7 @@
     <string name="title_ota_upgrade">OTA升级</string>
     <string name="text_device_info_label">设备信息</string>
     <string name="text_device_info">设备信息：%s</string>
-    <string name="text_p2p_info">P2P信息：%s</string>
+    <string name="text_p2p_info">P2P信息:%s</string>
     <string name="text_exit_ota">OTA退出升级</string>
     <string name="text_select_version">请选择下面通信的小程序版本</string>
     <string name="text_formal_version">正式版</string>

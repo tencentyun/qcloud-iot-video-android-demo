@@ -98,6 +98,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
             textureViewIpc.surfaceTextureListener = listener
             tvCopy.setOnClickListener {
                 copyTextToClipboard(this@IPCActivity, tvP2pInfo.text.toString().substringAfter(":"))
+                showToast("已复制p2p信息")
             }
             btnCloudStorageReport.setOnClickListener {
                 if (!isOnline) {
