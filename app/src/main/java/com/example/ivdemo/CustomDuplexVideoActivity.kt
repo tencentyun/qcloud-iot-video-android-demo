@@ -11,7 +11,6 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.popup.QualitySettingDialog
@@ -20,6 +19,7 @@ import com.tencent.iot.twcall.databinding.ActivityCustomDuplexVideoBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
+import com.tencent.iotvideo.link.util.copyTextToClipboard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONException
@@ -113,7 +113,13 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
             }
             textDevInfo.text =
                 String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
-
+            binding.tvCopy.setOnClickListener {
+                copyTextToClipboard(
+                    this@CustomDuplexVideoActivity,
+                    binding.tvP2pInfo.text.toString().substringAfter(":")
+                )
+                showToast("已复制p2p信息")
+            }
 
             btnRejectListen.setOnClickListener {
                 sendCommand("call_reject")
