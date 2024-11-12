@@ -120,7 +120,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
                 finishStream()
                 updateCancelCallUI()
             }
-            btnHangUp.setOnClickListener {
+            llHangUp.setOnClickListener {
                 sendCommand("call_hang_up")
                 finishStream()
                 isCalling = false
@@ -130,9 +130,9 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
             btnAnswer.setOnClickListener {
                 sendCommand("call_answer")
                 isCalling = true
-                btnRejectListen.visibility = View.GONE
-                btnAnswer.visibility = View.GONE
-                btnHangUp.visibility = View.VISIBLE
+                llRejectListen.visibility = View.GONE
+                llAnswer.visibility = View.GONE
+                llHangUp.visibility = View.VISIBLE
                 tipText.visibility = View.VISIBLE
                 updateAnswerUI()
             }
@@ -288,9 +288,9 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
 
     private fun updateCallUI() {
         with(binding) {
-            btnRejectListen.visibility = View.VISIBLE
-            btnAnswer.visibility = View.VISIBLE
-            btnHangUp.visibility = View.GONE
+            llRejectListen.visibility = View.VISIBLE
+            llAnswer.visibility = View.VISIBLE
+            llHangUp.visibility = View.GONE
             clCall.visibility = View.VISIBLE
             tipText.visibility = View.VISIBLE
             tipText.bringToFront()
