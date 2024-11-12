@@ -90,6 +90,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                 this@DuplexVideoActivity,
                 binding.tvP2pInfo.text.toString().substringAfter(":")
             )
+            showToast("已复制p2p信息")
         }
     }
 
