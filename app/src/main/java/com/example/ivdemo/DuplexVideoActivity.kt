@@ -2,20 +2,17 @@ package com.example.ivdemo
 
 import android.graphics.SurfaceTexture
 import android.os.Build
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
-import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
 import com.tencent.iot.video.device.VideoNativeInterface
-import com.tencent.iot.video.device.annotations.CsChannelType
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
@@ -67,11 +64,6 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
             // Not used in this example
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "start create")
-        super.onCreate(savedInstanceState)
     }
 
     override fun getViewBinding(): ActivityDuplexVideoBinding =
