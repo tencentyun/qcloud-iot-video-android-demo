@@ -46,7 +46,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     private val UPDATE_P2P_INFO_TOKEN = "update_p2p_info_token"
     private var customCommandDialog: CustomCommandDialog? = null
     private var avDataInfo: AvDataInfo? = null
-    private var isCsInit: Boolean = false
+    private var shouldCsInit: Boolean = true
 
     private val listener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -105,13 +105,17 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     showToast("设备未上线")
                     return@setOnClickListener
                 }
-                val resCode = initCs()
-                if (resCode != 0) {
-                    showToast("初始化云存失败，res:$resCode")
+                if (shouldCsInit) {
+                    val resCode = initCs()
+                    if (resCode != 0) {
+                        showToast("初始化云存失败，res:$resCode")
+                    }
                 }
                 val csEventRes = VideoNativeInterface.getInstance()
                     .startCsEvent(CsChannelType.CS_SINGLE_CH, 1, "report test cs info")
-                if (csEventRes == 0) {
+                if (csEventRes != 0) {
+                    showToast("触发事件失败,res:$csEventRes")
+                } else {
                     showToast("触发事件成功")
                 }
             }
@@ -120,9 +124,11 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     showToast("设备未上线")
                     return@setOnClickListener
                 }
-                val resCode = initCs()
-                if (resCode != 0) {
-                    showToast("初始化云存失败，res:$resCode")
+                if (shouldCsInit) {
+                    val resCode = initCs()
+                    if (resCode != 0) {
+                        showToast("初始化云存失败，res:$resCode")
+                    }
                 }
                 val drawable = ContextCompat.getDrawable(this@IPCActivity, R.drawable.mom)
                 drawable?.let {
@@ -135,6 +141,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     )
                     if (reportRes == 0) {
                         showToast("告警事件上报成功")
+                    } else {
+                        showToast("告警事件上报失败，res:$reportRes")
                     }
                 }
             }
@@ -162,7 +170,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     }
 
     private fun initCs(): Int {
-        if (!isCsInit) {
+        if (shouldCsInit) {
             val csChannelInfo = arrayOfNulls<CsChannelInfo>(1)
             for (i in csChannelInfo.indices) {
                 val channelInfo = CsChannelInfo()
@@ -174,10 +182,10 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 }
                 csChannelInfo[i] = channelInfo
             }
-            isCsInit = true
+            shouldCsInit = false
             return VideoNativeInterface.getInstance().initCs(csChannelInfo, this)
         }
-        return -1;
+        return -1
     }
 
     private fun updateP2pInfo() {
@@ -199,7 +207,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     private fun updateCsState() {
         if (shouldGetCs) {
             val info =
-                VideoNativeInterface.getInstance().getCsBalanceInfo(CsChannelType.CS_SINGLE_CH, 10)
+                VideoNativeInterface.getInstance().getCsBalanceInfo(CsChannelType.CS_SINGLE_CH, 0)
             if (info != null) {
                 shouldGetCs = false
                 binding.tvCloudStorageState.text = String.format(
