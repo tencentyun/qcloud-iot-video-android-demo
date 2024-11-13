@@ -109,6 +109,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     val resCode = initCs()
                     if (resCode != 0) {
                         showToast("初始化云存失败，res:$resCode")
+                    } else {
+                        showToast("初始化云存完成")
                     }
                 }
                 val csEventRes = VideoNativeInterface.getInstance()
@@ -128,6 +130,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     val resCode = initCs()
                     if (resCode != 0) {
                         showToast("初始化云存失败，res:$resCode")
+                    } else {
+                        showToast("初始化云存完成")
                     }
                 }
                 val drawable = ContextCompat.getDrawable(this@IPCActivity, R.drawable.mom)
@@ -179,6 +183,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 channelInfo.csFormat = 0
                 if (avDataInfo != null) {
                     channelInfo.avDataInfo = avDataInfo
+                } else {
+                    channelInfo.avDataInfo = AvDataInfo.createDefaultAvDataInfo(videoResType)
                 }
                 csChannelInfo[i] = channelInfo
             }
@@ -229,6 +235,9 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
             handler.removeCallbacksAndMessages(UPDATE_P2P_INFO_TOKEN)
         } else {
             handler.removeCallbacks(taskRunnable)
+        }
+        if (!shouldCsInit) {
+            VideoNativeInterface.getInstance().exitCs()
         }
     }
 
