@@ -30,6 +30,7 @@ import com.tencent.iot.video.device.model.CsNotifyMsgData
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.util.copyTextToClipboard
+import com.tencent.iotvideo.link.util.updateOperate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -44,9 +45,11 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     private var localPreviewSurface: SurfaceTexture? = null
     private val handler = Handler(Looper.getMainLooper())
     private val UPDATE_P2P_INFO_TOKEN = "update_p2p_info_token"
+    private val CHECK_PREPARE_CS_TOKEN = "check_prepare_cs_token"
     private var customCommandDialog: CustomCommandDialog? = null
     private var avDataInfo: AvDataInfo? = null
     private var shouldCsInit: Boolean = true
+    private var csBalanceInfo: CsBalanceInfo? = null
 
     private val listener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -81,6 +84,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 
     override fun getViewBinding(): ActivityIpcBinding = ActivityIpcBinding.inflate(layoutInflater)
     override fun initView() {
+        prepareCs()
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ipc)
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
@@ -101,18 +105,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 showToast("已复制p2p信息")
             }
             btnCloudStorageReport.setOnClickListener {
-                if (!isOnline) {
-                    showToast("设备未上线")
-                    return@setOnClickListener
-                }
-                if (shouldCsInit) {
-                    val resCode = initCs()
-                    if (resCode != 0) {
-                        showToast("初始化云存失败，res:$resCode")
-                    } else {
-                        showToast("初始化云存完成")
-                    }
-                }
+                if (!checkCsInfo()) return@setOnClickListener
                 val csEventRes = VideoNativeInterface.getInstance()
                     .startCsEvent(CsChannelType.CS_SINGLE_CH, 1, "report test cs info")
                 if (csEventRes != 0) {
@@ -122,26 +115,18 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 }
             }
             btnCloudWareReport.setOnClickListener {
-                if (!isOnline) {
-                    showToast("设备未上线")
-                    return@setOnClickListener
-                }
-                if (shouldCsInit) {
-                    val resCode = initCs()
-                    if (resCode != 0) {
-                        showToast("初始化云存失败，res:$resCode")
-                    } else {
-                        showToast("初始化云存完成")
-                    }
-                }
-                val drawable = ContextCompat.getDrawable(this@IPCActivity, R.drawable.mom)
-                drawable?.let {
+                if (!checkCsInfo()) return@setOnClickListener
+                val bitmap = binding.textureViewIpc.getBitmap(
+                    cameraRecorder.mVideoWidth,
+                    cameraRecorder.mVideoHeight
+                )
+                if (bitmap != null) {
                     val reportRes = VideoNativeInterface.getInstance().reportCsEventDirectly(
                         CsChannelType.CS_SINGLE_CH,
                         1,
                         "report test cs info",
                         0,
-                        bitmapToByteArray(drawableToBitmap(it))
+                        bitmapToByteArray(bitmap)
                     )
                     if (reportRes == 0) {
                         showToast("告警事件上报成功")
@@ -171,6 +156,41 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 //                VideoNativeInterface.getInstance().sendMsgNotice(6)
 //            }
         }
+    }
+
+    private val taskInitCsRunnable = Runnable {
+        prepareCs()
+    }
+
+    private fun prepareCs() {
+        if (isOnline) {
+            initCs()
+        } else {
+            if (Build.VERSION.SDK_INT >= 28) {
+                handler.postDelayed(taskInitCsRunnable, CHECK_PREPARE_CS_TOKEN, 1000)
+            } else {
+                handler.postDelayed(taskInitCsRunnable, 1000)
+            }
+        }
+    }
+
+    private fun checkCsInfo(): Boolean {
+        if (!isOnline) {
+            showToast("设备未上线")
+            return false
+        }
+        if (csBalanceInfo == null) {
+            showToast("设备未获取到云存套餐")
+            return false
+        } else if (csBalanceInfo?.csSwitch == 0) {
+            showToast("设备未开通云存套餐")
+            return false
+        }
+        if (shouldCsInit) {
+            showToast("未初始化云存")
+            return false
+        }
+        return true
     }
 
     private fun initCs(): Int {
@@ -212,13 +232,17 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     private var shouldGetCs = true
     private fun updateCsState() {
         if (shouldGetCs) {
-            val info =
+            csBalanceInfo =
                 VideoNativeInterface.getInstance().getCsBalanceInfo(CsChannelType.CS_SINGLE_CH, 0)
-            if (info != null) {
+            if (csBalanceInfo != null) {
                 shouldGetCs = false
                 binding.tvCloudStorageState.text = String.format(
                     getString(R.string.text_cloud_storage_state),
-                    if (info.csSwitch == 1) "已开通" else "未开通"
+                    if (csBalanceInfo?.csSwitch == 1) {
+                        binding.btnCloudWareReport.updateOperate(true)
+                        binding.btnCloudStorageReport.updateOperate(true)
+                        "已开通"
+                    } else "未开通"
                 )
             }
         }
@@ -236,6 +260,11 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
         } else {
             handler.removeCallbacks(taskRunnable)
         }
+        if (Build.VERSION.SDK_INT >= 28) {
+            handler.removeCallbacksAndMessages(CHECK_PREPARE_CS_TOKEN)
+        } else {
+            handler.removeCallbacks(taskInitCsRunnable)
+        }
         if (!shouldCsInit) {
             VideoNativeInterface.getInstance().exitCs()
         }
@@ -246,10 +275,11 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
         lifecycleScope.launch(Dispatchers.Main) {
             updateP2pInfo()
             if (Build.VERSION.SDK_INT >= 28) {
-                handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
+                handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 5000)
             } else {
-                handler.postDelayed(taskRunnable, 10000)
+                handler.postDelayed(taskRunnable, 5000)
             }
+            binding.btnCustomCommand.updateOperate(true)
         }
     }
 

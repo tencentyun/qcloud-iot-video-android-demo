@@ -53,7 +53,7 @@ public class AudioEncoder {
     private volatile boolean stopEncode = false;
     private long seq = 0L;
     private int bufferSizeInBytes;
-
+    private boolean isMuted = false;
 
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam) {
         this(micParam, audioEncodeParam, false, false);
@@ -139,6 +139,13 @@ public class AudioEncoder {
         control = AutomaticGainControl.create(audioSession);
         control.setEnabled(true);
         return control.getEnabled();
+    }
+    public void setMuted(boolean muted) {
+        isMuted = muted;
+    }
+
+    public boolean isMuted(){
+        return isMuted;
     }
 
     private void release() {
@@ -226,6 +233,11 @@ public class AudioEncoder {
                 int readSize = -1;
                 if (inputBuffer != null) {
                     readSize = audioRecord.read(inputBuffer, bufferSizeInBytes);
+                    if (isMuted && readSize > 0) {
+                        for (int i = 0; i < readSize; i++) {
+                            inputBuffer.put(i, (byte) 0);
+                        }
+                    }
                 }
                 if (readSize >= 0) {
                     audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, System.nanoTime() / 1000, 0);

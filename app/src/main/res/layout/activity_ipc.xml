@@ -109,9 +109,9 @@
             android:layout_marginHorizontal="4dp"
             android:layout_marginTop="8dp"
             android:layout_weight="1"
-            android:background="@drawable/background_blue_cell_btn"
+            android:background="@drawable/background_grey_cell_btn"
             android:text="@string/text_cloud_storage"
-            android:textColor="@color/blue_0052D9"
+            android:textColor="@color/white_0052D9"
             android:textSize="12sp"
             app:layout_constraintTop_toBottomOf="@+id/textureView_ipc" />
 
@@ -122,9 +122,9 @@
             android:layout_marginHorizontal="4dp"
             android:layout_marginTop="8dp"
             android:layout_weight="1"
-            android:background="@drawable/background_blue_cell_btn"
+            android:background="@drawable/background_grey_cell_btn"
             android:text="@string/text_cloud_ware"
-            android:textColor="@color/blue_0052D9"
+            android:textColor="@color/white_0052D9"
             android:textSize="12sp"
             app:layout_constraintTop_toBottomOf="@+id/textureView_ipc" />
 
@@ -135,9 +135,9 @@
             android:layout_marginHorizontal="4dp"
             android:layout_marginTop="8dp"
             android:layout_weight="1"
-            android:background="@drawable/background_blue_cell_btn"
+            android:background="@drawable/background_grey_cell_btn"
             android:text="@string/text_custom_command"
-            android:textColor="@color/blue_0052D9"
+            android:textColor="@color/white_0052D9"
             android:textSize="12sp"
             app:layout_constraintTop_toBottomOf="@+id/textureView_ipc" />
 
