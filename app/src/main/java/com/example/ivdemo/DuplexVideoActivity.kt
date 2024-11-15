@@ -70,27 +70,63 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         ActivityDuplexVideoBinding.inflate(layoutInflater)
 
     override fun initView() {
-        binding.textureViewDuplex.surfaceTextureListener = listener
-        binding.surfaceViewDuplex.surfaceTextureListener = listener
-        binding.titleLayout.tvTitle.text = getString(R.string.title_audio_video_call)
-        binding.titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
-        binding.titleLayout.ivRightBtn.isVisible = true
-        binding.titleLayout.ivRightBtn.setOnClickListener {
-            val dialog = QualitySettingDialog(this@DuplexVideoActivity)
-            dialog.setOnDismissListener {
-                cameraRecorder.closeCamera()
-                cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+        player.setContext(this)
+        with(binding) {
+            textureViewDuplex.surfaceTextureListener = listener
+            surfaceViewDuplex.surfaceTextureListener = listener
+            titleLayout.tvTitle.text = getString(R.string.title_audio_video_call)
+            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivRightBtn.isVisible = true
+            titleLayout.ivRightBtn.setOnClickListener {
+                val dialog = QualitySettingDialog(this@DuplexVideoActivity)
+                dialog.setOnDismissListener {
+                    cameraRecorder.closeCamera()
+                    cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+                }
+                dialog.show(supportFragmentManager)
             }
-            dialog.show(supportFragmentManager)
-        }
-        binding.textDevInfo.text =
-            String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
-        binding.tvCopy.setOnClickListener {
-            copyTextToClipboard(
-                this@DuplexVideoActivity,
-                binding.tvP2pInfo.text.toString().substringAfter(":")
-            )
-            showToast("已复制p2p信息")
+            textDevInfo.text =
+                String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
+            tvCopy.setOnClickListener {
+                copyTextToClipboard(
+                    this@DuplexVideoActivity,
+                    tvP2pInfo.text.toString().substringAfter(":")
+                )
+                showToast("已复制p2p信息")
+            }
+            llMike.setOnClickListener {
+                cameraRecorder.isMuted = !cameraRecorder.isMuted
+                if (cameraRecorder.isMuted) {
+                    ivMike.setImageResource(R.mipmap.icon_mike_close)
+                    btnMike.text = "麦克风关"
+                } else {
+                    ivMike.setImageResource(R.mipmap.icon_mike_open)
+                    btnMike.text = "麦克风开"
+                }
+            }
+            llSpeaker.setOnClickListener {
+//                player.isSpeakerOn = !player.isSpeakerOn
+//                if (player.isSpeakerOn) {
+//                    ivSpeaker.setImageResource(R.mipmap.icon_speaker_open)
+//                    btnSpeaker.text = "扬声器开"
+//                } else {
+//                    ivSpeaker.setImageResource(R.mipmap.icon_speaker_close)
+//                    btnSpeaker.text = "扬声器关"
+//                }
+            }
+            llVideo.setOnClickListener {
+                if (cameraRecorder.isRunning) {
+                    cameraRecorder.closeCamera()
+                    binding.textureViewDuplex.isVisible = false
+                    ivVideo.setImageResource(R.mipmap.icon_video_close)
+                    btnVideo.text = "摄像头关"
+                } else {
+                    binding.textureViewDuplex.isVisible = true
+                    ivVideo.setImageResource(R.mipmap.icon_video_open)
+                    btnVideo.text = "摄像头开"
+                    cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+                }
+            }
         }
     }
 

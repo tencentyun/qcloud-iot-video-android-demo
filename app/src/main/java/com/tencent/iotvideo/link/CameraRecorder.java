@@ -35,8 +35,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     private Camera mCamera;
     private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-    private int mVideoWidth = 640;
-    private int mVideoHeight = 480;
+    public int mVideoWidth = 640;
+    public int mVideoHeight = 480;
     private int mVideoFrameRate = 15;
     private int mVideoBitRate = 13000000; // about width*height*4
 
@@ -45,6 +45,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     private VideoEncoder mVideoEncoder = null;
     private AudioEncoder mAudioEncoder = null;
+    private boolean isMuted = false;
     private boolean mIsRecording = false;
     private static final int MaxVisitors = 4;
     private Map<Integer, Integer> mVisitorInfo = new HashMap<Integer, Integer>(MaxVisitors);
@@ -78,8 +79,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
-//            mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
-            mCamera.setDisplayOrientation(90);
+            mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
             Camera.Parameters parameters = mCamera.getParameters();
             if (parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
@@ -121,7 +121,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         encodeParam.setWidth(mVideoWidth);
         encodeParam.setFrameRate(mVideoFrameRate);
         encodeParam.setBitRate(mVideoBitRate);
-        mVideoEncoder = new VideoEncoder(encodeParam, mActivity);
+        mVideoEncoder = new VideoEncoder(encodeParam);
         mVideoEncoder.setEncoderListener(this);
 
         MicParam micParam = new MicParam();
@@ -133,10 +133,25 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         audioEncodeParam.setBitRate(mAudioBitRate);
         mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
         mAudioEncoder.setOnEncodeListener(this);
+        mAudioEncoder.setMuted(isMuted);
         mAudioEncoder.start();
         mIsRecording = true;
         Log.d(TAG, "start camera recording");
         startBitRateAdapter();
+    }
+
+    public void setMuted(boolean muted) {
+        isMuted = muted;
+        if (mAudioEncoder != null) {
+            mAudioEncoder.setMuted(isMuted);
+        }
+    }
+
+    public boolean isMuted() {
+        if (mAudioEncoder != null) {
+            return mAudioEncoder.isMuted();
+        }
+        return isMuted;
     }
 
     public void stopRecording(int visitor, int res_type) {
@@ -145,8 +160,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
 
         mVisitorInfo.remove(Integer.valueOf(visitor));
-        if (!mVisitorInfo.isEmpty())
-            return;
+        if (!mVisitorInfo.isEmpty()) return;
 
         mIsRecording = false;
         mVideoEncoder.stop();
@@ -166,8 +180,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
                 int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, res_type);
-                if (ret != 0)
-                    Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
+                if (ret != 0) Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
             }
         }
     }

@@ -195,6 +195,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 if (initStatus != 0) {
                     dismissDialog()
                     showToast("初始化失败，resCode:$initStatus")
+                } else {
+                    showToast("twecall初始化成功")
                 }
             }
         }

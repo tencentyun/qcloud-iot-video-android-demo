@@ -1,5 +1,6 @@
 package com.tencent.iotvideo.link;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -13,6 +14,8 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 
+import androidx.core.content.ContextCompat;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +24,7 @@ import java.util.concurrent.Executors;
 public class SimplePlayer {
     private static final String TAG = "SimplePlayer";
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+
     public static String bytesToHex(byte[] bytes, int length) {
         char[] hexChars = new char[length * 2];
         for (int j = 0; j < length; j++) {
@@ -47,6 +51,12 @@ public class SimplePlayer {
     private long currentVideoPts = 0;
     private static final int AV_PTS_GAP_MS = 1500;
 
+    private AudioManager audioManager;
+    private boolean isSpeakerOn = true;
+
+    public void setContext(Context context) {
+        audioManager = ContextCompat.getSystemService(context, AudioManager.class);
+    }
 
     public int startVideoPlay(Surface surface, int visitor, int type, int height, int width) {
         Log.d(TAG, "video input from visitor "+ visitor + " height "+ height + " width " + width + ", model:" + Build.MODEL);
@@ -154,6 +164,17 @@ public class SimplePlayer {
             }
         }
         return 0;
+    }
+
+    public void setSpeakerOn(boolean speakerOn) {
+        isSpeakerOn = speakerOn;
+        if (audioManager != null) {
+            audioManager.setSpeakerphoneOn(speakerOn);
+        }
+    }
+
+    public boolean isSpeakerOn() {
+        return isSpeakerOn;
     }
 
     public int stopVideoPlay(int visitor) {
@@ -318,6 +339,9 @@ public class SimplePlayer {
                         if ((decode_pts + AV_PTS_GAP_MS) < currentVideoPts) {
                             Log.i(TAG, "drop audio frame as audio pts " + decode_pts + " < video pts " + currentVideoPts);
                         } else {
+                            if (audioManager != null) {
+                                audioManager.setSpeakerphoneOn(isSpeakerOn);
+                            }
                             mAudioTrack.write(playBuf, 0, info.size);
                         }
                     }
