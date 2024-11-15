@@ -106,6 +106,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
             }
             btnCloudStorageReport.setOnClickListener {
                 if (!checkCsInfo()) return@setOnClickListener
+                VideoNativeInterface.getInstance()
+                    .stopCsEvent(CsChannelType.CS_SINGLE_CH, 1, "report test cs info")
                 val csEventRes = VideoNativeInterface.getInstance()
                     .startCsEvent(CsChannelType.CS_SINGLE_CH, 1, "report test cs info")
                 if (csEventRes != 0) {
