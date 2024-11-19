@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.tencent.iot.video.device.VideoNativeInterface;
+import com.tencent.iot.video.device.annotations.VideoResType;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
 import com.tencent.iotvideo.link.encoder.VideoEncoder;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
@@ -51,6 +52,11 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private Map<Integer, Integer> mVisitorInfo = new HashMap<Integer, Integer>(MaxVisitors);
     private Activity mActivity = null;
     private static Timer bitRateTimer;
+
+    @VideoResType
+    private int videoResType;
+
+    private int visitor;
 
     public boolean isRunning = false;
 
@@ -111,6 +117,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     public void startRecording(int visitor, int res_type) {
+        this.videoResType = res_type;
+        this.visitor = visitor;
         if (mIsRecording) {
             mVisitorInfo.put(new Integer(visitor), new Integer(res_type));
             return;
@@ -254,7 +262,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             if (mVideoEncoder != null) {
 
 
-                int bufsize = VideoNativeInterface.getInstance().getSendStreamBuf(0, 1);
+                int bufsize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, videoResType);
                 int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufsize);
                 int now_video_rate = mVideoEncoder.getVideoBitRate();
                 int now_frame_rate = mVideoEncoder.getVideoFrameRate();

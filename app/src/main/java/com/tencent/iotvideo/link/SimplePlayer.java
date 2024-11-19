@@ -77,7 +77,9 @@ public class SimplePlayer {
     public int stopVideoPlay(int visitor) {
         try {
             Log.d(TAG, "visitor " + visitor + " stop video play");
-            videoDecoder.stopVideo();
+            if (videoDecoder != null) {
+                videoDecoder.stopVideo();
+            }
             return 0;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -88,19 +90,27 @@ public class SimplePlayer {
     public int stopAudioPlay(int visitor) {
         Log.d(TAG, "visitor " + visitor + " stop audio play");
         // 这里停止可能导致音频没有播放完就退出？
-        audioDecoder.stopAudio();
+        if (audioDecoder != null) {
+            audioDecoder.stopAudio();
+        }
         return 0;
     }
 
     public int playVideoStream(int visitor, byte[] data, int len, long pts, long seq) {
 //        Log.d(TAG, "video frame: visitor "+ visitor + " len " + len + " pts " + pts + " seq " + seq);
-        return videoDecoder.decoderH264(data, len, pts);
+        if (videoDecoder != null) {
+            return videoDecoder.decoderH264(data, len, pts);
+        }
+        return 0;
     }
 
 
     public int playAudioStream(int visitor, byte[] data, int len, long pts, long seq) {
 //        Log.d(TAG, "audio frame: visitor "+ visitor + " len " + len + " pts " + pts + " seq " + seq);
-        audioDecoder.setCurrentVideoPts(videoDecoder.getCurrentVideoPts());
-        return audioDecoder.decoderAAC(data, len, pts);
+        if (audioDecoder != null && videoDecoder != null) {
+            audioDecoder.setCurrentVideoPts(videoDecoder.getCurrentVideoPts());
+            return audioDecoder.decoderAAC(data, len, pts);
+        }
+        return 0;
     }
 }

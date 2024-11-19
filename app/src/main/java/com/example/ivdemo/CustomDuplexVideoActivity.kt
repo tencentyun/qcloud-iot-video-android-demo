@@ -19,6 +19,7 @@ import com.tencent.iot.twcall.databinding.ActivityCustomDuplexVideoBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
+import com.tencent.iotvideo.link.util.adjustAspectRatio
 import com.tencent.iotvideo.link.util.copyTextToClipboard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -193,6 +194,9 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         this.type = type
         this.height = height
         this.width = width
+        lifecycleScope.launch {
+            binding.surfaceViewDuplex.adjustAspectRatio(width,height)
+        }
         synchronized(lock) {
             condition2 = true
             checkConditions()
@@ -294,6 +298,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
 
     private fun updateCallUI() {
         with(binding) {
+            tvLabel.visibility = View.GONE
             llRejectListen.visibility = View.VISIBLE
             llAnswer.visibility = View.VISIBLE
             llHangUp.visibility = View.GONE
@@ -307,6 +312,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
     private fun updateCancelCallUI() {
         with(binding) {
             clCall.visibility = View.GONE
+            tvLabel.visibility = View.VISIBLE
             surfaceViewDuplex.visibility = View.INVISIBLE
             textureViewDuplex.visibility = View.INVISIBLE
         }
