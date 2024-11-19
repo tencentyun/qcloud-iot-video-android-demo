@@ -17,6 +17,7 @@ import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
+import com.tencent.iotvideo.link.util.adjustAspectRatio
 import com.tencent.iotvideo.link.util.copyTextToClipboard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -220,6 +221,9 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         visitor: Int, channel: Int, type: Int, height: Int, width: Int, frameRate: Int
     ): Int {
         return if (remotePreviewSurface != null) {
+            lifecycleScope.launch {
+                binding.surfaceViewDuplex.adjustAspectRatio(width,height)
+            }
             player.startVideoPlay(Surface(remotePreviewSurface), visitor, type, height, width)
         } else {
             Log.d(TAG, "IvStartRecvVideoStream mRemotePreviewSurface is null visitor $visitor")

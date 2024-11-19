@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.adapter.UserListAdapter
@@ -23,6 +24,7 @@ import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
+import com.tencent.iotvideo.link.util.adjustAspectRatio
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -416,10 +418,13 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         visitor: Int, channel: Int, type: Int, height: Int, width: Int, frameRate: Int
     ): Int {
         Log.d(TAG, "start video visitor $visitor h: $height w: $width")
-        lifecycleScope.launch { updateVideoUI(true) }
         this.type = type
         this.height = height
         this.width = width
+        lifecycleScope.launch {
+            updateVideoUI(true)
+            binding.surfaceViewTweCall.adjustAspectRatio(width,height)
+        }
         if (remotePreviewSurface != null) {
             synchronized(lock) {
                 condition2 = true

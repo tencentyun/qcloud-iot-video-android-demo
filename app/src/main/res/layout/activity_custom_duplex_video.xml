@@ -57,6 +57,7 @@
         app:layout_constraintTop_toTopOf="@+id/tv_p2p_info" />
 
     <TextView
+        android:id="@+id/tv_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="监听小程序来电页面"
@@ -190,8 +191,8 @@
 
     <View
         android:id="@+id/bg_textureView"
-        android:layout_width="140dp"
-        android:layout_height="180dp"
+        android:layout_width="144dp"
+        android:layout_height="192dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="32dp"
         android:background="@color/black_4D000000"

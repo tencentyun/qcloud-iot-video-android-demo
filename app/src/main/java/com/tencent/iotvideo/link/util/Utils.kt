@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.util.DisplayMetrics
+import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
@@ -65,4 +66,31 @@ fun getFile(path: String): File {
     }
     file.createNewFile()
     return file
+}
+
+fun TextureView.adjustAspectRatio(videoWidth: Int, videoHeight: Int) {
+    if (videoWidth == 0 || videoHeight == 0) {
+        return
+    }
+
+    val viewLayoutParams = layoutParams
+    val screenWidth = viewLayoutParams.width
+    val screenHeight = viewLayoutParams.height
+
+    val screenAspectRatio = screenWidth.toFloat() / screenHeight
+    val videoAspectRatio = videoWidth.toFloat() / videoHeight
+
+    val newWidth: Int
+    val newHeight: Int
+    if (videoAspectRatio > screenAspectRatio) {
+        newWidth = screenWidth
+        newHeight = (screenWidth / videoAspectRatio).toInt()
+    } else {
+        newHeight = screenHeight
+        newWidth = (screenHeight * videoAspectRatio).toInt()
+    }
+
+    viewLayoutParams.width = newWidth
+    viewLayoutParams.height = newHeight
+    layoutParams = viewLayoutParams
 }
