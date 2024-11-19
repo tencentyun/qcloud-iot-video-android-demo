@@ -12,6 +12,7 @@ import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import com.tencent.iot.twcall.R
+import java.io.File
 
 
 fun showPopupWindow(anchorView: View, popupViewGroup: View): PopupWindow {
@@ -55,4 +56,13 @@ fun copyTextToClipboard(context: Context, text: String) {
     val clip = ClipData.newPlainText("label", text)
     // 将剪贴板数据设置到剪贴板管理器
     clipboard?.setPrimaryClip(clip)
+}
+
+fun getFile(path: String): File {
+    val file = File(path)
+    if (file.exists()) {
+        file.delete()
+    }
+    file.createNewFile()
+    return file
 }
