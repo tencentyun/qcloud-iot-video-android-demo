@@ -44,7 +44,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+                cameraRecorder.openCamera(binding.textureViewDuplex, this@DuplexVideoActivity)
             } else if (surface == binding.surfaceViewDuplex.surfaceTexture) {
                 remotePreviewSurface = surface
             }
@@ -82,7 +82,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                 val dialog = QualitySettingDialog(this@DuplexVideoActivity)
                 dialog.setOnDismissListener {
                     cameraRecorder.closeCamera()
-                    cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+                    cameraRecorder.openCamera(binding.textureViewDuplex, this@DuplexVideoActivity)
                 }
                 dialog.show(supportFragmentManager)
             }
@@ -125,7 +125,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                     binding.textureViewDuplex.isVisible = true
                     ivVideo.setImageResource(R.mipmap.icon_video_open)
                     btnVideo.text = "摄像头开"
-                    cameraRecorder.openCamera(localPreviewSurface, this@DuplexVideoActivity)
+                    cameraRecorder.openCamera(binding.textureViewDuplex, this@DuplexVideoActivity)
                 }
             }
         }
@@ -222,7 +222,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
     ): Int {
         return if (remotePreviewSurface != null) {
             lifecycleScope.launch {
-                binding.surfaceViewDuplex.adjustAspectRatio(width,height)
+                adjustAspectRatio(binding.surfaceViewDuplex,width,height)
             }
             player.startVideoPlay(Surface(remotePreviewSurface), visitor, type, height, width)
         } else {

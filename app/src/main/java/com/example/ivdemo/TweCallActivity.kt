@@ -78,7 +78,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(localPreviewSurface, this@TweCallActivity)
+                cameraRecorder.openCamera(binding.textureViewTweCall, this@TweCallActivity)
             } else if (surface == binding.surfaceViewTweCall.surfaceTexture) {
                 remotePreviewSurface = surface
                 synchronized(lock) {
@@ -423,7 +423,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         this.width = width
         lifecycleScope.launch {
             updateVideoUI(true)
-            binding.surfaceViewTweCall.adjustAspectRatio(width,height)
+            adjustAspectRatio(binding.surfaceViewTweCall,width,height)
         }
         if (remotePreviewSurface != null) {
             synchronized(lock) {

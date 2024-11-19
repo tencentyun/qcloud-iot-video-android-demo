@@ -1,5 +1,7 @@
 package com.tencent.iotvideo.link;
 
+import static com.tencent.iotvideo.link.util.UtilsKt.adjustAspectRatio;
+
 import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
@@ -8,6 +10,7 @@ import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.TextureView;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,12 +79,13 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         recordSpeakH264(isSaveRecord);
     }
 
-    public void openCamera(SurfaceTexture surfaceTexture, Activity activity) {
+    public void openCamera(TextureView textureView, Activity activity) {
         try {
             mActivity = activity;
             mVideoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
+            adjustAspectRatio(textureView,mVideoWidth,mVideoHeight);
             mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
@@ -96,7 +100,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             parameters.setPreviewFormat(ImageFormat.NV21);
             parameters.setPreviewFrameRate(mVideoFrameRate);
             mCamera.setParameters(parameters);
-            mCamera.setPreviewTexture(surfaceTexture);
+            mCamera.setPreviewTexture(textureView.getSurfaceTexture());
             mCamera.setPreviewCallback(this);
             mCamera.startPreview();
             isRunning = true;

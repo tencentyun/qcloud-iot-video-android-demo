@@ -61,7 +61,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(localPreviewSurface, this@CustomDuplexVideoActivity)
+                cameraRecorder.openCamera(binding.textureViewDuplex, this@CustomDuplexVideoActivity)
             } else if (surface == binding.surfaceViewDuplex.surfaceTexture) {
                 remotePreviewSurface = surface
                 synchronized(lock) {
@@ -108,7 +108,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
                 val dialog = QualitySettingDialog(this@CustomDuplexVideoActivity)
                 dialog.setOnDismissListener {
                     cameraRecorder.closeCamera()
-                    cameraRecorder.openCamera(localPreviewSurface, this@CustomDuplexVideoActivity)
+                    cameraRecorder.openCamera(binding.textureViewDuplex, this@CustomDuplexVideoActivity)
                 }
                 dialog.show(supportFragmentManager)
             }
@@ -195,7 +195,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         this.height = height
         this.width = width
         lifecycleScope.launch {
-            binding.surfaceViewDuplex.adjustAspectRatio(width,height)
+            adjustAspectRatio(binding.surfaceViewDuplex,width,height)
         }
         synchronized(lock) {
             condition2 = true

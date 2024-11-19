@@ -68,12 +68,12 @@ fun getFile(path: String): File {
     return file
 }
 
-fun TextureView.adjustAspectRatio(videoWidth: Int, videoHeight: Int) {
+fun adjustAspectRatio(textureView: TextureView, videoWidth: Int, videoHeight: Int) {
     if (videoWidth == 0 || videoHeight == 0) {
         return
     }
 
-    val viewLayoutParams = layoutParams
+    val viewLayoutParams = textureView.layoutParams
     val screenWidth = viewLayoutParams.width
     val screenHeight = viewLayoutParams.height
 
@@ -92,5 +92,5 @@ fun TextureView.adjustAspectRatio(videoWidth: Int, videoHeight: Int) {
 
     viewLayoutParams.width = newWidth
     viewLayoutParams.height = newHeight
-    layoutParams = viewLayoutParams
+    textureView.layoutParams = viewLayoutParams
 }

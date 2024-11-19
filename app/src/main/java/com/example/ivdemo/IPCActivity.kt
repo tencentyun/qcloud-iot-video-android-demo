@@ -58,7 +58,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(localPreviewSurface, this@IPCActivity)
+                cameraRecorder.openCamera(binding.textureViewIpc, this@IPCActivity)
                 Log.d("IPCActivity", "onSurfaceTextureAvailable")
             }
         }
@@ -93,7 +93,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 val dialog = QualitySettingDialog(this@IPCActivity)
                 dialog.setOnDismissListener {
                     cameraRecorder.closeCamera()
-                    cameraRecorder.openCamera(localPreviewSurface, this@IPCActivity)
+                    cameraRecorder.openCamera(binding.textureViewIpc, this@IPCActivity)
                 }
                 dialog.show(supportFragmentManager)
             }
