@@ -10,12 +10,15 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 
 import androidx.core.content.ContextCompat;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
@@ -54,12 +57,19 @@ public class SimplePlayer {
     private AudioManager audioManager;
     private boolean isSpeakerOn = true;
 
+    private FileOutputStream fos;
+
+    private String speakH264FilePath = "/sdcard/simplePlayer.h264";
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     public void setContext(Context context) {
         audioManager = ContextCompat.getSystemService(context, AudioManager.class);
     }
 
     public int startVideoPlay(Surface surface, int visitor, int type, int height, int width) {
-        Log.d(TAG, "video input from visitor "+ visitor + " height "+ height + " width " + width + ", model:" + Build.MODEL);
+        recordSpeakH264(false);
+        Log.d(TAG, "video input from visitor " + visitor + " height " + height + " width " + width + ", model:" + Build.MODEL);
         String model = Build.MODEL;
 
         // type == 0: h.264/avc; type == 1: h.265/hevc
@@ -69,10 +79,12 @@ public class SimplePlayer {
                 mVideoExecutor = Executors.newSingleThreadExecutor();
                 mVideoCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
                 MediaFormat mFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
-                mFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,1024*1024);
+                mFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 1024 * 1024);
                 mFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
+                mFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline);
+                mFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel31);
 
-                if (model.contains("KONKA") && model.contains("9652") || model.contains("KONKA") && model.contains("9653")){ // 康佳 MTK的一个SoC 型号
+                if (model.contains("KONKA") && model.contains("9652") || model.contains("KONKA") && model.contains("9653") || model.contains("XY01")) { // 康佳 MTK的一个SoC 型号
                     mFormat.setInteger("low-latency", 1);
                     Log.d(TAG, "qudiao mFormat set low-latency 1" + ", model:" + Build.MODEL);
                 }
@@ -95,7 +107,7 @@ public class SimplePlayer {
     }
 
     public int startAudioPlay(int visitor, int type, int option, int mode, int width, int sample_rate, int sample_num) {
-        Log.d(TAG, "audio input from visitor "+ visitor + " type " + type + " option " + option);
+        Log.d(TAG, "audio input from visitor " + visitor + " type " + type + " option " + option);
         // type 0: PCM; type 4 option 2:aac-lc
         // currently only support AAC or PCM
         if (type != 4 && type != 0) {
@@ -127,14 +139,14 @@ public class SimplePlayer {
         }
 
         // create audio decoder
-        if (type == 4 ) {
+        if (type == 4) {
             try {
                 int channel = mode + 1;
                 mAudioCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
                 MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, audioSampleRate, channel);
                 audioFormat.setInteger(MediaFormat.KEY_PCM_ENCODING, audioWidth);
-                audioFormat.setInteger(MediaFormat.KEY_IS_ADTS,1);
-                audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,256*1024);
+                audioFormat.setInteger(MediaFormat.KEY_IS_ADTS, 1);
+                audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 256 * 1024);
                 int profile = MediaCodecInfo.CodecProfileLevel.AACObjectLC;
                 audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, profile);
                 // profile(5bits)|sample_rate_idx(4bits)|channel(4bits)|other(3bits)
@@ -179,7 +191,7 @@ public class SimplePlayer {
 
     public int stopVideoPlay(int visitor) {
         try {
-            Log.d(TAG, "visitor "+ visitor + " stop video play");
+            Log.d(TAG, "visitor " + visitor + " stop video play");
             if (mVideoExecutor != null) {
                 mVideoExecutor.shutdown();
                 mVideoExecutor = null;
@@ -199,7 +211,7 @@ public class SimplePlayer {
     }
 
     public int stopAudioPlay(int visitor) {
-        Log.d(TAG, "visitor "+ visitor + " stop audio play");
+        Log.d(TAG, "visitor " + visitor + " stop audio play");
         // 这里停止可能导致音频没有播放完就退出？
         if (mAudioExecutor != null) {
             mAudioExecutor.shutdown();
@@ -234,36 +246,86 @@ public class SimplePlayer {
 
         mVideoExecutor.submit(() -> {
             try {
+                ByteBuffer[] inputBuffers = mVideoCodec.getInputBuffers();
+                ByteBuffer[] outputBuffers = mVideoCodec.getOutputBuffers();
                 // queue and decode
-                int inputBufferIndex = mVideoCodec.dequeueInputBuffer(10000);
+                int inputBufferIndex = mVideoCodec.dequeueInputBuffer(-1);
                 if (inputBufferIndex >= 0) {
-                    ByteBuffer inputBuffer = mVideoCodec.getInputBuffer(inputBufferIndex);
+                    ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
                     inputBuffer.clear();
-                    inputBuffer.put(data, 0, len).rewind();
+                    inputBuffer.put(data, 0, len);
                     // first frame
-                    if (frameCount == 0) {
-                        mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
-                        frameCount = 1;
-                    } else {
-                        mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
-                    }
+//                    if (frameCount == 0) {
+//                        mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, MediaCodec.BUFFER_FLAG_CODEC_CONFIG);
+//                        frameCount = 1;
+//                    } else {
+//                        mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
+//
+//                    }
+                    mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, 0, 0);
                 } else {
                     Log.e(TAG, "video inputBufferIndex invalid: " + inputBufferIndex);
                 }
 
                 // dequeue and render
-                MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-                int outputBufId = mVideoCodec.dequeueOutputBuffer(info, 100000);
-                while (outputBufId >= 0) {
-                    mVideoCodec.releaseOutputBuffer(outputBufId, true);
-                    outputBufId = mVideoCodec.dequeueOutputBuffer(info, 1000);
+                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                int outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);
+                while (outputBufferIndex >= 0) {
+//                    ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
+//                    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
+//                        Log.d(TAG, "I帧");
+//                    } else {
+//                        Log.d(TAG, "P帧");
+//                    }
+                    mVideoCodec.releaseOutputBuffer(outputBufferIndex, true);
+                    outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);
                 }
+//                if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+//                    MediaFormat newFormat = mVideoCodec.getOutputFormat();
+//                    Log.d(TAG, "Output format changed: " + newFormat);
+//                } else if (outputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+//                    Log.d(TAG, "No output buffer available, try again later");
+//                }
             } catch (Throwable t) {
                 t.printStackTrace();
             }
             //        Log.d(TAG, "end of frame handle");
         });
+
+        executor.submit(() -> {
+            if (fos != null) {
+                try {
+                    fos.write(data);
+                    fos.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         return 0;
+    }
+
+    public void recordSpeakH264(boolean isRecord) {
+
+        if (!TextUtils.isEmpty(speakH264FilePath)) {
+            try {
+                File file = getFile(speakH264FilePath);
+                fos = new FileOutputStream(file);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e(TAG, speakH264FilePath + "临时缓存文件未找到");
+            }
+        }
+    }
+
+    public File getFile(String path) throws IOException {
+        File file = new File(path);
+        Log.i(TAG, "speak cache h264 file path:" + path);
+        if (file.exists()) {
+            file.delete();
+        }
+        file.createNewFile();
+        return file;
     }
 
     public int playAudioStream(int visitor, byte[] data, int len, long pts, long seq) {
@@ -319,7 +381,7 @@ public class SimplePlayer {
                         mAudioTrack.stop();
                         mAudioTrack.release();
                         int minBufSize = AudioTrack.getMinBufferSize(audioSampleRate, audioChannelConfig, audioWidth);
-                        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioWidth, 2*minBufSize, AudioTrack.MODE_STREAM);
+                        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioWidth, 2 * minBufSize, AudioTrack.MODE_STREAM);
                         mAudioTrack.setVolume(1.5f);
                         mAudioTrack.play();
                         outputBufId = mAudioCodec.dequeueOutputBuffer(info, 10000);
@@ -333,7 +395,7 @@ public class SimplePlayer {
                         outputBuf.rewind();
                         outputBuf.clear();
                         mAudioCodec.releaseOutputBuffer(outputBufId, false);
-                        long decode_pts = info.presentationTimeUs/1000;
+                        long decode_pts = info.presentationTimeUs / 1000;
 //                        Log.d(TAG, ">>>>> audio decoder output size " + info.size + " pts " + decode_pts + " current video pts " + currentVideoPts);
                         // 简单音画同步处理，如果音频帧滞后超过一定时间，直接丢弃
                         if ((decode_pts + AV_PTS_GAP_MS) < currentVideoPts) {
@@ -342,7 +404,9 @@ public class SimplePlayer {
                             if (audioManager != null) {
                                 audioManager.setSpeakerphoneOn(isSpeakerOn);
                             }
-                            mAudioTrack.write(playBuf, 0, info.size);
+                            if (mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED) {
+                                mAudioTrack.write(playBuf, 0, info.size);
+                            }
                         }
                     }
                 } catch (Throwable t) {
