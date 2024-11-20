@@ -25,6 +25,9 @@ import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
 import com.tencent.iotvideo.link.util.adjustAspectRatio
+import com.tencent.iotvideo.link.util.dip2px
+import com.tencent.iotvideo.link.util.getScreenHeight
+import com.tencent.iotvideo.link.util.getScreenWidth
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -422,8 +425,13 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         this.height = height
         this.width = width
         lifecycleScope.launch {
-            updateVideoUI(true)
-            adjustAspectRatio(binding.surfaceViewTweCall,width,height)
+            adjustAspectRatio(
+                width,
+                height,
+                binding.surfaceViewTweCall,
+                getScreenWidth(resources) - dip2px(this@TweCallActivity, 20f),
+                getScreenHeight(resources) - dip2px(this@TweCallActivity, 140f)
+            )
         }
         if (remotePreviewSurface != null) {
             synchronized(lock) {
@@ -506,6 +514,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             if (isCalling) {
                 surfaceViewTweCall.bringToFront()
                 textureViewTweCall.bringToFront()
+                llTweCallHangUp.bringToFront()
             }
             surfaceViewTweCallBg.isVisible = isCalling
             surfaceViewTweCall.isVisible = isCalling

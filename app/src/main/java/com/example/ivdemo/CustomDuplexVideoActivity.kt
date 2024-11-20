@@ -195,7 +195,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         this.height = height
         this.width = width
         lifecycleScope.launch {
-            adjustAspectRatio(binding.surfaceViewDuplex,width,height)
+            adjustAspectRatio(width,height,binding.surfaceViewDuplex)
         }
         synchronized(lock) {
             condition2 = true

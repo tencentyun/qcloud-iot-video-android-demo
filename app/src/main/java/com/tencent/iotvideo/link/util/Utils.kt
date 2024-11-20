@@ -3,6 +3,7 @@ package com.tencent.iotvideo.link.util
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.res.Resources
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.TextureView
@@ -69,12 +70,29 @@ fun getFile(path: String): File {
     return file
 }
 
-fun adjustAspectRatio(textureView: TextureView, videoWidth: Int, videoHeight: Int) {
+fun dip2px(context: Context, dpValue: Float): Int {
+    val scale = context.resources.displayMetrics.density
+    return (dpValue * scale + 0.5f).toInt()
+}
 
+fun getScreenWidth(resource: Resources):Int{
+    return resource.displayMetrics.widthPixels
+}
 
+fun getScreenHeight(resource: Resources):Int{
+    return resource.displayMetrics.heightPixels
+}
+
+fun adjustAspectRatio(
+    videoWidth: Int,
+    videoHeight: Int,
+    textureView: TextureView,
+    width: Int? = null,
+    height: Int? = null
+) {
     val viewLayoutParams = textureView.layoutParams
-    val screenWidth = viewLayoutParams.width
-    val screenHeight = viewLayoutParams.height
+    val screenWidth = width ?: viewLayoutParams.width
+    val screenHeight = height ?: viewLayoutParams.height
     Log.d(
         "utils",
         "screenWidth:$screenWidth  screenHeight:$screenHeight   videoWidth:$videoWidth  videoHeight:$videoHeight"
