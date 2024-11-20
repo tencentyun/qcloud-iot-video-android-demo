@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
@@ -69,14 +70,18 @@ fun getFile(path: String): File {
 }
 
 fun adjustAspectRatio(textureView: TextureView, videoWidth: Int, videoHeight: Int) {
-    if (videoWidth == 0 || videoHeight == 0) {
-        return
-    }
+
 
     val viewLayoutParams = textureView.layoutParams
     val screenWidth = viewLayoutParams.width
     val screenHeight = viewLayoutParams.height
-
+    Log.d(
+        "utils",
+        "screenWidth:$screenWidth  screenHeight:$screenHeight   videoWidth:$videoWidth  videoHeight:$videoHeight"
+    )
+    if (videoWidth == 0 || videoHeight == 0) {
+        return
+    }
     val screenAspectRatio = screenWidth.toFloat() / screenHeight
     val videoAspectRatio = videoWidth.toFloat() / videoHeight
 
@@ -92,5 +97,9 @@ fun adjustAspectRatio(textureView: TextureView, videoWidth: Int, videoHeight: In
 
     viewLayoutParams.width = newWidth
     viewLayoutParams.height = newHeight
+    Log.d(
+        "utils",
+        "end newWidth:$newWidth  newHeight:$newHeight"
+    )
     textureView.layoutParams = viewLayoutParams
 }

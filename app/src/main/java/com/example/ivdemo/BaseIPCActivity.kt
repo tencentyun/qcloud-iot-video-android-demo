@@ -14,6 +14,7 @@ import com.tencent.iot.video.device.consts.CommandType
 import com.tencent.iot.video.device.consts.P2pEventType
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iot.video.device.model.AvtInitInfo
+import com.tencent.iot.video.device.model.CongestionCtrlInfo
 import com.tencent.iot.video.device.model.SysInitInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     protected var videoResType: Int = 0
     protected var isOnline = false
     private val region = "china"
+    private val isUserCongestionCtrl = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +65,18 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         Log.d(TAG, "initIvSystem,resCode:$sysInit")
         val dmInit = VideoNativeInterface.getInstance().initIvDm()
         Log.d(TAG, "initIvDm,resCode:$dmInit")
+        val congestion = CongestionCtrlInfo()
+        if (isUserCongestionCtrl) { //启用水位告警以及告警的有高中低三挡水位值，当 p2p 内部缓存的水位到达这个值的时候会收到 onNotify回调
+            congestion.lowMark = 200 * 1024
+            congestion.warnMark = 400 * 1024
+            congestion.highMark = 500 * 1024
+        } else {
+            congestion.lowMark = 0
+            congestion.warnMark = 0
+            congestion.highMark = 0
+        }
         val avtInitInfo = AvtInitInfo()
+        avtInitInfo.congestion = congestion
         val avtInit = VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
         Log.d(TAG, "initIvAvt,resCode:$avtInit")
     }

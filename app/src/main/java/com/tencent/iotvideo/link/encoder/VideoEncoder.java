@@ -187,7 +187,7 @@ public class VideoEncoder {
                 byte[] bytes = NV21ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
                 //视频顺时针旋转90度
                 byte[] nv12 = nv21Rotate90(bytes, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-
+                bytes = null;
                 if (mirror) {
                     verticalMirror(nv12, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
                 }
@@ -202,9 +202,9 @@ public class VideoEncoder {
                 }
                 //将NV21编码成I420
                 byte[] i420 = toI420(rotateBytes, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
+                rotateBytes = null;
                 readyToProcessBytes = i420;
             }
-
 
             try {
                 //拿到输入缓冲区,用于传送数据进行编码
@@ -247,6 +247,9 @@ public class VideoEncoder {
                         System.arraycopy(sps, 0, dataBytes, 0, sps.length);
                         System.arraycopy(pps, 0, dataBytes, sps.length, pps.length);
                         System.arraycopy(outData, 0, dataBytes, pps.length + sps.length, outData.length);
+                        sps = null;
+                        pps = null;
+                        outData = null;
                         if (encoderListener != null) {
                             encoderListener.onVideoEncoded(dataBytes, System.currentTimeMillis(), seq, true);
                             seq++;
@@ -286,6 +289,7 @@ public class VideoEncoder {
         for (j = 0; j < frameSize / 2; j += 2) {
             nv12[frameSize + j] = nv21[j + frameSize - 1];
         }
+        nv21 = null;
         return nv12;
     }
 
@@ -319,6 +323,7 @@ public class VideoEncoder {
                 preAllocatedBufferRotate[i--] = data[size + (y * imageWidth) + (x - 1)];
             }
         }
+        data = null;
         return preAllocatedBufferRotate;
     }
 
@@ -341,6 +346,7 @@ public class VideoEncoder {
                 preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
             }
         }
+        data = null;
         return preAllocatedBufferRotate;
     }
 
