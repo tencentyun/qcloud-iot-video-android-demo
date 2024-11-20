@@ -222,7 +222,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
     ): Int {
         return if (remotePreviewSurface != null) {
             lifecycleScope.launch {
-                adjustAspectRatio(binding.surfaceViewDuplex,width,height)
+                adjustAspectRatio(width,height,binding.surfaceViewDuplex)
             }
             player.startVideoPlay(Surface(remotePreviewSurface), visitor, type, height, width)
         } else {
