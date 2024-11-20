@@ -15,14 +15,17 @@ import android.view.TextureView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.example.ivdemo.annotations.DynamicBitRateType;
 import com.tencent.iot.video.device.VideoNativeInterface;
 import com.tencent.iot.video.device.annotations.VideoResType;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
@@ -85,7 +88,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
-            adjustAspectRatio(textureView,mVideoWidth,mVideoHeight);
+            adjustAspectRatio(textureView, mVideoWidth, mVideoHeight);
             mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
@@ -257,43 +260,96 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
     }
 
+    @DynamicBitRateType
+    private int dynamicBitRateType = DynamicBitRateType.WATER_LEVEL_TYPE;
+
 
     public class AdapterBitRateTask extends TimerTask {
         @Override
         public void run() {
-            System.out.println("检测时间到:" + new Date());
-
+            System.out.println("检测时间到:" + System.currentTimeMillis());
+//                int visitor = entry.getKey().intValue();
+//                int res_type = entry.getValue().intValue();
             if (mVideoEncoder != null) {
+                if (dynamicBitRateType == DynamicBitRateType.WATER_LEVEL_TYPE) {
+                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, videoResType);
+                    int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufSize);
+                    int now_video_rate = mVideoEncoder.getVideoBitRate();
+                    int now_frame_rate = mVideoEncoder.getVideoFrameRate();
+                    Log.e(TAG, "WATER_LEVEL_TYPE send_bufsize==" + bufSize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
+                    // 降码率
+                    // 当发现p2p的水线超过一定值时，降低视频码率，这是一个经验值，一般来说要大于 [视频码率/2]
+                    // 实测设置为 80%视频码率 到 120%视频码率 比较理想
+                    // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
 
+                    int video_rate_byte = (now_video_rate / 8) * 3 / 4;
+                    if (p2p_wl_avg > video_rate_byte) {
 
-                int bufsize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, videoResType);
-                int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufsize);
-                int now_video_rate = mVideoEncoder.getVideoBitRate();
-                int now_frame_rate = mVideoEncoder.getVideoFrameRate();
+                        mVideoEncoder.setVideoBitRate(now_video_rate / 2);
+                        mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
 
-                Log.e(TAG, "send_bufsize==" + bufsize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
+                    } else if (p2p_wl_avg < (now_video_rate / 8) / 3) {
 
-                // 降码率
-                // 当发现p2p的水线超过一定值时，降低视频码率，这是一个经验值，一般来说要大于 [视频码率/2]
-                // 实测设置为 80%视频码率 到 120%视频码率 比较理想
-                // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
+                        // 升码率
+                        // 测试发现升码率的速度慢一些效果更好
+                        // p2p水线经验值一般小于[视频码率/2]，网络良好的情况会小于 [视频码率/3] 甚至更低
+                        mVideoEncoder.setVideoBitRate(now_video_rate + (now_video_rate - p2p_wl_avg * 8) / 5);
+                        mVideoEncoder.setVideoFrameRate(now_frame_rate * 5 / 4);
+                    }
+                } else if (dynamicBitRateType == DynamicBitRateType.INTERNET_SPEED_TYPE) {
+                    int bufSize = VideoNativeInterface.getInstance().getSendStreamStatus(visitor, videoResType);
+                    int p2p_wl_avg = getAvgMaxMin(bufSize);
+                    int now_video_rate = mVideoEncoder.getVideoBitRate();
+                    int now_frame_rate = mVideoEncoder.getVideoFrameRate();
+                    Log.e(TAG, "INTERNET_SPEED_TYPE send_bufsize==" + bufSize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
+                    // 降码率
+                    // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
+                    int new_video_rate = 0;
+//                    int new_frame_rate = 0;
+                    if (p2p_wl_avg < now_video_rate) {
+                        new_video_rate = (int) (p2p_wl_avg * 0.9f);
 
-                int video_rate_byte = (now_video_rate / 8) * 3 / 4;
-                if (p2p_wl_avg > video_rate_byte) {
+                    } else if (p2p_wl_avg * 0.7f > now_video_rate) {
 
-                    mVideoEncoder.setVideoBitRate(now_video_rate / 2);
-                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
-
-                } else if (p2p_wl_avg < (now_video_rate / 8) / 3) {
-
-                    // 升码率
-                    // 测试发现升码率的速度慢一些效果更好
-                    // p2p水线经验值一般小于[视频码率/2]，网络良好的情况会小于 [视频码率/3] 甚至更低
-                    mVideoEncoder.setVideoBitRate(now_video_rate + (now_video_rate - p2p_wl_avg * 8) / 5);
-                    mVideoEncoder.setVideoFrameRate(now_frame_rate * 5 / 4);
+                        // 升码率
+                        // 测试发现升码率的速度慢一些效果更好
+                        new_video_rate = (int) (p2p_wl_avg * 0.9f);
+                    }
+                    mVideoEncoder.setVideoBitRate(new_video_rate);
+//                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
                 }
             }
         }
+    }
+
+
+    List<Integer> list = new ArrayList<>(10);
+
+    /**
+     * 存入队列同时删除队列内最旧的一个数值，去掉一个最高值去掉一个最低值，计算平均值，算出的平均值可用于控制码率，一般而言此数值与视频码率相近，当发现平均网速低于视频码率时主动降低视频码率到一个比平均网速更低的值。
+     *
+     * @param bufSize
+     * @return
+     */
+    private int getAvgMaxMin(int bufSize) {
+        int sum = 0;
+        int max = Integer.MIN_VALUE;
+        int min = Integer.MAX_VALUE;
+
+        if (list.size() >= 10) {
+            list.remove(0);
+        }
+        list.add(bufSize);
+        if (list.size() == 1) return bufSize;
+        if (list.size() == 2) return (list.get(0) + list.get(1)) / list.size();
+        for (int item : list) {
+            sum += item;
+            max = Math.max(max, item);
+            min = Math.min(min, item);
+        }
+        sum = sum - max - min;
+
+        return sum / (list.size() - 2);
     }
 
 

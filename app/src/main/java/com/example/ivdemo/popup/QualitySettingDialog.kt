@@ -157,19 +157,8 @@ class QualitySettingDialog(private val context: Context) :
             val list = camera.parameters.supportedPreviewSizes
             for (size in list) {
                 Log.e(TAG, "****========== " + size.width + " " + size.height)
-                if (size.width == 640 && size.height == 360) {
-                    val entity = ResolutionEntity(size.width, size.height, "360p")
-                    localResolutionArray.add(entity)
-                } else if (size.width == 960 && size.height == 540) {
-                    val entity = ResolutionEntity(size.width, size.height, "540p")
-                    localResolutionArray.add(entity)
-                } else if (size.width == 1280 && size.height == 720) {
-                    val entity = ResolutionEntity(size.width, size.height, "720p")
-                    localResolutionArray.add(entity)
-                } else if (size.width == 1920 && size.height == 1080) {
-                    val entity = ResolutionEntity(size.width, size.height, "1080p")
-                    localResolutionArray.add(entity)
-                }
+                val entity = ResolutionEntity(size.width, size.height, "${size.height}p")
+                localResolutionArray.add(entity)
             }
         }
 
