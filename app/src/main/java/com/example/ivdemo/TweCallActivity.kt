@@ -548,4 +548,31 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         Log.d(TAG, "onUpdateAuthorizeStatus   penId:${openId}  status:$status")
         return 0
     }
+
+    private fun getPixel(): Array<Int> {
+        val sWidth: Int
+        val sHeight: Int
+        when (QualitySetting.getInstance(this@TweCallActivity).wxResolution) {
+            IV_CM_PIXEL_240x320 -> {
+                sWidth = 320
+                sHeight = 240
+            }
+
+            IV_CM_PIXEL_320x240 -> {
+                sWidth = 240
+                sHeight = 320
+            }
+
+            IV_CM_PIXEL_480x352 -> {
+                sWidth = 352
+                sHeight = 480
+            }
+
+            else -> {
+                sWidth = 640
+                sHeight = 480
+            }
+        }
+        return arrayOf(sWidth, sHeight)
+    }
 }
