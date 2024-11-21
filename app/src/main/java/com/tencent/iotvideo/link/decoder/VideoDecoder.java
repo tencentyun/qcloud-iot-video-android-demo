@@ -58,7 +58,7 @@ public class VideoDecoder {
         mVideoCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
         MediaFormat mFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
         mFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 1024 * 1024);
-        mFormat.setInteger(MediaFormat.KEY_ROTATION, 0);
+        mFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
         mFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline);
         mFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel31);
         String model = Build.MODEL;

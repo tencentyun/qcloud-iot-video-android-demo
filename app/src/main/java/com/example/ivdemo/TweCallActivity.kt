@@ -16,6 +16,9 @@ import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
+import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_240x320
+import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_320x240
+import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_480x352
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
@@ -425,12 +428,13 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         this.height = height
         this.width = width
         lifecycleScope.launch {
+            val pixel = getPixel()
             adjustAspectRatio(
-                width,
-                height,
+                pixel[0],
+                pixel[1],
                 binding.surfaceViewTweCall,
-                getScreenWidth(resources) - dip2px(this@TweCallActivity, 20f),
-                getScreenHeight(resources) - dip2px(this@TweCallActivity, 140f)
+                getScreenWidth(resources) - dip2px(this@TweCallActivity, 10f),
+                getScreenHeight(resources) - dip2px(this@TweCallActivity, 115f)
             )
         }
         if (remotePreviewSurface != null) {
