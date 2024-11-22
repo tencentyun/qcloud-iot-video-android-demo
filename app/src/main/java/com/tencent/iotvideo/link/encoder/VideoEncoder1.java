@@ -38,7 +38,6 @@ public class VideoEncoder1 {
 
     public VideoEncoder1(VideoEncodeParam param) {
         this.videoEncodeParam = param;
-        startVideo(true);
     }
 
     public void startVideo(boolean mirror) {
