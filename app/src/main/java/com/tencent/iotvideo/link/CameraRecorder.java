@@ -5,7 +5,6 @@ import static com.tencent.iotvideo.link.util.UtilsKt.adjustAspectRatio;
 import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
-import android.graphics.SurfaceTexture;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.text.TextUtils;
@@ -16,7 +15,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +29,7 @@ import com.tencent.iot.video.device.annotations.VideoResType;
 import com.tencent.iot.video.device.model.IvP2pSendInfo;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
 import com.tencent.iotvideo.link.encoder.VideoEncoder;
+import com.tencent.iotvideo.link.encoder.VideoEncoder1;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.AudioEncodeParam;
 import com.tencent.iotvideo.link.param.MicParam;
@@ -262,7 +261,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     @DynamicBitRateType
-    private int dynamicBitRateType = DynamicBitRateType.INTERNET_SPEED_TYPE;
+    private int dynamicBitRateType = DynamicBitRateType.DEFAULT_TYPE;
 
 
     public class AdapterBitRateTask extends TimerTask {
@@ -309,16 +308,16 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     int new_video_rate = 0;
 //                    int new_frame_rate = 0;
                     if (p2p_wl_avg < now_video_rate) {
-                        new_video_rate = (int) (p2p_wl_avg * 0.9f);
+                        new_video_rate = (int) (p2p_wl_avg * 0.98f);
 
-                    } else if (p2p_wl_avg * 0.7f > now_video_rate) {
+                    } else if (p2p_wl_avg * 0.85f > now_video_rate) {
 
                         // 升码率
                         // 测试发现升码率的速度慢一些效果更好
                         new_video_rate = (int) (p2p_wl_avg * 0.9f);
                     }
                     if (new_video_rate != 0) {
-                        mVideoEncoder.setVideoBitRate(new_video_rate);
+                        mVideoEncoder.setVideoBitRate(new_video_rate*4);
                     }
                     Log.d(TAG, "new_video_rate:" + new_video_rate + "  VideoBitRate:" + mVideoEncoder.getVideoBitRate());
 //                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
