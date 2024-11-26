@@ -41,7 +41,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private static final String TAG = "CameraEncoder";
 
     private Camera mCamera;
-    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     public int mVideoWidth = 640;
     public int mVideoHeight = 480;
     private int mVideoFrameRate = 15;
@@ -88,7 +88,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
-            adjustAspectRatio(mVideoWidth, mVideoHeight, textureView, null, null);
+//            adjustAspectRatio(mVideoWidth, mVideoHeight, textureView, null, null);
             mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
@@ -244,7 +244,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (!mIsRecording || mVideoEncoder == null) {
             return;
         }
-        mVideoEncoder.encoderH264(data, true);
+        mVideoEncoder.encoderH264(data, false);
         if (isSaveRecord) {
             if (executor.isShutdown()) return;
             executor.submit(() -> {
@@ -261,7 +261,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     @DynamicBitRateType
-    private int dynamicBitRateType = DynamicBitRateType.WATER_LEVEL_TYPE;
+    private int dynamicBitRateType = DynamicBitRateType.INTERNET_SPEED_TYPE;
 
 
     public class AdapterBitRateTask extends TimerTask {
