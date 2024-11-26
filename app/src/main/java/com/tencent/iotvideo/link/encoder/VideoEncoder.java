@@ -175,6 +175,7 @@ public class VideoEncoder {
     public int getVideoFrameRate() {
         return videoEncodeParam.getFrameRate();
     }
+
     /**
      * 将NV21编码成H264
      */
@@ -187,7 +188,6 @@ public class VideoEncoder {
                 byte[] bytes = NV21ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
                 //视频顺时针旋转90度
                 byte[] nv12 = nv21Rotate90(bytes, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                bytes = null;
                 if (mirror) {
                     verticalMirror(nv12, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
                 }
@@ -202,7 +202,6 @@ public class VideoEncoder {
                 }
                 //将NV21编码成I420
                 byte[] i420 = toI420(rotateBytes, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
-                rotateBytes = null;
                 readyToProcessBytes = i420;
             }
 
@@ -275,8 +274,12 @@ public class VideoEncoder {
     /**
      * 因为从MediaCodec不支持NV21的数据编码，所以需要先讲NV21的数据转码为NV12
      */
+    private byte[] nv12;
+
     private byte[] NV21ToNV12(byte[] nv21, int width, int height) {
-        byte[] nv12 = new byte[width * height * 3 / 2];
+        if (nv12 == null) {
+            nv12 = new byte[width * height * 3 / 2];
+        }
         int frameSize = width * height;
         int i, j;
         System.arraycopy(nv21, 0, nv12, 0, frameSize);
@@ -289,12 +292,15 @@ public class VideoEncoder {
         for (j = 0; j < frameSize / 2; j += 2) {
             nv12[frameSize + j] = nv21[j + frameSize - 1];
         }
-        nv21 = null;
         return nv12;
     }
 
+    private byte[] preAllocatedBufferColor;
+
     public byte[] toI420(byte[] input, int width, int height) {
-        byte[] preAllocatedBufferColor = new byte[width * height * 3 / 2];
+        if (preAllocatedBufferColor == null) {
+            preAllocatedBufferColor = new byte[width * height * 3 / 2];
+        }
         final int frameSize = width * height;
         final int qFrameSize = frameSize / 4;
         System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
@@ -305,8 +311,12 @@ public class VideoEncoder {
         return preAllocatedBufferColor;
     }
 
+    private byte[] preAllocatedBufferRotate;
+
     public byte[] nv21Rotate90(byte[] data, int imageWidth, int imageHeight) {
-        byte[] preAllocatedBufferRotate = new byte[imageWidth * imageHeight * 3 / 2];
+        if (preAllocatedBufferRotate == null) {
+            preAllocatedBufferRotate = new byte[imageWidth * imageHeight * 3 / 2];
+        }
         // Rotate the Y luma
         int i = 0;
         for (int x = 0; x < imageWidth; x++) {
@@ -323,12 +333,13 @@ public class VideoEncoder {
                 preAllocatedBufferRotate[i--] = data[size + (y * imageWidth) + (x - 1)];
             }
         }
-        data = null;
         return preAllocatedBufferRotate;
     }
 
     public byte[] nv21Rotate270(byte[] data, int imageWidth, int imageHeight) {
-        byte[] preAllocatedBufferRotate = new byte[imageWidth * imageHeight * 3 / 2];
+        if (preAllocatedBufferRotate == null) {
+            preAllocatedBufferRotate = new byte[imageWidth * imageHeight * 3 / 2];
+        }
         // Rotate the Y luma
         int i = 0;
         for (int x = imageWidth - 1; x >= 0; x--) {
@@ -346,7 +357,6 @@ public class VideoEncoder {
                 preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
             }
         }
-        data = null;
         return preAllocatedBufferRotate;
     }
 
@@ -358,8 +368,13 @@ public class VideoEncoder {
      * @param imageHeight 旋转前数据的高
      * @return 旋转后的数据
      */
+    private byte[] yuv;
+
     private byte[] rotateNV290(byte[] data, int imageWidth, int imageHeight) {
-        byte[] yuv = new byte[imageWidth * imageHeight * 3 / 2];
+        if (yuv == null) {
+            yuv = new byte[imageWidth * imageHeight * 3 / 2];
+        }
+
         // Rotate the Y luma
         int i = 0;
         for (int x = 0; x < imageWidth; x++) {
