@@ -41,7 +41,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private static final String TAG = "CameraEncoder";
 
     private Camera mCamera;
-    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
     public int mVideoWidth = 640;
     public int mVideoHeight = 480;
     private int mVideoFrameRate = 15;
@@ -50,7 +50,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private int mAudioSampleRate = 16000;
     private int mAudioBitRate = 48000;
 
-    private VideoEncoder mVideoEncoder = null;
+    private VideoEncoder1 mVideoEncoder = null;
     private AudioEncoder mAudioEncoder = null;
     private boolean isMuted = false;
     private boolean mIsRecording = false;
@@ -136,9 +136,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         encodeParam.setWidth(mVideoWidth);
         encodeParam.setFrameRate(mVideoFrameRate);
         encodeParam.setBitRate(mVideoBitRate);
-        mVideoEncoder = new VideoEncoder(encodeParam);
+        mVideoEncoder = new VideoEncoder1(encodeParam);
         mVideoEncoder.setEncoderListener(this);
-
+        mVideoEncoder.start();
         MicParam micParam = new MicParam();
         micParam.setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
         micParam.setChannelConfig(AudioFormat.CHANNEL_IN_MONO);
@@ -244,7 +244,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (!mIsRecording || mVideoEncoder == null) {
             return;
         }
-        mVideoEncoder.encoderH264(data, false);
+        mVideoEncoder.encoderH264(data, true);
         if (isSaveRecord) {
             if (executor.isShutdown()) return;
             executor.submit(() -> {
@@ -261,7 +261,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     @DynamicBitRateType
-    private int dynamicBitRateType = DynamicBitRateType.DEFAULT_TYPE;
+    private int dynamicBitRateType = DynamicBitRateType.WATER_LEVEL_TYPE;
 
 
     public class AdapterBitRateTask extends TimerTask {
@@ -317,7 +317,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                         new_video_rate = (int) (p2p_wl_avg * 0.9f);
                     }
                     if (new_video_rate != 0) {
-                        mVideoEncoder.setVideoBitRate(new_video_rate*4);
+                        mVideoEncoder.setVideoBitRate(new_video_rate * 4);
                     }
                     Log.d(TAG, "new_video_rate:" + new_video_rate + "  VideoBitRate:" + mVideoEncoder.getVideoBitRate());
 //                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
