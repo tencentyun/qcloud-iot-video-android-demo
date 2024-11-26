@@ -29,8 +29,6 @@ public class VideoEncoder1 {
 
     private int MAX_FRAMERATE_LENGTH = 20;
     private int MIN_FRAMERATE_LENGTH = 5;
-    private int beginBitRate = 0;
-    private int beginFrameRate = 0;
 
     private String firstSupportColorFormatCodecName = "";  //  OMX.qcom.video.encoder.avc 和 c2.android.avc.encoder 过滤，这两个h264编码性能好一些。如果都不支持COLOR_FormatYUV420Planar，就用默认的方式。
 
@@ -40,9 +38,9 @@ public class VideoEncoder1 {
         this.videoEncodeParam = param;
     }
 
-    public void startVideo(boolean mirror) {
+    public void start() {
         try {
-            initMediaCodec(mirror);
+            initMediaCodec();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -120,26 +118,20 @@ public class VideoEncoder1 {
 
     }
 
-    private void initMediaCodec(boolean mirror) throws IOException {
+    private void initMediaCodec() throws IOException {
         MediaFormat mediaFormat;
-        if (mirror) {
-            mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-        } else {
-            mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
-        }
+        mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
         //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
         int bitRate = videoEncodeParam.getBitRate();
         if (bitRate > MAX_BITRATE_LENGTH) {
             bitRate = MAX_BITRATE_LENGTH;
         }
-        beginBitRate = bitRate;
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
         //描述视频格式的帧速率（以帧/秒为单位）的键。帧率，一般在15至30之内，太小容易造成视频卡顿。
         int frameRate = videoEncodeParam.getFrameRate();
         if (frameRate > MAX_FRAMERATE_LENGTH) {
             frameRate = MAX_FRAMERATE_LENGTH;
         }
-        beginFrameRate = frameRate;
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
         //关键帧间隔时间，单位是秒
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
@@ -181,7 +173,7 @@ public class VideoEncoder1 {
     //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
     public void setVideoBitRate(int bitRate) {
         int nowBitrate = videoEncodeParam.getBitRate();
-        if ((bitRate > beginBitRate) || (bitRate < 10000) || (nowBitrate == bitRate) || (bitRate > MAX_BITRATE_LENGTH)) {
+        if ((bitRate < 10000) || (nowBitrate == bitRate) || (bitRate > MAX_BITRATE_LENGTH)) {
             return;
         }
         videoEncodeParam.setBitRate(bitRate);
@@ -196,7 +188,7 @@ public class VideoEncoder1 {
 
     public void setVideoFrameRate(int frameRate) {
         int nowFrameRate = videoEncodeParam.getFrameRate();
-        if ((frameRate > beginFrameRate) || (frameRate < MIN_FRAMERATE_LENGTH) || (nowFrameRate == frameRate) || (frameRate > MAX_FRAMERATE_LENGTH)) {
+        if ((frameRate < MIN_FRAMERATE_LENGTH) || (nowFrameRate == frameRate) || (frameRate > MAX_FRAMERATE_LENGTH)) {
             return;
         }
         videoEncodeParam.setFrameRate(frameRate);
@@ -215,19 +207,15 @@ public class VideoEncoder1 {
     public void encoderH264(byte[] data, boolean mirror) {
         if (executor.isShutdown()) return;
         executor.submit(() -> {
+            byte[] nv21 = data;
+            if (mirror) {
+                nv21 = rotateNV21Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            }
             byte[] readyToProcessBytes;
-            if (!mirror) {
-                byte[] nv21 = rotateNV21Data90(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                //视频顺时针旋转90度
-                readyToProcessBytes = convertNV21ToYUV420(nv21, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            if (isSupportNV21) {
+                readyToProcessBytes = convertNV21ToNV12(nv21, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             } else {
-                byte[] yuv420;
-                if (isSupportNV21){
-                    yuv420 = NV21ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                }else{
-                    yuv420  = convertNV21ToYUV420(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                }
-                readyToProcessBytes = yuv420;
+                readyToProcessBytes = convertNV21ToYUV420(nv21, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             }
             // 获取输入缓冲区
             ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
@@ -345,24 +333,6 @@ public class VideoEncoder1 {
         return nv21Rotated;
     }
 
-    private byte[] NV21ToNV12(byte[] nv21, int width, int height) {
-        byte[] nv12 = new byte[width * height * 3 / 2];
-        int frameSize = width * height;
-        int i, j;
-        System.arraycopy(nv21, 0, nv12, 0, frameSize);
-        for (i = 0; i < frameSize; i++) {
-            nv12[i] = nv21[i];
-        }
-        for (j = 0; j < frameSize / 2; j += 2) {
-            nv12[frameSize + j - 1] = nv21[j + frameSize];
-        }
-        for (j = 0; j < frameSize / 2; j += 2) {
-            nv12[frameSize + j] = nv21[j + frameSize - 1];
-        }
-        nv21 = null;
-        return nv12;
-    }
-
     public byte[] rotateNV21Data180(byte[] nv21Data, int width, int height) {
         int frameSize = width * height;
         int bufferSize = frameSize * 3 / 2;
@@ -379,6 +349,24 @@ public class VideoEncoder1 {
             nv21Rotated[count++] = nv21Data[i];
         }
         return nv21Rotated;
+    }
+
+    private byte[] convertNV21ToNV12(byte[] nv21, int width, int height) {
+        byte[] nv12 = new byte[width * height * 3 / 2];
+        int frameSize = width * height;
+        int i, j;
+        System.arraycopy(nv21, 0, nv12, 0, frameSize);
+        for (i = 0; i < frameSize; i++) {
+            nv12[i] = nv21[i];
+        }
+        for (j = 0; j < frameSize / 2; j += 2) {
+            nv12[frameSize + j - 1] = nv21[j + frameSize];
+        }
+        for (j = 0; j < frameSize / 2; j += 2) {
+            nv12[frameSize + j] = nv21[j + frameSize - 1];
+        }
+        nv21 = null;
+        return nv12;
     }
 
     private byte[] convertNV21ToYUV420(byte[] nv21, int width, int height) {
