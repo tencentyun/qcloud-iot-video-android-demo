@@ -119,8 +119,7 @@ public class VideoEncoder1 {
     }
 
     private void initMediaCodec() throws IOException {
-        MediaFormat mediaFormat;
-        mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
         //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
         int bitRate = videoEncodeParam.getBitRate();
         if (bitRate > MAX_BITRATE_LENGTH) {
@@ -207,9 +206,11 @@ public class VideoEncoder1 {
     public void encoderH264(byte[] data, boolean mirror) {
         if (executor.isShutdown()) return;
         executor.submit(() -> {
-            byte[] nv21 = data;
-            if (mirror) {
-                nv21 = rotateNV21Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            byte[] nv21;
+            if (!mirror) {
+                nv21 = rotateNV21Data90(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            } else {
+                nv21 = rotateNV21Data270(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             }
             byte[] readyToProcessBytes;
             if (isSupportNV21) {
