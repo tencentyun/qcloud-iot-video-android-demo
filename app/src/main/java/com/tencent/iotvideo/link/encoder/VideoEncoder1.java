@@ -222,10 +222,10 @@ public class VideoEncoder1 {
                 readyToProcessBytes = convertNV21ToYUV420(nv21, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             } else {
                 byte[] yuv420;
-                if (isSupportNV21){
+                if (isSupportNV21) {
                     yuv420 = NV21ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                }else{
-                    yuv420  = convertNV21ToYUV420(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+                } else {
+                    yuv420 = convertNV21ToYUV420(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
                 }
                 readyToProcessBytes = yuv420;
             }
@@ -267,6 +267,8 @@ public class VideoEncoder1 {
         });
     }
 
+    private byte[] nv21Rotated;
+
     /**
      * 旋转90，270，要进行宽高对调
      *
@@ -275,10 +277,12 @@ public class VideoEncoder1 {
      * @param height
      * @return
      */
-    public static byte[] rotateNV21Data270(byte[] nv21Data, int width, int height) {
+    public byte[] rotateNV21Data270(byte[] nv21Data, int width, int height) {
         int frameSize = width * height;
         int bufferSize = frameSize * 3 / 2;
-        byte[] nv21Rotated = new byte[bufferSize];
+        if (nv21Rotated == null) {
+            nv21Rotated = new byte[bufferSize];
+        }
         int i = 0;
 
         // Rotate the Y luma
@@ -314,10 +318,13 @@ public class VideoEncoder1 {
      * @param height
      * @return
      */
+
     public byte[] rotateNV21Data90(byte[] nv21Data, int width, int height) {
         int frameSize = width * height;
         int bufferSize = frameSize * 3 / 2;
-        byte[] nv21Rotated = new byte[bufferSize];
+        if (nv21Rotated == null) {
+            nv21Rotated = new byte[bufferSize];
+        }
         // Rotate the Y luma
         int i = 0;
         int startPos = (height - 1) * width;
@@ -345,8 +352,12 @@ public class VideoEncoder1 {
         return nv21Rotated;
     }
 
+    private byte[] nv12;
+
     private byte[] NV21ToNV12(byte[] nv21, int width, int height) {
-        byte[] nv12 = new byte[width * height * 3 / 2];
+        if (nv12 == null) {
+            nv12 = new byte[width * height * 3 / 2];
+        }
         int frameSize = width * height;
         int i, j;
         System.arraycopy(nv21, 0, nv12, 0, frameSize);
@@ -359,14 +370,15 @@ public class VideoEncoder1 {
         for (j = 0; j < frameSize / 2; j += 2) {
             nv12[frameSize + j] = nv21[j + frameSize - 1];
         }
-        nv21 = null;
         return nv12;
     }
 
     public byte[] rotateNV21Data180(byte[] nv21Data, int width, int height) {
         int frameSize = width * height;
         int bufferSize = frameSize * 3 / 2;
-        byte[] nv21Rotated = new byte[bufferSize];
+        if (nv21Rotated == null) {
+            nv21Rotated = new byte[bufferSize];
+        }
         int count = 0;
 
         for (int i = frameSize - 1; i >= 0; i--) {
@@ -381,9 +393,13 @@ public class VideoEncoder1 {
         return nv21Rotated;
     }
 
+    private byte[] yuv420;
+
     private byte[] convertNV21ToYUV420(byte[] nv21, int width, int height) {
         int frameSize = width * height;
-        byte[] yuv420 = new byte[frameSize * 3 / 2];
+        if (yuv420 == null) {
+            yuv420 = new byte[frameSize * 3 / 2];
+        }
         // Copy Y values
         System.arraycopy(nv21, 0, yuv420, 0, frameSize);
         // Copy U and V values
