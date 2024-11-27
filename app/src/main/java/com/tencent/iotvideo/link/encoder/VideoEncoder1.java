@@ -25,7 +25,7 @@ public class VideoEncoder1 {
     private MediaCodec mediaCodec;
     private OnEncodeListener encoderListener;
     private long seq = 0L;
-    private int MAX_BITRATE_LENGTH = 1000000;
+    private int MAX_BITRATE_LENGTH = 2000000;
 
     private int MAX_FRAMERATE_LENGTH = 20;
     private int MIN_FRAMERATE_LENGTH = 5;
@@ -172,7 +172,7 @@ public class VideoEncoder1 {
     //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
     public void setVideoBitRate(int bitRate) {
         int nowBitrate = videoEncodeParam.getBitRate();
-        if ((bitRate < 10000) || (nowBitrate == bitRate) || (bitRate > MAX_BITRATE_LENGTH)) {
+        if ((bitRate < 10000) || (nowBitrate == bitRate)) {
             return;
         }
         videoEncodeParam.setBitRate(bitRate);
