@@ -317,7 +317,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                         new_video_rate = (int) (p2p_wl_avg * 0.9f);
                     }
                     if (new_video_rate != 0) {
-                        mVideoEncoder.setVideoBitRate(new_video_rate * 4);
+                        mVideoEncoder.setVideoBitRate(new_video_rate*2);
                     }
                     Log.d(TAG, "new_video_rate:" + new_video_rate + "  VideoBitRate:" + mVideoEncoder.getVideoBitRate());
 //                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);

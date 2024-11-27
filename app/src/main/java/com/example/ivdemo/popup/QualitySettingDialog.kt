@@ -2,7 +2,9 @@ package com.example.ivdemo.popup
 
 import android.content.Context
 import android.hardware.Camera
+import android.media.MediaCodecList
 import android.util.Log
+import android.util.Range
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -147,6 +149,31 @@ class QualitySettingDialog(private val context: Context) :
         }
     }
 
+    private val supportPixelList = arrayListOf<Pair<Range<Int>, Range<Int>>>()
+    private fun getSupportPiexls() {
+        val codecInfos = MediaCodecList(MediaCodecList.ALL_CODECS).codecInfos
+        for (codecInfo in codecInfos) {
+            if (!codecInfo.isEncoder) {
+                continue
+            }
+
+            val types = codecInfo.supportedTypes
+            for (type in types) {
+                if (type.equals("video/avc", ignoreCase = true)) { // H.264/AVC codec
+                    val capabilities = codecInfo.getCapabilitiesForType(type)
+                    val videoCapabilities = capabilities.videoCapabilities
+
+                    val supportedWidths = videoCapabilities.supportedWidths
+                    val supportedHeights = videoCapabilities.supportedHeights
+
+                    Log.d(TAG, "Supported widths: $supportedWidths")
+                    Log.d(TAG, "Supported heights: $supportedHeights")
+                    supportPixelList.add(Pair(supportedWidths, supportedHeights))
+                }
+            }
+        }
+    }
+
     private val supportedPreviewSizes: Unit
         /**
          * 获取设备支持哪些分辨率
@@ -157,8 +184,12 @@ class QualitySettingDialog(private val context: Context) :
             val list = camera.parameters.supportedPreviewSizes
             for (size in list) {
                 Log.e(TAG, "****========== " + size.width + " " + size.height)
-                val entity = ResolutionEntity(size.width, size.height, "${size.height}p")
-                localResolutionArray.add(entity)
+                val res =
+                    supportPixelList.find { size.width in it.first.lower until it.first.upper && size.height in it.second.lower until it.second.upper }
+                if (res != null) {
+                    val entity = ResolutionEntity(size.width, size.height, "${size.height}p")
+                    localResolutionArray.add(entity)
+                }
             }
         }
 
@@ -254,13 +285,14 @@ class QualitySettingDialog(private val context: Context) :
         super.show(manager, "QualitySettingDialog")
     }
 
-    private var onDismiss: (()->Unit)? = null
+    private var onDismiss: (() -> Unit)? = null
 
     init {
+        getSupportPiexls()
         supportedPreviewSizes
     }
 
-    fun setOnDismissListener(onDismiss: ()->Unit) {
+    fun setOnDismissListener(onDismiss: () -> Unit) {
         this.onDismiss = onDismiss
     }
 
