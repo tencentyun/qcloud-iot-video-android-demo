@@ -428,13 +428,12 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         this.height = height
         this.width = width
         lifecycleScope.launch {
-            val pixel = getPixel()
             adjustAspectRatio(
-                pixel[0],
-                pixel[1],
+                width,
+                height,
                 binding.surfaceViewTweCall,
-                getScreenWidth(resources) - dip2px(this@TweCallActivity, 10f),
-                getScreenHeight(resources) - dip2px(this@TweCallActivity, 115f)
+                getScreenWidth(resources),
+                getScreenHeight(resources)
             )
         }
         if (remotePreviewSurface != null) {
@@ -547,32 +546,5 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     override fun onUpdateAuthorizeStatus(openId: String?, status: Int): Int {
         Log.d(TAG, "onUpdateAuthorizeStatus   penId:${openId}  status:$status")
         return 0
-    }
-
-    private fun getPixel(): Array<Int> {
-        val sWidth: Int
-        val sHeight: Int
-        when (QualitySetting.getInstance(this@TweCallActivity).wxResolution) {
-            IV_CM_PIXEL_240x320 -> {
-                sWidth = 320
-                sHeight = 240
-            }
-
-            IV_CM_PIXEL_320x240 -> {
-                sWidth = 240
-                sHeight = 320
-            }
-
-            IV_CM_PIXEL_480x352 -> {
-                sWidth = 352
-                sHeight = 480
-            }
-
-            else -> {
-                sWidth = 640
-                sHeight = 480
-            }
-        }
-        return arrayOf(sWidth, sHeight)
     }
 }
