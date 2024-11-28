@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Range
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
@@ -75,11 +76,11 @@ fun dip2px(context: Context, dpValue: Float): Int {
     return (dpValue * scale + 0.5f).toInt()
 }
 
-fun getScreenWidth(resource: Resources):Int{
+fun getScreenWidth(resource: Resources): Int {
     return resource.displayMetrics.widthPixels
 }
 
-fun getScreenHeight(resource: Resources):Int{
+fun getScreenHeight(resource: Resources): Int {
     return resource.displayMetrics.heightPixels
 }
 
@@ -120,4 +121,18 @@ fun adjustAspectRatio(
         "end newWidth:$newWidth  newHeight:$newHeight"
     )
     textureView.layoutParams = viewLayoutParams
+}
+
+fun getBitRateIntervalByPixel(width: Int, height: Int): Range<Double> {
+    return if (width == 320 && height == 240) {
+        Range(50.0 * 1000, 500.0 * 1000)
+    } else if (width == 480 && height == 320) {
+        Range(100.0 * 1000, 700.0 * 1000)
+    } else if (width == 640 && height == 480) {
+        Range(200.0 * 1000, 1000.0 * 1000)
+    } else if (width == 960 && height == 540) {
+        Range(300.0 * 1000, 1500.0 * 1000)
+    } else {
+        Range((width * height * 4 / 6) * 1.0 * 1000, width * height * 4 * 1.2 * 1000)
+    }
 }
