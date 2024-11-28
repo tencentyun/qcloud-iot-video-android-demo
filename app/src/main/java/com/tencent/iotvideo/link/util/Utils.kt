@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Matrix
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Range
@@ -88,12 +89,12 @@ fun adjustAspectRatio(
     videoWidth: Int,
     videoHeight: Int,
     textureView: TextureView,
-    width: Int? = null,
-    height: Int? = null
+    screenWidth: Int? = null,
+    screenHeight: Int? = null
 ) {
     val viewLayoutParams = textureView.layoutParams
-    val screenWidth = width ?: viewLayoutParams.width
-    val screenHeight = height ?: viewLayoutParams.height
+    val viewWidth = screenWidth ?: viewLayoutParams.width
+    val viewHeight = screenHeight ?: viewLayoutParams.height
     Log.d(
         "utils",
         "screenWidth:$screenWidth  screenHeight:$screenHeight   videoWidth:$videoWidth  videoHeight:$videoHeight"
@@ -101,26 +102,28 @@ fun adjustAspectRatio(
     if (videoWidth == 0 || videoHeight == 0) {
         return
     }
-    val screenAspectRatio = screenWidth.toFloat() / screenHeight
+    val viewAspectRatio = viewWidth.toFloat() / viewHeight
     val videoAspectRatio = videoWidth.toFloat() / videoHeight
 
-    val newWidth: Int
-    val newHeight: Int
-    if (videoAspectRatio > screenAspectRatio) {
-        newWidth = screenWidth
-        newHeight = (screenWidth / videoAspectRatio).toInt()
+    var scaleX = 1.0f
+    var scaleY = 1.0f
+
+    if (videoAspectRatio > viewAspectRatio) {
+        // Video is wider than view, scale by height
+        scaleX = videoAspectRatio / viewAspectRatio
     } else {
-        newHeight = screenHeight
-        newWidth = (screenHeight * videoAspectRatio).toInt()
+        // Video is taller than view, scale by width
+        scaleY = viewAspectRatio / videoAspectRatio
     }
 
-    viewLayoutParams.width = newWidth
-    viewLayoutParams.height = newHeight
-    Log.d(
-        "utils",
-        "end newWidth:$newWidth  newHeight:$newHeight"
-    )
-    textureView.layoutParams = viewLayoutParams
+    val pivotPointX = viewWidth / 2f
+    val pivotPointY = viewHeight / 2f
+
+    val matrix = Matrix()
+    matrix.setScale(scaleX, scaleY, pivotPointX, pivotPointY)
+
+    textureView.setTransform(matrix)
+    textureView.invalidate()
 }
 
 fun getBitRateIntervalByPixel(width: Int, height: Int): Range<Double> {
