@@ -185,7 +185,7 @@ class QualitySettingDialog(private val context: Context) :
             for (size in list) {
                 Log.e(TAG, "****========== " + size.width + " " + size.height)
                 val res =
-                    supportPixelList.find { size.width in it.first.lower until it.first.upper && size.height in it.second.lower until it.second.upper }
+                    supportPixelList.find { size.width in it.first.lower until it.first.upper + 1 && size.height in it.second.lower until it.first.upper + 1 }
                 if (res != null) {
                     val entity = ResolutionEntity(size.width, size.height, "${size.height}p")
                     localResolutionArray.add(entity)

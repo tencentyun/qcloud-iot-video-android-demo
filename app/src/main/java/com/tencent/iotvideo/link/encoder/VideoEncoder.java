@@ -126,7 +126,7 @@ public class VideoEncoder {
         //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
         int bitRate = videoEncodeParam.getBitRate();
         if (bitRateInterval.getLower() > bitRate || bitRateInterval.getUpper() < bitRate) {
-            bitRate = (int) (bitRateInterval.getUpper() * 0.8);
+            bitRate = (int) ((bitRateInterval.getUpper() + bitRateInterval.getLower()) / 2);
             videoEncodeParam.setBitRate(bitRate);
         }
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
