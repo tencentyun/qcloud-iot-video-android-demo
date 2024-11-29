@@ -107,8 +107,10 @@ public class SimplePlayer {
 
     public int playAudioStream(int visitor, byte[] data, int len, long pts, long seq) {
 //        Log.d(TAG, "audio frame: visitor "+ visitor + " len " + len + " pts " + pts + " seq " + seq);
-        if (audioDecoder != null && videoDecoder != null) {
-            audioDecoder.setCurrentVideoPts(videoDecoder.getCurrentVideoPts());
+        if (audioDecoder != null) {
+            if (videoDecoder != null) {
+                audioDecoder.setCurrentVideoPts(videoDecoder.getCurrentVideoPts());
+            }
             return audioDecoder.decoderAAC(data, len, pts);
         }
         return 0;

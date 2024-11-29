@@ -1,19 +1,20 @@
 package com.tencent.iotvideo.link.encoder;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
+import static com.tencent.iotvideo.link.util.UtilsKt.getBitRateIntervalByPixel;
+
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Range;
 
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.VideoEncodeParam;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,101 +26,89 @@ public class VideoEncoder {
     private final VideoEncodeParam videoEncodeParam;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private MediaCodec mediaCodec;
-    private MediaFormat mediaFormat;
     private OnEncodeListener encoderListener;
+    private Range<Double> bitRateInterval;
     private long seq = 0L;
-    private int MAX_BITRATE_LENGTH = 1000000;
-    private int beginBitRate = 0;
-
-    private boolean isSupportNV21 = false;
     private int MAX_FRAMERATE_LENGTH = 20;
     private int MIN_FRAMERATE_LENGTH = 5;
-    private int beginFrameRate = 0;
 
     private String firstSupportColorFormatCodecName = "";  //  OMX.qcom.video.encoder.avc 和 c2.android.avc.encoder 过滤，这两个h264编码性能好一些。如果都不支持COLOR_FormatYUV420Planar，就用默认的方式。
 
+    private boolean isSupportNV21 = false;
+
     public VideoEncoder(VideoEncodeParam param) {
         this.videoEncodeParam = param;
-        checkSupportedColorFormats();
-        initMediaCodec();
     }
 
-    private void initMediaCodec() {
+    public void start() {
         try {
-            checkSupportedColorFormats("video/avc"); // H.264 编码器
-
-            if (!firstSupportColorFormatCodecName.isEmpty()) {
-                mediaCodec = MediaCodec.createByCodecName(firstSupportColorFormatCodecName);
-            } else {
-                mediaCodec = MediaCodec.createEncoderByType("video/avc");
-            }
-            //height和width一般都是照相机的height和width。
-            //TODO 因为获取到的视频帧数据是逆时针旋转了90度的，所以这里宽高需要对调
-            MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
-            //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
-            int bitRate = videoEncodeParam.getBitRate();
-            if (bitRate > MAX_BITRATE_LENGTH) {
-                bitRate = MAX_BITRATE_LENGTH;
-            }
-            beginBitRate = bitRate;
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-            //描述视频格式的帧速率（以帧/秒为单位）的键。帧率，一般在15至30之内，太小容易造成视频卡顿。
-            mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, videoEncodeParam.getFrameRate());
-            if (isSupportNV21) {
-                //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
-                mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
-            } else {
-                //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
-                mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
-            }
-            //关键帧间隔时间，单位是秒
-            mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
-            mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
-            //设置压缩等级  默认是 baseline
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                mediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileMain);
-            }
-            mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-            //开始编码
-            mediaCodec.start();
-        } catch (Exception e) {
-            e.printStackTrace();
+            bitRateInterval = getBitRateIntervalByPixel(videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            initMediaCodec();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private void checkSupportedColorFormats(String mimeType) {
+    private MediaCodecInfo selectCodec(String mimeType) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            MediaCodecList codecList = null;
-            codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+            MediaCodecList codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
             MediaCodecInfo[] codecInfos = codecList.getCodecInfos();
-
             for (MediaCodecInfo codecInfo : codecInfos) {
                 if (!codecInfo.isEncoder()) {
                     continue;
                 }
-
-                String[] supportedTypes = codecInfo.getSupportedTypes();
-                for (String type : supportedTypes) {
+                checkSupportedColorFormats(codecInfo);
+                String[] types = codecInfo.getSupportedTypes();
+                for (String type : types) {
                     if (type.equalsIgnoreCase(mimeType)) {
-                        MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
-                        int[] colorFormats = capabilities.colorFormats;
+                        return codecInfo;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-                        for (int colorFormat : colorFormats) {
-                            switch (colorFormat) {
-                                case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar:
-                                    Log.e(TAG, "Supported color format: COLOR_FormatYUV420Planar");
-                                    isSupportNV21 = false;
-                                    return;
-                                case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar:
-                                    Log.e(TAG, "Supported color format: COLOR_FormatYUV420SemiPlanar");
-                                    isSupportNV21 = true;
-                                    return;
-                                default:
-                                    Log.e(TAG, "Supported color format: " + colorFormat);
-                                    break;
-                            }
+    private int selectColorFormat(MediaCodecInfo codecInfo, String mimeType) {
+        MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(mimeType);
+        for (int i = 0; i < capabilities.colorFormats.length; i++) {
+            int colorFormat = capabilities.colorFormats[i];
+            if (isRecognizedFormat(colorFormat)) {
+                return colorFormat;
+            }
+        }
+        return 0; // No suitable color format found
+    }
+
+    private boolean isRecognizedFormat(int colorFormat) {
+        return switch (colorFormat) {
+            case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar -> {
+                isSupportNV21 = false;
+                yield true;
+            }
+            case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar -> {
+                isSupportNV21 = true;
+                yield true;
+            }
+            case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420PackedPlanar, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420PackedSemiPlanar, MediaCodecInfo.CodecCapabilities.COLOR_TI_FormatYUV420PackedSemiPlanar ->
+                    true;
+            default -> false;
+        };
+    }
+
+    private void checkSupportedColorFormats(MediaCodecInfo codecInfo) {
+        if (codecInfo.getName().equals("OMX.qcom.video.encoder.avc") || codecInfo.getName().equals("c2.android.avc.encoder")) {
+
+            String[] supportedTypes = codecInfo.getSupportedTypes();
+            for (String type : supportedTypes) {
+                if (type.startsWith("video/")) {
+                    MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
+                    int[] colorFormats = capabilities.colorFormats;
+                    for (int colorFormat : colorFormats) {
+                        if (colorFormat == MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar) {
+                            Log.d(TAG, "Video encoder: " + codecInfo.getName() + ", supported color format: " + colorFormat);
+                            firstSupportColorFormatCodecName = codecInfo.getName();
+                            return;
                         }
                     }
                 }
@@ -127,53 +116,88 @@ public class VideoEncoder {
         }
     }
 
-    //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    public void setVideoBitRate(int bitRate) {
-        int nowBitrate = videoEncodeParam.getBitRate();
-
-        if ((bitRate > beginBitRate) || (bitRate < 10000) || (nowBitrate == bitRate) || (bitRate > MAX_BITRATE_LENGTH)) {
+    private void initMediaCodec() throws IOException {
+        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
+        //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
+        int bitRate = videoEncodeParam.getBitRate();
+        if (bitRateInterval.getLower() > bitRate || bitRateInterval.getUpper() < bitRate) {
+            bitRate = (int) (bitRateInterval.getUpper() * 0.8);
+            videoEncodeParam.setBitRate(bitRate);
+        }
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
+        //描述视频格式的帧速率（以帧/秒为单位）的键。帧率，一般在15至30之内，太小容易造成视频卡顿。
+        int frameRate = videoEncodeParam.getFrameRate();
+        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+        //关键帧间隔时间，单位是秒
+        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
+        //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
+        // 查找支持的颜色格式
+        MediaCodecInfo codecInfo = selectCodec(MediaFormat.MIMETYPE_VIDEO_AVC);
+        if (codecInfo == null) {
+            Log.e(TAG, "No suitable codec found for MIME type: " + MediaFormat.MIMETYPE_VIDEO_AVC);
             return;
         }
+        int colorFormat = selectColorFormat(codecInfo, MediaFormat.MIMETYPE_VIDEO_AVC);
 
-        videoEncodeParam.setBitRate(bitRate);
-
-        try {
-            Bundle params = new Bundle();
-            params.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bitRate);
-            mediaCodec.setParameters(params);
-
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "updateBitrate failed", e);
+        if (isSupportNV21) {
+            //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
+        } else {
+            //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
         }
+        //设置编码器码率模式为可变
+        mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
+        mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
+        //设置压缩等级  默认是 baseline
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileMain);
+        }
+        // 创建 MediaCodec 编码器
+        if (!firstSupportColorFormatCodecName.isEmpty()) {
+            mediaCodec = MediaCodec.createByCodecName(firstSupportColorFormatCodecName);
+        } else {
+            mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
+        }
+        mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        mediaCodec.start();
+    }
+
+    //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
+    public void setVideoBitRate(int bitRate) {
+        int nowBitrate = videoEncodeParam.getBitRate();
+        if (bitRateInterval.getLower() > bitRate || nowBitrate == bitRate || bitRateInterval.getUpper() < bitRate) {
+            return;
+        }
+        videoEncodeParam.setBitRate(bitRate);
+        Bundle params = new Bundle();
+        params.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bitRate);
+        mediaCodec.setParameters(params);
     }
 
     public int getVideoBitRate() {
         return videoEncodeParam.getBitRate();
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     public void setVideoFrameRate(int frameRate) {
         int nowFrameRate = videoEncodeParam.getFrameRate();
-
-        if ((frameRate > beginFrameRate) || (frameRate < MIN_FRAMERATE_LENGTH) || (nowFrameRate == frameRate) || (frameRate > MAX_FRAMERATE_LENGTH)) {
+        if ((frameRate < MIN_FRAMERATE_LENGTH) || (nowFrameRate == frameRate) || (frameRate > MAX_FRAMERATE_LENGTH)) {
             return;
         }
-
         videoEncodeParam.setFrameRate(frameRate);
-
-        try {
-            Bundle params = new Bundle();
-            params.putInt(MediaFormat.KEY_FRAME_RATE, frameRate);
-            mediaCodec.setParameters(params);
-
-        } catch (IllegalStateException e) {
-            Log.e("TAG", "updateFramerate failed", e);
-        }
+        Bundle params = new Bundle();
+        params.putInt(MediaFormat.KEY_FRAME_RATE, frameRate);
+        mediaCodec.setParameters(params);
     }
 
     public int getVideoFrameRate() {
         return videoEncodeParam.getFrameRate();
+    }
+
+    public Range<Double> getBitRateInterval() {
+        return bitRateInterval;
     }
 
     /**
@@ -182,101 +206,163 @@ public class VideoEncoder {
     public void encoderH264(byte[] data, boolean mirror) {
         if (executor.isShutdown()) return;
         executor.submit(() -> {
+            byte[] nv21;
+            if (!mirror) {
+                nv21 = rotateNV21Data90(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            } else {
+                nv21 = rotateNV21Data270(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            }
             byte[] readyToProcessBytes;
             if (isSupportNV21) {
-                //将NV21编码成NV12
-                byte[] bytes = NV21ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                //视频顺时针旋转90度
-                byte[] nv12 = nv21Rotate90(bytes, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                if (mirror) {
-                    verticalMirror(nv12, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
-                }
-                readyToProcessBytes = nv12;
+                readyToProcessBytes = convertNV21ToNV12(nv21, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             } else {
-                byte[] rotateBytes;
-                //视频顺时针旋转90度
-                if (mirror) {
-                    rotateBytes = nv21Rotate270(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                } else {
-                    rotateBytes = nv21Rotate90(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-                }
-                //将NV21编码成I420
-                byte[] i420 = toI420(rotateBytes, videoEncodeParam.getHeight(), videoEncodeParam.getWidth());
-                readyToProcessBytes = i420;
+                readyToProcessBytes = convertNV21ToYUV420(nv21, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            }
+            // 获取输入缓冲区
+            ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
+            ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
+
+            int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
+            if (inputBufferIndex >= 0) {
+                ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
+                inputBuffer.clear();
+                inputBuffer.put(readyToProcessBytes);
+
+                // 将数据传递给编码器
+                mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
             }
 
-            try {
-                //拿到输入缓冲区,用于传送数据进行编码
-                ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
-                //拿到输出缓冲区,用于取到编码后的数据
-                ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
-                int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
-                //当输入缓冲区有效时,就是>=0
-                if (inputBufferIndex >= 0) {
-                    ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
-                    inputBuffer.clear();
-                    //往输入缓冲区写入数据
-                    inputBuffer.put(readyToProcessBytes);
-                    //五个参数，第一个是输入缓冲区的索引，第二个数据是输入缓冲区起始索引，第三个是放入的数据大小，第四个是时间戳，保证递增就是
-                    mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
+            // 获取输出缓冲区
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+            int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
+
+            while (outputBufferIndex >= 0) {
+                ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
+
+                // 处理编码后的数据
+                byte[] outData = new byte[bufferInfo.size];
+                outputBuffer.get(outData);
+                // 打印编码后的数据大小
+                Log.d(TAG, "Encoded data size: " + outData.length);
+                if (encoderListener != null) {
+                    encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, true);
+                    seq++;
                 }
-                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-                //拿到输出缓冲区的索引
-                int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
-                while (outputBufferIndex >= 0) {
-                    ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
 
-                    outputBuffer.position(bufferInfo.offset);
-                    outputBuffer.limit(bufferInfo.offset + bufferInfo.size);
-
-                    byte[] outData = new byte[outputBuffer.remaining()];
-                    outputBuffer.get(outData, 0, outData.length);
-
-                    if (bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
-                        // I 帧的处理逻辑
-//                        Log.i("TAG", "==========I帧==============="+seq);
-                        ByteBuffer spsb = mediaCodec.getOutputFormat().getByteBuffer("csd-0");
-                        byte[] sps = new byte[spsb.remaining()];
-                        spsb.get(sps, 0, sps.length);
-                        ByteBuffer ppsb = mediaCodec.getOutputFormat().getByteBuffer("csd-1");
-                        byte[] pps = new byte[ppsb.remaining()];
-                        ppsb.get(pps, 0, pps.length);
-
-                        byte[] dataBytes = new byte[sps.length + pps.length + outData.length];
-                        System.arraycopy(sps, 0, dataBytes, 0, sps.length);
-                        System.arraycopy(pps, 0, dataBytes, sps.length, pps.length);
-                        System.arraycopy(outData, 0, dataBytes, pps.length + sps.length, outData.length);
-                        sps = null;
-                        pps = null;
-                        outData = null;
-                        if (encoderListener != null) {
-                            encoderListener.onVideoEncoded(dataBytes, System.currentTimeMillis(), seq, true);
-                            seq++;
-                        }
-                    } else {
-                        //outData就是输出的h264数据
-//                        Log.e("TAG", "==========P帧===============" + seq);
-                        if (encoderListener != null) {
-                            encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, false);
-                            seq++;
-                        }
-                    }
-
-                    mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
-                    outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
+                // 释放输出缓冲区
+                mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
+                outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
             }
         });
     }
 
     /**
-     * 因为从MediaCodec不支持NV21的数据编码，所以需要先讲NV21的数据转码为NV12
+     * 旋转90，270，要进行宽高对调
+     *
+     * @param nv21Data
+     * @param width
+     * @param height
+     * @return
      */
-    private byte[] nv12;
+    byte[] nv21Rotated;
 
-    private byte[] NV21ToNV12(byte[] nv21, int width, int height) {
+    public byte[] rotateNV21Data270(byte[] nv21Data, int width, int height) {
+        int frameSize = width * height;
+        int bufferSize = frameSize * 3 / 2;
+        if (nv21Rotated == null) {
+            nv21Rotated = new byte[bufferSize];
+        }
+        int i = 0;
+
+        // Rotate the Y luma
+        for (int x = width - 1; x >= 0; x--) {
+            int offset = 0;
+            for (int y = 0; y < height; y++) {
+                nv21Rotated[i] = nv21Data[offset + x];
+                i++;
+                offset += width;
+            }
+        }
+
+        // Rotate the U and V color components
+        i = frameSize;
+        for (int x = width - 1; x > 0; x = x - 2) {
+            int offset = frameSize;
+            for (int y = 0; y < height / 2; y++) {
+                nv21Rotated[i] = nv21Data[offset + (x - 1)];
+                i++;
+                nv21Rotated[i] = nv21Data[offset + x];
+                i++;
+                offset += width;
+            }
+        }
+        return nv21Rotated;
+    }
+
+    /**
+     * 旋转90，270，要进行宽高对调
+     *
+     * @param nv21Data
+     * @param width
+     * @param height
+     * @return
+     */
+    public byte[] rotateNV21Data90(byte[] nv21Data, int width, int height) {
+        int frameSize = width * height;
+        int bufferSize = frameSize * 3 / 2;
+        if (nv21Rotated == null) {
+            nv21Rotated = new byte[bufferSize];
+        }
+        // Rotate the Y luma
+        int i = 0;
+        int startPos = (height - 1) * width;
+        for (int x = 0; x < width; x++) {
+            int offset = startPos;
+            for (int y = height - 1; y >= 0; y--) {
+                nv21Rotated[i] = nv21Data[offset + x];
+                i++;
+                offset -= width;
+            }
+        }
+
+        // Rotate the U and V color components
+        i = bufferSize - 1;
+        for (int x = width - 1; x > 0; x = x - 2) {
+            int offset = frameSize;
+            for (int y = 0; y < height / 2; y++) {
+                nv21Rotated[i] = nv21Data[offset + x];
+                i--;
+                nv21Rotated[i] = nv21Data[offset + (x - 1)];
+                i--;
+                offset += width;
+            }
+        }
+        return nv21Rotated;
+    }
+
+    public byte[] rotateNV21Data180(byte[] nv21Data, int width, int height) {
+        int frameSize = width * height;
+        int bufferSize = frameSize * 3 / 2;
+        if (nv21Rotated == null) {
+            nv21Rotated = new byte[bufferSize];
+        }
+        int count = 0;
+
+        for (int i = frameSize - 1; i >= 0; i--) {
+            nv21Rotated[count] = nv21Data[i];
+            count++;
+        }
+
+        for (int i = bufferSize - 1; i >= frameSize; i -= 2) {
+            nv21Rotated[count++] = nv21Data[i - 1];
+            nv21Rotated[count++] = nv21Data[i];
+        }
+        return nv21Rotated;
+    }
+
+    byte[] nv12;
+
+    private byte[] convertNV21ToNV12(byte[] nv21, int width, int height) {
         if (nv12 == null) {
             nv12 = new byte[width * height * 3 / 2];
         }
@@ -295,138 +381,23 @@ public class VideoEncoder {
         return nv12;
     }
 
-    private byte[] preAllocatedBufferColor;
+    byte[] yuv420;
 
-    public byte[] toI420(byte[] input, int width, int height) {
-        if (preAllocatedBufferColor == null) {
-            preAllocatedBufferColor = new byte[width * height * 3 / 2];
+    private byte[] convertNV21ToYUV420(byte[] nv21, int width, int height) {
+        int frameSize = width * height;
+        if (yuv420 == null) {
+            yuv420 = new byte[frameSize * 3 / 2];
         }
-        final int frameSize = width * height;
-        final int qFrameSize = frameSize / 4;
-        System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
-        for (int i = 0; i < qFrameSize; i++) {
-            preAllocatedBufferColor[frameSize + i] = input[frameSize + i * 2 + 1]; // Cb (U)
-            preAllocatedBufferColor[frameSize + i + qFrameSize] = input[frameSize + i * 2]; // Cr (V)
-        }
-        return preAllocatedBufferColor;
-    }
-
-    private byte[] preAllocatedBufferRotate;
-
-    public byte[] nv21Rotate90(byte[] data, int imageWidth, int imageHeight) {
-        if (preAllocatedBufferRotate == null) {
-            preAllocatedBufferRotate = new byte[imageWidth * imageHeight * 3 / 2];
-        }
-        // Rotate the Y luma
-        int i = 0;
-        for (int x = 0; x < imageWidth; x++) {
-            for (int y = imageHeight - 1; y >= 0; y--) {
-                preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
+        // Copy Y values
+        System.arraycopy(nv21, 0, yuv420, 0, frameSize);
+        // Copy U and V values
+        for (int i = 0; i < height / 2; i++) {
+            for (int j = 0; j < width / 2; j++) {
+                yuv420[frameSize + i * width / 2 + j] = nv21[frameSize + 2 * (i * width / 2 + j) + 1]; // U
+                yuv420[frameSize + frameSize / 4 + i * width / 2 + j] = nv21[frameSize + 2 * (i * width / 2 + j)]; // V
             }
         }
-        // Rotate the U and V color components
-        int size = imageWidth * imageHeight;
-        i = size * 3 / 2 - 1;
-        for (int x = imageWidth - 1; x > 0; x = x - 2) {
-            for (int y = 0; y < imageHeight / 2; y++) {
-                preAllocatedBufferRotate[i--] = data[size + (y * imageWidth) + x];
-                preAllocatedBufferRotate[i--] = data[size + (y * imageWidth) + (x - 1)];
-            }
-        }
-        return preAllocatedBufferRotate;
-    }
-
-    public byte[] nv21Rotate270(byte[] data, int imageWidth, int imageHeight) {
-        if (preAllocatedBufferRotate == null) {
-            preAllocatedBufferRotate = new byte[imageWidth * imageHeight * 3 / 2];
-        }
-        // Rotate the Y luma
-        int i = 0;
-        for (int x = imageWidth - 1; x >= 0; x--) {
-            for (int y = 0; y < imageHeight; y++) {
-                preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
-            }
-        }
-
-        // Rotate the U and V color components
-        i = imageWidth * imageHeight;
-        int uvHeight = imageHeight / 2;
-        for (int x = imageWidth - 1; x >= 0; x -= 2) {
-            for (int y = imageHeight; y < uvHeight + imageHeight; y++) {
-                preAllocatedBufferRotate[i++] = data[y * imageWidth + x - 1];
-                preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
-            }
-        }
-        return preAllocatedBufferRotate;
-    }
-
-    /**
-     * 此处为顺时针旋转旋转90度
-     *
-     * @param data        旋转前的数据
-     * @param imageWidth  旋转前数据的宽
-     * @param imageHeight 旋转前数据的高
-     * @return 旋转后的数据
-     */
-    private byte[] yuv;
-
-    private byte[] rotateNV290(byte[] data, int imageWidth, int imageHeight) {
-        if (yuv == null) {
-            yuv = new byte[imageWidth * imageHeight * 3 / 2];
-        }
-
-        // Rotate the Y luma
-        int i = 0;
-        for (int x = 0; x < imageWidth; x++) {
-            for (int y = imageHeight - 1; y >= 0; y--) {
-                yuv[i] = data[y * imageWidth + x];
-                i++;
-            }
-        }
-        // Rotate the U and V color components
-        i = imageWidth * imageHeight * 3 / 2 - 1;
-        for (int x = imageWidth - 1; x > 0; x = x - 2) {
-            for (int y = 0; y < imageHeight / 2; y++) {
-                yuv[i] = data[(imageWidth * imageHeight) + (y * imageWidth) + x];
-                i--;
-                yuv[i] = data[(imageWidth * imageHeight) + (y * imageWidth) + (x - 1)];
-                i--;
-            }
-        }
-        return yuv;
-    }
-
-    private void verticalMirror(byte[] src, int w, int h) { //src是原始yuv数组
-        int i;
-        int index;
-        byte temp;
-        int a, b;
-        //mirror y
-        for (i = 0; i < w; i++) {
-            a = i;
-            b = (h - 1) * w + i;
-            while (a < b) {
-                temp = src[a];
-                src[a] = src[b];
-                src[b] = temp;
-                a += w;
-                b -= w;
-            }
-        }
-
-        // mirror u and v
-        index = w * h;
-        for (i = 0; i < w; i++) {
-            a = i;
-            b = (h / 2 - 1) * w + i;
-            while (a < b) {
-                temp = src[a + index];
-                src[a + index] = src[b + index];
-                src[b + index] = temp;
-                a += w;
-                b -= w;
-            }
-        }
+        return yuv420;
     }
 
     /**
@@ -438,37 +409,5 @@ public class VideoEncoder {
 
     public void stop() {
         executor.shutdown();
-    }
-
-    private void checkSupportedColorFormats() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            MediaCodecList codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-            MediaCodecInfo[] codecInfos = codecList.getCodecInfos();
-
-            for (MediaCodecInfo codecInfo : codecInfos) {
-                if (!codecInfo.isEncoder()) {
-                    continue;
-                }
-
-                if (codecInfo.getName().equals("OMX.qcom.video.encoder.avc") || codecInfo.getName().equals("c2.android.avc.encoder")) {
-
-                    String[] supportedTypes = codecInfo.getSupportedTypes();
-                    for (String type : supportedTypes) {
-                        if (type.startsWith("video/")) {
-                            MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
-                            int[] colorFormats = capabilities.colorFormats;
-                            for (int colorFormat : colorFormats) {
-
-                                if (colorFormat == MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar) {
-                                    Log.d(TAG, "Video encoder: " + codecInfo.getName() + ", supported color format: " + colorFormat);
-                                    firstSupportColorFormatCodecName = codecInfo.getName();
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }

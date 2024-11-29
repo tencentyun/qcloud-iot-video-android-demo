@@ -1,6 +1,6 @@
 package com.tencent.iotvideo.link;
 
-import static com.tencent.iotvideo.link.util.UtilsKt.adjustAspectRatio;
+import static com.tencent.iotvideo.link.util.UtilsKt.getBitRateIntervalByPixel;
 
 import android.app.Activity;
 import android.graphics.ImageFormat;
@@ -9,6 +9,7 @@ import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Range;
 import android.view.TextureView;
 
 import java.io.File;
@@ -29,7 +30,6 @@ import com.tencent.iot.video.device.annotations.VideoResType;
 import com.tencent.iot.video.device.model.IvP2pSendInfo;
 import com.tencent.iotvideo.link.encoder.AudioEncoder;
 import com.tencent.iotvideo.link.encoder.VideoEncoder;
-import com.tencent.iotvideo.link.encoder.VideoEncoder1;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.AudioEncodeParam;
 import com.tencent.iotvideo.link.param.MicParam;
@@ -88,8 +88,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
-            adjustAspectRatio(mVideoWidth, mVideoHeight, textureView, null, null);
-            mVideoBitRate = QualitySetting.getInstance(activity.getApplicationContext()).getBitRate() * 1000;
+//            adjustAspectRatio(mVideoWidth, mVideoHeight, textureView, null, null);
+            mVideoBitRate = (int) (getBitRateIntervalByPixel(mVideoWidth, mVideoHeight).getUpper() * 0.8f);
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
             mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
@@ -138,7 +138,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         encodeParam.setBitRate(mVideoBitRate);
         mVideoEncoder = new VideoEncoder(encodeParam);
         mVideoEncoder.setEncoderListener(this);
-
+        mVideoEncoder.start();
         MicParam micParam = new MicParam();
         micParam.setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
         micParam.setChannelConfig(AudioFormat.CHANNEL_IN_MONO);
@@ -261,7 +261,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     @DynamicBitRateType
-    private int dynamicBitRateType = DynamicBitRateType.DEFAULT_TYPE;
+    private int dynamicBitRateType = DynamicBitRateType.INTERNET_SPEED_TYPE;
 
 
     public class AdapterBitRateTask extends TimerTask {
@@ -301,26 +301,32 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     int p2p_wl_avg = getAvgMaxMin(ivP2pSendInfo.getAveSentRate());
                     int now_video_rate = mVideoEncoder.getVideoBitRate();
                     int now_frame_rate = mVideoEncoder.getVideoFrameRate();
-
+                    Range<Double> nowBitRateInterval = mVideoEncoder.getBitRateInterval();
                     Log.e(TAG, "INTERNET_SPEED_TYPE now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
                     // 降码率
                     // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
                     int new_video_rate = 0;
-//                    int new_frame_rate = 0;
+                    int new_frame_rate = 0;
                     if (p2p_wl_avg < now_video_rate) {
                         new_video_rate = (int) (p2p_wl_avg * 0.98f);
-
+                        new_frame_rate = now_frame_rate * 4 / 5;
                     } else if (p2p_wl_avg * 0.85f > now_video_rate) {
-
                         // 升码率
-                        // 测试发现升码率的速度慢一些效果更好
                         new_video_rate = (int) (p2p_wl_avg * 0.9f);
+                        new_frame_rate = now_frame_rate * 5 / 4;
+                    }
+                    if (new_video_rate < nowBitRateInterval.getLower() && now_video_rate > nowBitRateInterval.getLower()) {
+                        new_video_rate = (int) (now_video_rate * 0.8f);
+                    } else if (new_video_rate > nowBitRateInterval.getUpper() && now_video_rate < nowBitRateInterval.getLower()) {
+                        new_video_rate = (int) (now_video_rate * 1.2f);
                     }
                     if (new_video_rate != 0) {
-                        mVideoEncoder.setVideoBitRate(new_video_rate*4);
+                        mVideoEncoder.setVideoBitRate(new_video_rate);
+                    }
+                    if (new_frame_rate != 0) {
+                        mVideoEncoder.setVideoFrameRate(new_frame_rate);
                     }
                     Log.d(TAG, "new_video_rate:" + new_video_rate + "  VideoBitRate:" + mVideoEncoder.getVideoBitRate());
-//                    mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
                 }
             }
         }
