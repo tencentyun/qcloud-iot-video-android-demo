@@ -166,15 +166,5 @@ fun adjustAspectRatio1(
 }
 
 fun getBitRateIntervalByPixel(width: Int, height: Int): Range<Double> {
-    return if (width == 320 && height == 240) {
-        Range(50.0 * 1000, 500.0 * 1000)
-    } else if (width == 480 && height == 320) {
-        Range(100.0 * 1000, 700.0 * 1000)
-    } else if (width == 640 && height == 480) {
-        Range(200.0 * 1000, 1000.0 * 1000)
-    } else if (width == 960 && height == 540) {
-        Range(300.0 * 1000, 1500.0 * 1000)
-    } else {
-        Range((width * height * 4 / 6) * 1.0 * 1000, width * height * 4 * 1.2 * 1000)
-    }
+    return Range((width * height * 0.5), width * height * 2.0)
 }

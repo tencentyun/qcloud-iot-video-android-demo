@@ -89,7 +89,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
 //            adjustAspectRatio(mVideoWidth, mVideoHeight, textureView, null, null);
-            mVideoBitRate = (int) (getBitRateIntervalByPixel(mVideoWidth, mVideoHeight).getUpper() * 0.8f);
+            Range<Double> range = getBitRateIntervalByPixel(mVideoWidth, mVideoHeight);
+            mVideoBitRate = (int) ((range.getUpper() + range.getLower()) / 2);
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
             mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
@@ -265,6 +266,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
 
     public class AdapterBitRateTask extends TimerTask {
+        private boolean exceedLowMark = false;
+
         @Override
         public void run() {
             System.out.println("检测时间到:" + System.currentTimeMillis());
@@ -298,27 +301,30 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     }
                 } else if (dynamicBitRateType == DynamicBitRateType.INTERNET_SPEED_TYPE) {
                     IvP2pSendInfo ivP2pSendInfo = VideoNativeInterface.getInstance().getSendStreamStatus(visitor, videoResType);
+                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, videoResType);
                     int p2p_wl_avg = getAvgMaxMin(ivP2pSendInfo.getAveSentRate());
                     int now_video_rate = mVideoEncoder.getVideoBitRate();
                     int now_frame_rate = mVideoEncoder.getVideoFrameRate();
                     Range<Double> nowBitRateInterval = mVideoEncoder.getBitRateInterval();
                     Log.e(TAG, "INTERNET_SPEED_TYPE now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
-                    // 降码率
-                    // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
                     int new_video_rate = 0;
                     int new_frame_rate = 0;
-                    if (p2p_wl_avg < now_video_rate) {
-                        new_video_rate = (int) (p2p_wl_avg * 0.98f);
+                    Log.e(TAG, "AveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   now_video_rate/8:" + now_video_rate / 8);
+                    //判断当前码率/8和网速，如果码率/8大于当前网速，并且两次水位值都大于20k，开始降码率
+                    if (ivP2pSendInfo.getAveSentRate() < (double) now_video_rate / 8 && exceedLowMark && (exceedLowMark = bufSize > 20 * 1024)) {
+                        // 降码率
+                        new_video_rate = (int) (now_video_rate * 0.75);
                         new_frame_rate = now_frame_rate * 4 / 5;
-                    } else if (p2p_wl_avg * 0.85f > now_video_rate) {
-                        // 升码率
-                        new_video_rate = (int) (p2p_wl_avg * 0.9f);
-                        new_frame_rate = now_frame_rate * 5 / 4;
+                    } else if (bufSize < 20 * 1024) { //当前水位值小于20k，开始升码率
+                        if (now_video_rate < nowBitRateInterval.getUpper() / 2) {
+                            new_video_rate = (int) (now_video_rate * 1.1);
+                            new_frame_rate = now_frame_rate * 5 / 4;
+                        }
                     }
                     if (new_video_rate < nowBitRateInterval.getLower() && now_video_rate > nowBitRateInterval.getLower()) {
                         new_video_rate = (int) (now_video_rate * 0.8f);
                     } else if (new_video_rate > nowBitRateInterval.getUpper() && now_video_rate < nowBitRateInterval.getLower()) {
-                        new_video_rate = (int) (now_video_rate * 1.2f);
+                        new_video_rate = (int) (now_video_rate * 1.1f);
                     }
                     if (new_video_rate != 0) {
                         mVideoEncoder.setVideoBitRate(new_video_rate);
