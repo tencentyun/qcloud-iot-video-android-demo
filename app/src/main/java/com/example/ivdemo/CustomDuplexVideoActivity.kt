@@ -108,7 +108,10 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
                 val dialog = QualitySettingDialog(this@CustomDuplexVideoActivity)
                 dialog.setOnDismissListener {
                     cameraRecorder.closeCamera()
-                    cameraRecorder.openCamera(binding.textureViewDuplex, this@CustomDuplexVideoActivity)
+                    cameraRecorder.openCamera(
+                        binding.textureViewDuplex,
+                        this@CustomDuplexVideoActivity
+                    )
                 }
                 dialog.show(supportFragmentManager)
             }
@@ -122,7 +125,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
                 showToast("已复制p2p信息")
             }
 
-            btnRejectListen.setOnClickListener {
+            llRejectListen.setOnClickListener {
                 sendCommand("call_reject")
                 finishStream()
                 updateCancelCallUI()
@@ -134,7 +137,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
                 updateCancelCallUI()
             }
 
-            btnAnswer.setOnClickListener {
+            llAnswer.setOnClickListener {
                 sendCommand("call_answer")
                 isCalling = true
                 llRejectListen.visibility = View.GONE
@@ -195,7 +198,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         this.height = height
         this.width = width
         lifecycleScope.launch {
-            adjustAspectRatio(width,height,binding.surfaceViewDuplex)
+            adjustAspectRatio(width, height, binding.surfaceViewDuplex)
         }
         synchronized(lock) {
             condition2 = true
@@ -305,6 +308,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
             clCall.visibility = View.VISIBLE
             tipText.visibility = View.VISIBLE
             tipText.bringToFront()
+            bgTextureView.visibility = View.VISIBLE
             textureViewDuplex.visibility = View.VISIBLE
         }
     }
@@ -313,15 +317,19 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         with(binding) {
             clCall.visibility = View.GONE
             tvLabel.visibility = View.VISIBLE
+            bgSurfaceView.visibility = View.INVISIBLE
             surfaceViewDuplex.visibility = View.INVISIBLE
+            bgTextureView.visibility = View.INVISIBLE
             textureViewDuplex.visibility = View.INVISIBLE
         }
     }
 
     private fun updateAnswerUI() {
         with(binding) {
+            bgSurfaceView.visibility = View.VISIBLE
             surfaceViewDuplex.visibility = View.VISIBLE
             surfaceViewDuplex.bringToFront()
+            bgTextureView.visibility = View.VISIBLE
             textureViewDuplex.visibility = View.VISIBLE
             textureViewDuplex.bringToFront()
         }

@@ -97,11 +97,15 @@
 
         <TextView
             android:id="@+id/tip_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:text="小程序呼叫来电"
-            android:textSize="32sp" />
+            android:textSize="32sp"
+            app:layout_constraintBottom_toBottomOf="@+id/bg_surfaceView"
+            app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
+            app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
+            app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
 
         <LinearLayout
             android:id="@+id/ll_reject_listen"
@@ -186,7 +190,6 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
