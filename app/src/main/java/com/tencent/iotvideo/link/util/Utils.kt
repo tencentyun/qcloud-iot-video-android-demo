@@ -129,3 +129,26 @@ fun adjustAspectRatio(
 fun getBitRateIntervalByPixel(width: Int, height: Int): Range<Double> {
     return Range((width * height * 0.5), width * height * 2.0)
 }
+
+val list = listOf(
+    10 to 400 * 1000,
+    11 to 450 * 1000,
+    12 to 490 * 1000,
+    13 to 500 * 1000,
+    15 to 550 * 1000,
+    17 to 700 * 1000,
+    18 to 800 * 1000,
+    20 to 1100 * 1000
+)
+
+var index = list.size - 1
+fun getInfo(isUp: Boolean): Array<Int> {
+    if (index in list.indices && index > 0) {
+        if (isUp) {
+            index++
+        } else {
+            index--
+        }
+    }
+    return arrayOf(list[index].first, list[index].second)
+}

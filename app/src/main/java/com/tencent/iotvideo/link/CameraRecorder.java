@@ -101,7 +101,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
             parameters.setPreviewSize(mVideoWidth, mVideoHeight);
-            parameters.setPreviewFormat(ImageFormat.NV21);
+            parameters.setPreviewFormat(ImageFormat.YV12);
             parameters.setPreviewFrameRate(mVideoFrameRate);
             mCamera.setParameters(parameters);
             mCamera.setPreviewTexture(textureView.getSurfaceTexture());
