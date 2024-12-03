@@ -31,8 +31,8 @@ public class VideoEncoder {
     private OnEncodeListener encoderListener;
     private Range<Double> bitRateInterval;
     private long seq = 0L;
-    private final int MAX_FRAMERATE_LENGTH = 20;
-    private final int MIN_FRAMERATE_LENGTH = 5;
+    private final int MAX_FRAMERATE_LENGTH = 18;
+    private final int MIN_FRAMERATE_LENGTH = 10;
 
     public VideoEncoder(VideoEncodeParam param) {
         this.videoEncodeParam = param;

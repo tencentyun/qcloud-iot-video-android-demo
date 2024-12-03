@@ -136,14 +136,12 @@ val list = listOf(
     12 to 490 * 1000,
     13 to 500 * 1000,
     15 to 550 * 1000,
-    17 to 700 * 1000,
-    18 to 800 * 1000,
-    20 to 1100 * 1000
+    17 to 610 * 1000,
 )
 
 var index = list.size - 1
 fun getInfo(isUp: Boolean): Array<Int> {
-    if (index in list.indices && index > 0) {
+    if (index < list.size - 1 && index > 0) {
         if (isUp) {
             index++
         } else {
