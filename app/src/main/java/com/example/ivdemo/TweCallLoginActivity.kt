@@ -24,7 +24,7 @@ class TweCallLoginActivity : AppCompatActivity() {
 
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_twe_call_login)
-            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivBack.setOnClickListener { onBackPressed() }
             rgSelectVersion.setOnCheckedChangeListener { group, checkedId ->
                 val text = group.findViewById<RadioButton>(checkedId).text
                 miniProgramVersion = when (text) {

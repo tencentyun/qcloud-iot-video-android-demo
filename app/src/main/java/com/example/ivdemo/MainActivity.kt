@@ -13,13 +13,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.popup.DeviceSettingDialog
 import com.tencent.bugly.crashreport.CrashReport
 import com.tencent.iot.twcall.databinding.ActivityMainBinding
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.updateOperate
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
     private val deviceSetting by lazy { DeviceSetting.getInstance(this@MainActivity) }
+    protected val defaultScope = CoroutineScope(Dispatchers.Default)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         if (!hasPermissions()) {
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
         } else {
-            lifecycleScope.launch(Dispatchers.Main) {
+            defaultScope.launch(Dispatchers.Main) {
                 LogcatHelper.getInstance(this@MainActivity.applicationContext).start()
             }
         }
@@ -181,6 +183,11 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        defaultScope.cancel()
     }
 
 //    private fun checkFilesToastAfterPermissions() {

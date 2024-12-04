@@ -3,9 +3,11 @@ package com.example.ivdemo.popup
 import android.content.Context
 import android.widget.Toast
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.lifecycleScope
 import com.tencent.iot.twcall.databinding.PopupCustomCommandLayoutBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
@@ -13,6 +15,8 @@ import org.json.JSONObject
 
 class CustomCommandDialog(context: Context, private val visitor: Int) :
     IosCenterStyleDialog<PopupCustomCommandLayoutBinding>(context) {
+
+    protected val defaultScope = CoroutineScope(Dispatchers.Main)
 
     override fun getViewBinding(): PopupCustomCommandLayoutBinding =
         PopupCustomCommandLayoutBinding.inflate(layoutInflater)
@@ -66,8 +70,13 @@ class CustomCommandDialog(context: Context, private val visitor: Int) :
     }
 
     private fun showToast(msg: String) {
-        lifecycleScope.launch {
+        defaultScope.launch {
             Toast.makeText(requireContext().applicationContext, msg, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    override fun dismiss() {
+        super.dismiss()
+        defaultScope.cancel()
     }
 }

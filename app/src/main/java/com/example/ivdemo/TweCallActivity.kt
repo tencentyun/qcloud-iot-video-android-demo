@@ -7,18 +7,13 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.adapter.UserListAdapter
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
-import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_240x320
-import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_320x240
-import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_480x352
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
@@ -28,9 +23,9 @@ import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
 import com.tencent.iotvideo.link.util.adjustAspectRatio
-import com.tencent.iotvideo.link.util.dip2px
 import com.tencent.iotvideo.link.util.getScreenHeight
 import com.tencent.iotvideo.link.util.getScreenWidth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -130,7 +125,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_tweCall)
             titleLayout.ivRightBtn.isVisible = true
-            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivBack.setOnClickListener { onBackPressed() }
             titleLayout.ivRightBtn.isVisible = false
             textDevInfo.text = String.format(getString(R.string.text_device_info), deviceId)
             // 如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
@@ -368,7 +363,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     }
 
     private fun dismissDialog(block: (() -> Unit)? = null) {
-        lifecycleScope.launch {
+        defaultScope.launch(Dispatchers.Main) {
             dialog?.dismiss()
             block?.invoke()
         }
@@ -416,7 +411,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         sample_num: Int
     ): Int {
         Log.d(TAG, "IvStartRecvAudioStream visitor $visitor")
-        lifecycleScope.launch { binding.tvTips.text = "通话中" }
+        defaultScope.launch(Dispatchers.Main) { binding.tvTips.text = "通话中" }
         return player.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num)
     }
 
@@ -427,7 +422,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         this.type = type
         this.height = height
         this.width = width
-        lifecycleScope.launch {
+        defaultScope.launch(Dispatchers.Main) {
             adjustAspectRatio(
                 width,
                 height,
@@ -487,7 +482,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStopRealPlay(visitor, channel, videoResType)
         cameraRecorder.stopRecording(visitor, videoResType)
-        lifecycleScope.launch {
+        defaultScope.launch(Dispatchers.Main) {
             updateVideoUI(false)
             updateAudioUI(false)
         }

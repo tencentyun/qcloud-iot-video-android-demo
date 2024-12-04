@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityDuplexVideoBinding
@@ -76,7 +75,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
             textureViewDuplex.surfaceTextureListener = listener
             surfaceViewDuplex.surfaceTextureListener = listener
             titleLayout.tvTitle.text = getString(R.string.title_audio_video_call)
-            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivBack.setOnClickListener { onBackPressed() }
             titleLayout.ivRightBtn.isVisible = true
             titleLayout.ivRightBtn.setOnClickListener {
                 val dialog = QualitySettingDialog(this@DuplexVideoActivity)
@@ -157,7 +156,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
 
     override fun onOnline(netDateTime: Long) {
         super.onOnline(netDateTime)
-        lifecycleScope.launch(Dispatchers.Main) {
+        defaultScope.launch(Dispatchers.Main) {
             updateP2pInfo()
             if (Build.VERSION.SDK_INT >= 28) {
                 handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 10000)
@@ -221,7 +220,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         visitor: Int, channel: Int, type: Int, height: Int, width: Int, frameRate: Int
     ): Int {
         return if (remotePreviewSurface != null) {
-            lifecycleScope.launch {
+            defaultScope.launch(Dispatchers.Main) {
                 adjustAspectRatio(width,height,binding.surfaceViewDuplex)
             }
             player.startVideoPlay(Surface(remotePreviewSurface), visitor, type, height, width)

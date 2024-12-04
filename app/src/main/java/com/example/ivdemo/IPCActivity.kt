@@ -10,10 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.TextureView
-import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.popup.CustomCommandDialog
 import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
@@ -87,7 +84,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
         prepareCs()
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ipc)
-            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivBack.setOnClickListener { onBackPressed() }
             binding.titleLayout.ivRightBtn.isVisible = true
             binding.titleLayout.ivRightBtn.setOnClickListener {
                 val dialog = QualitySettingDialog(this@IPCActivity)
@@ -274,7 +271,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 
     override fun onOnline(netDateTime: Long) {
         super.onOnline(netDateTime)
-        lifecycleScope.launch(Dispatchers.Main) {
+        defaultScope.launch(Dispatchers.Main) {
             updateP2pInfo()
             if (Build.VERSION.SDK_INT >= 28) {
                 handler.postDelayed(taskRunnable, UPDATE_P2P_INFO_TOKEN, 5000)
@@ -392,17 +389,12 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
         Log.d(TAG, "onAiServiceNotify  channel:$channel")
     }
 
-    override fun onEventCapturePicture(
-        channel: Int,
-        eventId: Int,
-        pic: ByteArray?,
-        size: Int
-    ): Int {
+    override fun onEventCapturePicture(channel: Int, eventId: Int): ByteArray {
         Log.d(TAG, "onEventCapturePicture  channel:$channel")
-        return 0
+        return ByteArray(0)
     }
 
-    override fun onEventPictureResult(channel: Int, pic: ByteArray?, errCode: Int): Int {
+    override fun onEventPictureResult(channel: Int, errCode: Int): Int {
         Log.d(TAG, "onEventPictureResult  channel:$channel")
         return 0
     }

@@ -126,8 +126,8 @@ fun adjustAspectRatio(
     textureView.invalidate()
 }
 
-fun getBitRateIntervalByPixel(width: Int, height: Int): Range<Double> {
-    return Range((width * height * 0.5), width * height * 2.0)
+fun getBitRateIntervalByPixel(width: Int, height: Int): Array<Double> {
+    return arrayOf(width * height * 0.5, width * height * 2.0)
 }
 
 val list = listOf(

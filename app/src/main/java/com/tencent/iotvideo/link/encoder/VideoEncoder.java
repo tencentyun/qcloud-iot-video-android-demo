@@ -29,7 +29,7 @@ public class VideoEncoder {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private MediaCodec mediaCodec;
     private OnEncodeListener encoderListener;
-    private Range<Double> bitRateInterval;
+    private Double[] bitRateInterval;
     private long seq = 0L;
     private final int MAX_FRAMERATE_LENGTH = 18;
     private final int MIN_FRAMERATE_LENGTH = 10;
@@ -73,8 +73,8 @@ public class VideoEncoder {
         MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
         //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
         int bitRate = videoEncodeParam.getBitRate();
-        if (bitRateInterval.getLower() > bitRate || bitRateInterval.getUpper() < bitRate) {
-            bitRate = (int) ((bitRateInterval.getUpper() + bitRateInterval.getLower()) / 2);
+        if (bitRateInterval[0] > bitRate || bitRateInterval[1] < bitRate) {
+            bitRate = (int) ((bitRateInterval[0] + bitRateInterval[1]) / 2);
             videoEncodeParam.setBitRate(bitRate);
         }
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
@@ -103,7 +103,7 @@ public class VideoEncoder {
     //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
     public void setVideoBitRate(int bitRate) {
         int nowBitrate = videoEncodeParam.getBitRate();
-        if (bitRateInterval.getLower() > bitRate || nowBitrate == bitRate || bitRateInterval.getUpper() < bitRate) {
+        if (bitRateInterval[0] > bitRate || nowBitrate == bitRate || bitRateInterval[1] < bitRate) {
             return;
         }
         videoEncodeParam.setBitRate(bitRate);
@@ -131,7 +131,7 @@ public class VideoEncoder {
         return videoEncodeParam.getFrameRate();
     }
 
-    public Range<Double> getBitRateInterval() {
+    public Double[] getBitRateInterval() {
         return bitRateInterval;
     }
 

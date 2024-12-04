@@ -4,7 +4,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import com.google.errorprone.annotations.CheckReturnValue
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityOtaUpgradeBinding
@@ -30,7 +29,7 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
     override fun initView() {
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ota_upgrade)
-            titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            titleLayout.ivBack.setOnClickListener { onBackPressed() }
             textDevInfo.text =
                 String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
             updateState(getString(R.string.text_ota_prepare))
@@ -60,7 +59,7 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
     }
 
     private fun updateState(value: String) {
-        lifecycleScope.launch(Dispatchers.Main) {
+        defaultScope.launch(Dispatchers.Main) {
             binding.tvStateValue.text = value
         }
     }
@@ -159,7 +158,7 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
                 getString(R.string.text_new_firmware), newFirmwareVersion, newFirmwareSize
             )
         )
-        lifecycleScope.launch {
+        defaultScope.launch(Dispatchers.Main) {
             binding.btnOtaUpgrade.updateOperate(!isUpgrade)
         }
         return if (isUpgrade) 0 else 1
@@ -167,7 +166,7 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
 
     override fun onDownloadSize(size: Int) {
         Log.d(TAG, "current download progress:$size")
-        lifecycleScope.launch(Dispatchers.Main) {
+        defaultScope.launch(Dispatchers.Main) {
             val progress = (size.toDouble() / newFirmwareSize.toDouble()) * 100
             binding.pbUpgrade.progress = progress.toInt()
             binding.tvShowContent.text = if (progress.toInt() == 100) {

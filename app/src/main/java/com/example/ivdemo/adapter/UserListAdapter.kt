@@ -43,7 +43,7 @@ class UserListAdapter : ListAdapter<UserEntity, UserListAdapter.UserViewHolder>(
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        holder.bind(currentList[position])
+        holder.bind(getItem(position))
     }
 
     internal class ItemCallback : DiffUtil.ItemCallback<UserEntity>() {

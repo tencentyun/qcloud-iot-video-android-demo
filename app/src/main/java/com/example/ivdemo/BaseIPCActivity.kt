@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.LogLevelType
@@ -358,7 +357,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
 
     fun showToast(msg: String) {
         Log.d(TAG, "msg:$msg")
-        lifecycleScope.launch {
+        defaultScope.launch(Dispatchers.Main) {
             Toast.makeText(this@BaseIPCActivity.applicationContext, msg, Toast.LENGTH_SHORT).show();
         }
     }

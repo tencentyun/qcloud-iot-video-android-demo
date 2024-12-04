@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.tencent.iot.twcall"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.1.0"
@@ -58,5 +58,5 @@ dependencies {
     implementation libs.androidx.core.ktx
     implementation libs.kotlinx.coroutines.android
     implementation libs.gson
-    implementation 'com.tencent.iot.video:video-device-android:1.0.7.2-SNAPSHOT'
+    implementation 'com.tencent.iot.video:video-device-android:1.0.7.4-SNAPSHOT'
 }

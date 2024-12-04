@@ -90,8 +90,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
             mVideoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
 //            adjustAspectRatio(mVideoWidth, mVideoHeight, textureView, null, null);
-            Range<Double> range = getBitRateIntervalByPixel(mVideoWidth, mVideoHeight);
-            mVideoBitRate = (int) ((range.getUpper() + range.getLower()) / 2);
+            Double[] range = getBitRateIntervalByPixel(mVideoWidth, mVideoHeight);
+            mVideoBitRate = (int) ((range[0] + range[1]) / 2);
             // Configure and start the camera
             mCamera = Camera.open(mCameraId);
             mCamera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, mCameraId));
@@ -196,7 +196,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             for (Map.Entry<Integer, Integer> entry : mVisitorInfo.entrySet()) {
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
-                int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, res_type);
+                int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor,0, res_type);
                 if (ret != 0) Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
             }
         }
@@ -213,15 +213,15 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int visitor = entry.getKey().intValue();
                 int res_type = entry.getValue().intValue();
                 VideoNativeInterface iv = VideoNativeInterface.getInstance();
-                int ret = iv.sendAvtVideoData(datas, pts, seq, isKeyFrame, visitor, res_type);
+                int ret = iv.sendAvtVideoData(datas, pts, seq, isKeyFrame, visitor,0, res_type);
                 if (ret != 0) {
-                    int buf_size = iv.getSendStreamBuf(visitor, res_type);
+                    int buf_size = iv.getSendStreamBuf(visitor,0, res_type);
                     Log.e(TAG, "sendVideoData to visitor " + visitor + " failed: " + ret + " buf size " + buf_size);
                 }
 
                 if ((stat_cnt++ % 50) == 0) {
-                    int buf_size = iv.getSendStreamBuf(visitor, res_type);
-                    IvP2pSendInfo ivP2pSendInfo = iv.getSendStreamStatus(visitor, res_type);
+                    int buf_size = iv.getSendStreamBuf(visitor,0, res_type);
+                    IvP2pSendInfo ivP2pSendInfo = iv.getSendStreamStatus(visitor,0, res_type);
                     Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
                 }
                 if (isSaveRecord) {
@@ -276,7 +276,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 //                int res_type = entry.getValue().intValue();
             if (mVideoEncoder != null) {
                 if (dynamicBitRateType == DynamicBitRateType.WATER_LEVEL_TYPE) {
-                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, videoResType);
+                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor,0, videoResType);
                     int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufSize);
                     int now_video_rate = mVideoEncoder.getVideoBitRate();
                     int now_frame_rate = mVideoEncoder.getVideoFrameRate();
@@ -301,11 +301,11 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                         mVideoEncoder.setVideoFrameRate(now_frame_rate * 5 / 4);
                     }
                 } else if (dynamicBitRateType == DynamicBitRateType.INTERNET_SPEED_TYPE) {
-                    IvP2pSendInfo ivP2pSendInfo = VideoNativeInterface.getInstance().getSendStreamStatus(visitor, videoResType);
-                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, videoResType);
+                    IvP2pSendInfo ivP2pSendInfo = VideoNativeInterface.getInstance().getSendStreamStatus(visitor,0, videoResType);
+                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor,0, videoResType);
                     int now_video_rate = mVideoEncoder.getVideoBitRate();
                     int now_frame_rate = mVideoEncoder.getVideoFrameRate();
-                    Range<Double> nowBitRateInterval = mVideoEncoder.getBitRateInterval();
+                    Double[] nowBitRateInterval = mVideoEncoder.getBitRateInterval();
                     Log.d(TAG, "INTERNET_SPEED_TYPE bufsize=" + bufSize + "video_rate/8*0.8=" + now_video_rate / 8 * 0.8 + "  video_rate=" + now_video_rate + "  frame_rate=" + now_frame_rate);
                     int new_video_rate = 0;
                     int new_frame_rate = 0;
@@ -318,9 +318,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 //                        new_frame_rate = res[0];
 //                        new_video_rate = res[1];
                     } else if (bufSize < 20 * 1024) { //当前水位值小于20k，开始升码率
-                        if (now_video_rate < nowBitRateInterval.getUpper() / 2) {
-                            new_video_rate = (int) (now_video_rate * 1.1);
-                            new_frame_rate = now_frame_rate * 5 / 4;
+                            if (now_video_rate < nowBitRateInterval[1]/ 2) {
+                                new_video_rate = (int) (now_video_rate * 1.1);
+                                new_frame_rate = now_frame_rate * 5 / 4;
                         }
 //                        Integer[] res = getInfo(true);
 //                        new_frame_rate = res[0];
@@ -328,9 +328,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     } else {
                         return;
                     }
-                    if (new_video_rate < nowBitRateInterval.getLower() && now_video_rate > nowBitRateInterval.getLower()) {
+                    if (new_video_rate < nowBitRateInterval[0] && now_video_rate > nowBitRateInterval[0]) {
                         new_video_rate = (int) (now_video_rate * 0.8f);
-                    } else if (new_video_rate > nowBitRateInterval.getUpper() && now_video_rate < nowBitRateInterval.getLower()) {
+                    } else if (new_video_rate > nowBitRateInterval[1] && now_video_rate < nowBitRateInterval[0]) {
                         new_video_rate = (int) (now_video_rate * 1.1f);
                     }
                     if (new_video_rate != 0) {
