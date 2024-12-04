@@ -30,10 +30,13 @@ class DeviceInfoActivity : AppCompatActivity() {
                     "API Level: $sdkVersion\n" +
                     "Codename: $versionCodename\n" +
                     "Incremental: $versionIncremental"
+            Log.d("DeviceInfoActivity", device)
             deviceInfo.text = device
             val encoder = "support encoder:${selectCodec()}"
+            Log.d("DeviceInfoActivity", encoder)
             encoderInfo.text = encoder
             val cpu = getCpuInfo() + "\n cpu架构：" + Build.SUPPORTED_ABIS[0]
+            Log.d("DeviceInfoActivity", cpu)
             cpuInfo.text = cpu
             log.setOnClickListener {
                 startActivity(Intent(this@DeviceInfoActivity, LogActivity::class.java))
