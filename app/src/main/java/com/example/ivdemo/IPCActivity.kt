@@ -292,7 +292,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 
     override fun onStartRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStartRealPlay(visitor, channel, videoResType)
-        cameraRecorder.startRecording(visitor, videoResType)
+        cameraRecorder.startRecording(visitor, channel, videoResType)
     }
 
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
@@ -392,17 +392,12 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
         Log.d(TAG, "onAiServiceNotify  channel:$channel")
     }
 
-    override fun onEventCapturePicture(
-        channel: Int,
-        eventId: Int,
-        pic: ByteArray?,
-        size: Int
-    ): Int {
+    override fun onEventCapturePicture(channel: Int, eventId: Int): ByteArray {
         Log.d(TAG, "onEventCapturePicture  channel:$channel")
-        return 0
+        return ByteArray(0)
     }
 
-    override fun onEventPictureResult(channel: Int, pic: ByteArray?, errCode: Int): Int {
+    override fun onEventPictureResult(channel: Int, errCode: Int): Int {
         Log.d(TAG, "onEventPictureResult  channel:$channel")
         return 0
     }

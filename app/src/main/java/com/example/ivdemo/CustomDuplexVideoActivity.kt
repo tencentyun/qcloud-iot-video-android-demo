@@ -224,7 +224,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
 
     override fun onStartRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStartRealPlay(visitor, channel, videoResType)
-        cameraRecorder.startRecording(visitor, videoResType)
+        cameraRecorder.startRecording(visitor, channel, videoResType)
     }
 
     override fun onStopRealPlay(visitor: Int, channel: Int, videoResType: Int) {
