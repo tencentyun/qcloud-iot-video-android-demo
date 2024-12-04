@@ -67,5 +67,10 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="false"
             android:theme="@style/Theme.TWAppTheme" />
+        <activity
+            android:name="com.example.ivdemo.DeviceInfoActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="false"
+            android:theme="@style/Theme.TWAppTheme" />
     </application>
 </manifest>

@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         with(binding) {
             updateBtnState()
             ivLogo.setOnClickListener {
-                startActivity(Intent(this@MainActivity, LogActivity::class.java))
+                startActivity(Intent(this@MainActivity, DeviceInfoActivity::class.java))
             }
             // Set button click listeners
             btnLoginDuplexVideo.setOnClickListener {
