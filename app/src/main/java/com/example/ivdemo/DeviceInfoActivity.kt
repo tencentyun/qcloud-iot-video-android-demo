@@ -1,15 +1,16 @@
 package com.example.ivdemo
 
 import android.content.Intent
-import android.media.MediaCodecInfo
 import android.media.MediaCodecList
-import android.media.MediaFormat
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.tencent.iot.twcall.databinding.ActivityDeviceInfoBinding
-import java.util.Arrays
+import java.io.BufferedReader
+import java.io.FileReader
+import java.io.IOException
+
 
 class DeviceInfoActivity : AppCompatActivity() {
 
@@ -25,12 +26,15 @@ class DeviceInfoActivity : AppCompatActivity() {
             val versionName = Build.VERSION.RELEASE
             val versionCodename = Build.VERSION.CODENAME
             val versionIncremental = Build.VERSION.INCREMENTAL
-            deviceInfo.text = "Android Version: $versionName\n" +
+            val device = "Android Version: $versionName\n" +
                     "API Level: $sdkVersion\n" +
                     "Codename: $versionCodename\n" +
                     "Incremental: $versionIncremental"
-            val info = selectCodec()
-            encoderInfo.text = "support encoder:${info}"
+            deviceInfo.text = device
+            val encoder = "support encoder:${selectCodec()}"
+            encoderInfo.text = encoder
+            val cpu = getCpuInfo() + "\n cpu架构：" + Build.SUPPORTED_ABIS[0]
+            cpuInfo.text = cpu
             log.setOnClickListener {
                 startActivity(Intent(this@DeviceInfoActivity, LogActivity::class.java))
             }
@@ -55,5 +59,20 @@ class DeviceInfoActivity : AppCompatActivity() {
             }
         }
         return str.toString()
+    }
+
+    private fun getCpuInfo(): String {
+        val cpuInfo = StringBuilder()
+        try {
+            val br = BufferedReader(FileReader("/proc/cpuinfo"))
+            var line: String?
+            while ((br.readLine().also { line = it }) != null) {
+                cpuInfo.append(line).append("\n")
+            }
+            br.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return cpuInfo.toString()
     }
 }
