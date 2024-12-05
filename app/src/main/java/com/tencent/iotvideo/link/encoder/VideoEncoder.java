@@ -50,7 +50,7 @@ public class VideoEncoder {
 
 
     private void initMediaCodec() throws IOException {
-        mediaCodec = getMediaCodec();;
+        mediaCodec = getMediaCodec();
         if (mediaCodec == null) {
             Log.e(TAG, "No suitable codec found for MIME type: " + MediaFormat.MIMETYPE_VIDEO_AVC);
             return;
@@ -144,6 +144,10 @@ public class VideoEncoder {
     public void encoderH264(byte[] data, boolean mirror) {
         if (executor.isShutdown()) return;
         executor.submit(() -> {
+            byte[] readyToProcessBytes = data;
+//            if (mirror) {
+//                readyToProcessBytes = rotateYV12Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+//            }
             // 获取输入缓冲区
             ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
             ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
@@ -152,10 +156,9 @@ public class VideoEncoder {
             if (inputBufferIndex >= 0) {
                 ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
                 inputBuffer.clear();
-                inputBuffer.put(data);
-
+                inputBuffer.put(readyToProcessBytes);
                 // 将数据传递给编码器
-                mediaCodec.queueInputBuffer(inputBufferIndex, 0, data.length, System.nanoTime() / 1000, 0);
+                mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
             }
 
             // 获取输出缓冲区
@@ -181,6 +184,28 @@ public class VideoEncoder {
             }
         });
     }
+
+//    private byte[] yv12Rotated;
+//
+//    public byte[] rotateYV12Data180(byte[] yv12Data, int width, int height) {
+//        int frameSize = width * height;
+//        int bufferSize = frameSize * 3 / 2;
+//        if (yv12Rotated == null) {
+//            yv12Rotated = new byte[bufferSize];
+//        }
+//        int count = 0;
+//
+//        for (int i = frameSize - 1; i >= 0; i--) {
+//            yv12Rotated[count] = yv12Data[i];
+//            count++;
+//        }
+//
+//        for (int i = bufferSize - 1; i >= frameSize; i -= 2) {
+//            yv12Rotated[count++] = yv12Data[i - 1];
+//            yv12Rotated[count++] = yv12Data[i];
+//        }
+//        return yv12Rotated;
+//    }
 
     /**
      * 设置编码成功后数据回调

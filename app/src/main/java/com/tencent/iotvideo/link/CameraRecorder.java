@@ -310,6 +310,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     int new_video_rate = 0;
                     int new_frame_rate = 0;
                     //判断当前码率/8和网速，如果码率/8大于当前网速，并且两次水位值都大于20k，开始降码率
+                    if (ivP2pSendInfo == null)return;
                     if (ivP2pSendInfo.getAveSentRate() < (double) now_video_rate / 8 * 0.9 && exceedLowMark && (exceedLowMark = bufSize > 20 * 1024)) {
                         // 降码率
                         new_video_rate = (int) (now_video_rate * 0.75);
