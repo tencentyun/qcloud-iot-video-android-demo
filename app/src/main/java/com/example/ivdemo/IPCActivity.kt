@@ -19,6 +19,7 @@ import com.example.ivdemo.popup.QualitySettingDialog
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityIpcBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import com.tencent.iot.video.device.annotations.CmFrameType
 import com.tencent.iot.video.device.annotations.CsChannelType
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.callback.IvCsInitCallback
@@ -29,6 +30,7 @@ import com.tencent.iot.video.device.model.CsEventResultInfo
 import com.tencent.iot.video.device.model.CsNotifyMsgData
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
+import com.tencent.iotvideo.link.listener.OnEncodeListener
 import com.tencent.iotvideo.link.util.copyTextToClipboard
 import com.tencent.iotvideo.link.util.updateOperate
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +39,7 @@ import java.io.ByteArrayOutputStream
 
 private const val TAG = "IPCActivity"
 
-class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
+class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback, OnEncodeListener {
 
     private val player = SimplePlayer()
     private val cameraRecorder = CameraRecorder()
@@ -50,6 +52,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     private var avDataInfo: AvDataInfo? = null
     private var shouldCsInit: Boolean = true
     private var csBalanceInfo: CsBalanceInfo? = null
+    private var wareReportSate = false
 
     private val listener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -85,6 +88,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     override fun getViewBinding(): ActivityIpcBinding = ActivityIpcBinding.inflate(layoutInflater)
     override fun initView() {
         prepareCs()
+        cameraRecorder.setOnEncodeListener(this)
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ipc)
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
@@ -116,7 +120,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     showToast("触发事件成功")
                 }
             }
-            btnCloudWareReport.setOnClickListener {
+            btnCloudPicWareReport.setOnClickListener {
                 if (!checkCsInfo()) return@setOnClickListener
                 val bitmap = binding.textureViewIpc.getBitmap(
                     cameraRecorder.mVideoWidth,
@@ -135,6 +139,18 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                     } else {
                         showToast("告警事件上报失败，res:$reportRes")
                     }
+                }
+            }
+            btnCloudVideoWareReport.setOnClickListener {
+                if (!checkCsInfo()) return@setOnClickListener
+                if (!wareReportSate) {
+                    VideoNativeInterface.getInstance().startCsEvent(
+                        CsChannelType.CS_SINGLE_CH, 2, "start report test cs video info"
+                    )
+                } else {
+                    VideoNativeInterface.getInstance().stopCsEvent(
+                        CsChannelType.CS_SINGLE_CH, 2, "stop report test cs video info"
+                    )
                 }
             }
             btnCustomCommand.setOnClickListener {
@@ -208,6 +224,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 } else {
                     channelInfo.avDataInfo = AvDataInfo.createDefaultAvDataInfo(videoResType)
                 }
+                channelInfo.eventReportOpt = 0
                 csChannelInfo[i] = channelInfo
             }
             shouldCsInit = false
@@ -241,7 +258,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
                 binding.tvCloudStorageState.text = String.format(
                     getString(R.string.text_cloud_storage_state),
                     if (csBalanceInfo?.csSwitch == 1) {
-                        binding.btnCloudWareReport.updateOperate(true)
+                        binding.btnCloudPicWareReport.updateOperate(true)
+                        binding.btnCloudVideoWareReport.updateOperate(true)
                         binding.btnCloudStorageReport.updateOperate(true)
                         "已开通"
                     } else "未开通"
@@ -380,11 +398,19 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 
     override fun onStartPushStream(channel: Int): Int {
         Log.d(TAG, "onStartPushStream  channel:$channel")
+        wareReportSate = true
+        defaultScope.launch(Dispatchers.Main) {
+            binding.btnCloudVideoWareReport.text = "正在上报告警中..."
+        }
         return 0
     }
 
     override fun onStopPushStream(channel: Int): Int {
         Log.d(TAG, "onStopPushStream  channel:$channel")
+        wareReportSate = false
+        defaultScope.launch(Dispatchers.Main) {
+            binding.btnCloudVideoWareReport.text = getString(R.string.text_cloud_video_ware)
+        }
         return 0
     }
 
@@ -394,6 +420,13 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
 
     override fun onEventCapturePicture(channel: Int, eventId: Int): ByteArray {
         Log.d(TAG, "onEventCapturePicture  channel:$channel")
+        val bitmap = binding.textureViewIpc.getBitmap(
+            cameraRecorder.mVideoWidth,
+            cameraRecorder.mVideoHeight
+        )
+        if (bitmap != null) {
+            return bitmapToByteArray(bitmap)
+        }
         return ByteArray(0)
     }
 
@@ -432,5 +465,26 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     ): Int {
         Log.d(TAG, "onDumpFile  channel:$channel")
         return 0
+    }
+
+    override fun onAudioEncoded(datas: ByteArray?, pts: Long, seq: Long) {
+        if (wareReportSate) {
+            VideoNativeInterface.getInstance().pushCsAudioStream(
+                CsChannelType.CS_SINGLE_CH, datas, pts, seq.toInt()
+            )
+        }
+    }
+
+    override fun onVideoEncoded(datas: ByteArray?, pts: Long, seq: Long, isKeyFrame: Boolean) {
+        if (wareReportSate) {
+            val type = if (isKeyFrame) {
+                CmFrameType.IV_CM_FRAME_TYPE_I
+            } else {
+                CmFrameType.IV_CM_FRAME_TYPE_P
+            }
+            VideoNativeInterface.getInstance().pushCsVideoStream(
+                CsChannelType.CS_SINGLE_CH, datas, pts, type, seq.toInt()
+            )
+        }
     }
 }

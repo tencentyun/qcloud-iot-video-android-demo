@@ -59,13 +59,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private final Map<Integer, Pair<Integer, Integer>> mVisitorInfo = new HashMap<>(MaxVisitors);
     private static Timer bitRateTimer;
 
-    @VideoResType
-    private int videoResType;
-
-    private int visitor;
-
-    private int channel;
-
     public boolean isRunning = false;
 
     // for test only
@@ -78,6 +71,12 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private String speakNv21FilePath = "/sdcard/video.nv21";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    private OnEncodeListener encodeListener;
+
+    public void setOnEncodeListener(OnEncodeListener listener) {
+        this.encodeListener = listener;
+    }
 
     public void isSaveRecord(boolean isSaveRecord) {
         this.isSaveRecord = isSaveRecord;
@@ -126,9 +125,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     public void startRecording(int visitor, int channel, int res_type) {
-        this.videoResType = res_type;
-        this.visitor = visitor;
-        this.channel = channel;
         if (mIsRecording) {
             mVisitorInfo.put(visitor, new Pair<>(channel, res_type));
             return;
@@ -155,7 +151,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         mAudioEncoder.start();
         mIsRecording = true;
         Log.d(TAG, "start camera recording");
-        startBitRateAdapter();
+        startBitRateAdapter(visitor, channel, res_type);
     }
 
     public void setMuted(boolean muted) {
@@ -201,6 +197,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, channel, res_type);
                 if (ret != 0) Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
             }
+            if (encodeListener != null) {
+                encodeListener.onAudioEncoded(datas, pts, seq);
+            }
         }
     }
 
@@ -209,7 +208,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     @Override
     public void onVideoEncoded(byte[] datas, long pts, long seq, boolean isKeyFrame) {
 //        Log.d(TAG, "encoded video data len " + datas.length + " pts " + pts);
-
         if (mIsRecording) {
             for (Map.Entry<Integer, Pair<Integer, Integer>> entry : mVisitorInfo.entrySet()) {
                 int visitor = entry.getKey().intValue();
@@ -227,19 +225,22 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     IvP2pSendInfo ivP2pSendInfo = iv.getSendStreamStatus(visitor, channel, res_type);
                     Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
                 }
-                if (isSaveRecord) {
-                    if (executor.isShutdown()) return;
-                    executor.submit(() -> {
-                        if (fos != null) {
-                            try {
-                                fos.write(datas);
-                                fos.flush();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+            }
+            if (encodeListener != null) {
+                encodeListener.onVideoEncoded(datas, pts, seq, isKeyFrame);
+            }
+            if (isSaveRecord) {
+                if (executor.isShutdown()) return;
+                executor.submit(() -> {
+                    if (fos != null) {
+                        try {
+                            fos.write(datas);
+                            fos.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }
@@ -265,118 +266,13 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
     }
 
-    @DynamicBitRateType
-    private int dynamicBitRateType = DynamicBitRateType.INTERNET_SPEED_TYPE;
-
-
-    public class AdapterBitRateTask extends TimerTask {
-        private boolean exceedLowMark = false;
-
-        @Override
-        public void run() {
-            System.out.println("检测时间到:" + System.currentTimeMillis());
-//                int visitor = entry.getKey().intValue();
-//                int res_type = entry.getValue().intValue();
-            if (mVideoEncoder != null) {
-                if (dynamicBitRateType == DynamicBitRateType.WATER_LEVEL_TYPE) {
-                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, channel, videoResType);
-                    int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufSize);
-                    int now_video_rate = mVideoEncoder.getVideoBitRate();
-                    int now_frame_rate = mVideoEncoder.getVideoFrameRate();
-                    Log.e(TAG, "WATER_LEVEL_TYPE send_bufsize==" + bufSize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
-                    // 降码率
-                    // 当发现p2p的水线超过一定值时，降低视频码率，这是一个经验值，一般来说要大于 [视频码率/2]
-                    // 实测设置为 80%视频码率 到 120%视频码率 比较理想
-                    // 在10组数据中，获取到平均值，并将平均水位与当前码率比对。
-
-                    int video_rate_byte = (now_video_rate / 8) * 3 / 4;
-                    if (p2p_wl_avg > video_rate_byte) {
-
-                        mVideoEncoder.setVideoBitRate(now_video_rate / 2);
-                        mVideoEncoder.setVideoFrameRate(now_frame_rate / 3);
-
-                    } else if (p2p_wl_avg < (now_video_rate / 8) / 3) {
-
-                        // 升码率
-                        // 测试发现升码率的速度慢一些效果更好
-                        // p2p水线经验值一般小于[视频码率/2]，网络良好的情况会小于 [视频码率/3] 甚至更低
-                        mVideoEncoder.setVideoBitRate(now_video_rate + (now_video_rate - p2p_wl_avg * 8) / 5);
-                        mVideoEncoder.setVideoFrameRate(now_frame_rate * 5 / 4);
-                    }
-                } else if (dynamicBitRateType == DynamicBitRateType.INTERNET_SPEED_TYPE) {
-                    IvP2pSendInfo ivP2pSendInfo = VideoNativeInterface.getInstance().getSendStreamStatus(visitor, channel, videoResType);
-                    int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, channel, videoResType);
-                    int p2p_wl_avg = getAvgMaxMin(ivP2pSendInfo.getAveSentRate());
-                    int now_video_rate = mVideoEncoder.getVideoBitRate();
-                    int now_frame_rate = mVideoEncoder.getVideoFrameRate();
-                    Range<Double> nowBitRateInterval = mVideoEncoder.getBitRateInterval();
-                    Log.e(TAG, "INTERNET_SPEED_TYPE now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
-                    int new_video_rate = 0;
-                    int new_frame_rate = 0;
-                    Log.e(TAG, "AveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   now_video_rate/8:" + now_video_rate / 8);
-                    //判断当前码率/8和网速，如果码率/8大于当前网速，并且两次水位值都大于20k，开始降码率
-                    if (ivP2pSendInfo.getAveSentRate() < (double) now_video_rate / 8 && exceedLowMark && (exceedLowMark = bufSize > 20 * 1024)) {
-                        // 降码率
-                        new_video_rate = (int) (now_video_rate * 0.75);
-                        new_frame_rate = now_frame_rate * 4 / 5;
-                    } else if (bufSize < 20 * 1024) { //当前水位值小于20k，开始升码率
-                        if (now_video_rate < nowBitRateInterval.getUpper() / 2) {
-                            new_video_rate = (int) (now_video_rate * 1.1);
-                            new_frame_rate = now_frame_rate * 5 / 4;
-                        }
-                    }
-                    if (new_video_rate < nowBitRateInterval.getLower() && now_video_rate > nowBitRateInterval.getLower()) {
-                        new_video_rate = (int) (now_video_rate * 0.8f);
-                    } else if (new_video_rate > nowBitRateInterval.getUpper() && now_video_rate < nowBitRateInterval.getLower()) {
-                        new_video_rate = (int) (now_video_rate * 1.1f);
-                    }
-                    if (new_video_rate != 0) {
-                        mVideoEncoder.setVideoBitRate(new_video_rate);
-                    }
-                    if (new_frame_rate != 0) {
-                        mVideoEncoder.setVideoFrameRate(new_frame_rate);
-                    }
-                    Log.d(TAG, "new_video_rate:" + new_video_rate + "  VideoBitRate:" + mVideoEncoder.getVideoBitRate());
-                }
-            }
-        }
-    }
-
-
-    List<Integer> list = new ArrayList<>(10);
-
-    /**
-     * 存入队列同时删除队列内最旧的一个数值，去掉一个最高值去掉一个最低值，计算平均值，算出的平均值可用于控制码率，一般而言此数值与视频码率相近，当发现平均网速低于视频码率时主动降低视频码率到一个比平均网速更低的值。
-     *
-     * @param bufSize
-     * @return
-     */
-    private int getAvgMaxMin(int bufSize) {
-        int sum = 0;
-        int max = Integer.MIN_VALUE;
-        int min = Integer.MAX_VALUE;
-
-        if (list.size() >= 10) {
-            list.remove(0);
-        }
-        list.add(bufSize);
-        if (list.size() == 1) return bufSize;
-        if (list.size() == 2) return (list.get(0) + list.get(1)) / list.size();
-        for (int item : list) {
-            sum += item;
-            max = Math.max(max, item);
-            min = Math.min(min, item);
-        }
-        sum = sum - max - min;
-
-        return sum / (list.size() - 2);
-    }
-
-
-    private void startBitRateAdapter() {
-
-//        IvNativeInterface.getInstance().resetAvg();
+    private void startBitRateAdapter(int visitor, int channel, int res_type) {
+        VideoNativeInterface.getInstance().resetAvg();
         bitRateTimer = new Timer();
+        AdapterBitRateTask task = new AdapterBitRateTask();
+        task.setVideoEncoder(mVideoEncoder);
+        task.setDynamicBitRateType(DynamicBitRateType.INTERNET_SPEED_TYPE);
+        task.setInfo(visitor, channel, res_type);
         bitRateTimer.schedule(new AdapterBitRateTask(), 3000, 1000);
     }
 

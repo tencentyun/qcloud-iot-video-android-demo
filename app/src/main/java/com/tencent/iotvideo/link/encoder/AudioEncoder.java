@@ -78,7 +78,7 @@ public class AudioEncoder {
     }
 
     private void initAudio() {
-        bufferSizeInBytes = 2*AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
+        bufferSizeInBytes = 2 * AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
         Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
         audioRecord = new AudioRecord(micParam.getAudioSource(), micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat(), bufferSizeInBytes);
         try {
@@ -110,7 +110,7 @@ public class AudioEncoder {
     private boolean initAEC(int audioSession) {
 
         boolean isDevicesSupportAEC = isDevicesSupportAEC();
-        Log.e(TAG, "isDevicesSupportAEC: "+isDevicesSupportAEC);
+        Log.e(TAG, "isDevicesSupportAEC: " + isDevicesSupportAEC);
         if (!isDevicesSupportAEC) {
             return false;
         }
@@ -129,7 +129,7 @@ public class AudioEncoder {
     private boolean initAGC(int audioSession) {
 
         boolean isDevicesSupportAGC = isDevicesSupportAGC();
-        Log.e(TAG, "isDevicesSupportAGC: "+isDevicesSupportAGC);
+        Log.e(TAG, "isDevicesSupportAGC: " + isDevicesSupportAGC);
         if (!isDevicesSupportAGC) {
             return false;
         }
@@ -140,11 +140,12 @@ public class AudioEncoder {
         control.setEnabled(true);
         return control.getEnabled();
     }
+
     public void setMuted(boolean muted) {
         isMuted = muted;
     }
 
-    public boolean isMuted(){
+    public boolean isMuted() {
         return isMuted;
     }
 

@@ -64,7 +64,8 @@
     <string name="text_device_info_tip">温馨提示：产品ID、设备名称、设备密钥在腾讯云物联网开发平台上创建设备获取</string>
     <string name="text_copy">复制</string>
     <string name="text_cloud_storage">上报云存事件</string>
-    <string name="text_cloud_ware">上报告警事件</string>
+    <string name="text_cloud_pic_ware">上报图片告警事件</string>
+    <string name="text_cloud_video_ware">上报视频告警事件</string>
     <string name="text_custom_command">自定义信令</string>
     <string name="text_p2p_state">P2P状态：%s</string>
     <string name="text_cloud_storage_state">云存状态：%s</string>
