@@ -9,13 +9,14 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Range;
 
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.VideoEncodeParam;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,8 +24,8 @@ import java.util.concurrent.Executors;
 public class VideoEncoder {
 
     private final String TAG = VideoEncoder.class.getSimpleName();
-    private final String CODEC_NAME = "OMX.MTK.VIDEO.ENCODER.AVC";
-    private final int COLOR_FORMAT = 0x7F000200;
+    private final List<String> encoderList = Arrays.asList("OMX.MTK.VIDEO.ENCODER.AVC", "OMX.qcom.video.encoder.avc", "c2.android.avc.encoder", "OMX.hisi.video.encoder.avc");
+    private int[] colorFormat;
     private final VideoEncodeParam videoEncodeParam;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private MediaCodec mediaCodec;
@@ -47,26 +48,10 @@ public class VideoEncoder {
         }
     }
 
-    private MediaCodecInfo selectCodec() {
-        MediaCodecList codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-        MediaCodecInfo[] codecInfos = codecList.getCodecInfos();
-        for (MediaCodecInfo codecInfo : codecInfos) {
-            if (!codecInfo.isEncoder()) continue;
-            String[] types = codecInfo.getSupportedTypes();
-            for (String type : types) {
-                Log.d(TAG, "Encoder name: " + codecInfo.getName() + ", type: " + type);
-                if (type.equalsIgnoreCase(MediaFormat.MIMETYPE_VIDEO_AVC)) {
-                    return codecInfo;
-                }
-            }
-        }
-        return null;
-    }
-
 
     private void initMediaCodec() throws IOException {
-        MediaCodecInfo codecInfo = selectCodec();
-        if (codecInfo == null) {
+        mediaCodec = getMediaCodec();;
+        if (mediaCodec == null) {
             Log.e(TAG, "No suitable codec found for MIME type: " + MediaFormat.MIMETYPE_VIDEO_AVC);
             return;
         }
@@ -84,7 +69,7 @@ public class VideoEncoder {
         //关键帧间隔时间，单位是秒
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
         //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, COLOR_FORMAT);
+        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
         //设置编码器码率模式为可变
         mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
         mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
@@ -95,9 +80,27 @@ public class VideoEncoder {
             mediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileMain);
         }
         // 创建 MediaCodec 编码器
-        mediaCodec = MediaCodec.createByCodecName(CODEC_NAME);
         mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mediaCodec.start();
+    }
+
+    private MediaCodec getMediaCodec() throws IOException {
+        MediaCodecList codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+        MediaCodecInfo[] codecInfos = codecList.getCodecInfos();
+        for (MediaCodecInfo codecInfo : codecInfos) {
+            if (!codecInfo.isEncoder()) continue;
+            String[] types = codecInfo.getSupportedTypes();
+            for (String type : types) {
+                if (!type.startsWith("video/")) continue;
+                if (encoderList.contains(codecInfo.getName())) {
+                    MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
+                    Log.d(TAG, "using hardware encoder name:" + codecInfo.getName() + "  support colorFormats:" + Arrays.toString(capabilities.colorFormats));
+                    colorFormat = capabilities.colorFormats;
+                    return MediaCodec.createByCodecName(codecInfo.getName());
+                }
+            }
+        }
+        return MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
     }
 
     //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
