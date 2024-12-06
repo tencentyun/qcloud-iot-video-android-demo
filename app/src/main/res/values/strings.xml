@@ -23,6 +23,7 @@
     <string name="product_id">请输入Product ID</string>
     <string name="device_name">请输入Device Name</string>
     <string name="device_pwd">请输入Device Key</string>
+    <string name="device_xp2pinfo">请输入xp2pInfo</string>
     <string name="conform">确定</string>
 
     <string name="twe_call_video_call">视频通话</string>
@@ -61,6 +62,7 @@
     <string name="text_product_id">产品ID</string>
     <string name="text_device_name">设备名称</string>
     <string name="text_device_key">设备密钥</string>
+    <string name="text_xp2p_info">xp2pInfo</string>
     <string name="text_device_info_tip">温馨提示：产品ID、设备名称、设备密钥在腾讯云物联网开发平台上创建设备获取</string>
     <string name="text_copy">复制</string>
     <string name="text_cloud_storage">上报云存事件</string>
