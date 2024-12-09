@@ -15,8 +15,6 @@ public class VideoEncodeParam {
     private int bitRate = 125000; //码率
     private String mime = MediaFormat.MIMETYPE_VIDEO_AVC; // 编码格式: 默认 H264
 
-    private int colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible;
-
 //    private VideoEncodeParam() { }
 
     public int getWidth() {
@@ -65,14 +63,6 @@ public class VideoEncodeParam {
 
     public void setBitRate(int bitRate) {
         this.bitRate = bitRate;
-    }
-
-    public int getColorFormat() {
-        return colorFormat;
-    }
-
-    public void setColorFormat(int colorFormat) {
-        this.colorFormat = colorFormat;
     }
 
     //    public static class Builder {

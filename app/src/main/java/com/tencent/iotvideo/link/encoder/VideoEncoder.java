@@ -25,7 +25,7 @@ public class VideoEncoder {
 
     private final String TAG = VideoEncoder.class.getSimpleName();
     private final List<String> encoderList = Arrays.asList("OMX.MTK.VIDEO.ENCODER.AVC", "OMX.qcom.video.encoder.avc", "c2.android.avc.encoder", "OMX.hisi.video.encoder.avc");
-    private int[] colorFormat;
+    private int colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible;
     private final VideoEncodeParam videoEncodeParam;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private MediaCodec mediaCodec;
@@ -34,6 +34,7 @@ public class VideoEncoder {
     private long seq = 0L;
     private final int MAX_FRAMERATE_LENGTH = 18;
     private final int MIN_FRAMERATE_LENGTH = 10;
+    private boolean isSupportNV21 = false;
 
     public VideoEncoder(VideoEncodeParam param) {
         this.videoEncodeParam = param;
@@ -69,7 +70,12 @@ public class VideoEncoder {
         //关键帧间隔时间，单位是秒
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
         //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, videoEncodeParam.getColorFormat());
+        //判断当前是否是64位
+        if (Build.SUPPORTED_64_BIT_ABIS.length > 0) {
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
+        } else {
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, 0x7F000200);
+        }
         //设置编码器码率模式为可变
         mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
         mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
@@ -95,12 +101,35 @@ public class VideoEncoder {
                 if (encoderList.contains(codecInfo.getName())) {
                     MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
                     Log.d(TAG, "using hardware encoder name:" + codecInfo.getName() + "  support colorFormats:" + Arrays.toString(capabilities.colorFormats));
-                    colorFormat = capabilities.colorFormats;
+                    int[] colorFormats = capabilities.colorFormats;
+                    if (Build.SUPPORTED_64_BIT_ABIS.length > 0) {
+                        for (int colorFormat : colorFormats) {
+                            if (isRecognizedFormat(colorFormat)) {
+                                this.colorFormat = colorFormat;
+                            }
+                        }
+                    }
                     return MediaCodec.createByCodecName(codecInfo.getName());
                 }
             }
         }
         return MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
+    }
+
+    private boolean isRecognizedFormat(int colorFormat) {
+        return switch (colorFormat) {
+            case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar -> {
+                isSupportNV21 = false;
+                yield true;
+            }
+            case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar -> {
+                isSupportNV21 = true;
+                yield true;
+            }
+            case MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420PackedPlanar, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420PackedSemiPlanar, MediaCodecInfo.CodecCapabilities.COLOR_TI_FormatYUV420PackedSemiPlanar ->
+                    true;
+            default -> false;
+        };
     }
 
     //描述平均位速率（以位/秒为单位）的键。 关联的值是一个整数
@@ -148,6 +177,13 @@ public class VideoEncoder {
 //            if (mirror) {
 //                readyToProcessBytes = rotateYV12Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
 //            }
+            if (Build.SUPPORTED_64_BIT_ABIS.length > 0) {
+                if (isSupportNV21) {
+                    readyToProcessBytes = convertYV12ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+                } else {
+                    readyToProcessBytes = convertYV12ToI420(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+                }
+            }
             // 获取输入缓冲区
             ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
             ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
@@ -205,6 +241,40 @@ public class VideoEncoder {
 //        }
 //        return yv12Rotated;
 //    }
+
+    private byte[] nv12Data;
+    public byte[] convertYV12ToNV12(byte[] yv12Data, int width, int height) {
+        int frameSize = width * height;
+        int chromaSize = frameSize / 4;
+        if (nv12Data == null) {
+            nv12Data = new byte[frameSize + 2 * chromaSize];
+        }
+
+        System.arraycopy(yv12Data, 0, nv12Data, 0, width * height);
+        for (int i = 0; i < chromaSize; i++) {
+            nv12Data[frameSize + 2 * i + 1] = yv12Data[frameSize + i];
+            nv12Data[frameSize + 2 * i] = yv12Data[frameSize + chromaSize + i];
+        }
+
+        return nv12Data;
+    }
+
+
+    private byte[] i420Data;
+    public byte[] convertYV12ToI420(byte[] yv12Data, int width, int height) {
+        int frameSize = width * height;
+        int chromaSize = frameSize / 4;
+
+        if (i420Data == null) {
+            i420Data = new byte[frameSize + 2 * chromaSize];
+        }
+
+        System.arraycopy(yv12Data, 0, i420Data, 0, width * height);
+        System.arraycopy(yv12Data, width * height + width * height / 4, i420Data, width * height, width * height / 4);
+        System.arraycopy(yv12Data, width * height, i420Data, width * height + width * height / 4, width * height / 4);
+
+        return i420Data;
+    }
 
     /**
      * 设置编码成功后数据回调

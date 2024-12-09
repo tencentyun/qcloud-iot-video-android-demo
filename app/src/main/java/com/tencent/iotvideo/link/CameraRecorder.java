@@ -138,7 +138,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         encodeParam.setWidth(mVideoWidth);
         encodeParam.setFrameRate(mVideoFrameRate);
         encodeParam.setBitRate(mVideoBitRate);
-        encodeParam.setColorFormat(0x7F000200);
         mVideoEncoder = new VideoEncoder(encodeParam);
         mVideoEncoder.setEncoderListener(this);
         mVideoEncoder.start();
