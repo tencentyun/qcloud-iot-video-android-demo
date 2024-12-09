@@ -455,10 +455,6 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         pts: Long,
         seq: Long
     ): Int {
-        Log.d(
-            TAG,
-            "onRecvStream visitor:$visitor  streamType:$streamType  data:$data  len:$len  pts:$pts  seq:$seq"
-        )
         if (streamType == 1) {
             return player.playVideoStream(visitor, data, len, pts, seq)
         } else if (streamType == 0) {

@@ -1,5 +1,6 @@
 package com.tencent.iotvideo.link.param;
 
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 
 /**
@@ -13,6 +14,8 @@ public class VideoEncodeParam {
     private int iFrameInterval = 2; // I帧间隔: 默认一秒一个 I 帧
     private int bitRate = 125000; //码率
     private String mime = MediaFormat.MIMETYPE_VIDEO_AVC; // 编码格式: 默认 H264
+
+    private int colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible;
 
 //    private VideoEncodeParam() { }
 
@@ -64,7 +67,15 @@ public class VideoEncodeParam {
         this.bitRate = bitRate;
     }
 
-//    public static class Builder {
+    public int getColorFormat() {
+        return colorFormat;
+    }
+
+    public void setColorFormat(int colorFormat) {
+        this.colorFormat = colorFormat;
+    }
+
+    //    public static class Builder {
 //        private VideoEncodeParam videoEncodeParam;
 //
 //        public Builder() {

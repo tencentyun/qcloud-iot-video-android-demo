@@ -69,7 +69,7 @@ public class VideoEncoder {
         //关键帧间隔时间，单位是秒
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
         //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
+        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, videoEncodeParam.getColorFormat());
         //设置编码器码率模式为可变
         mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
         mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
@@ -172,7 +172,6 @@ public class VideoEncoder {
                 byte[] outData = new byte[bufferInfo.size];
                 outputBuffer.get(outData);
                 // 打印编码后的数据大小
-                Log.d(TAG, "Encoded data size: " + outData.length);
                 if (encoderListener != null) {
                     encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, true);
                     seq++;
