@@ -183,6 +183,9 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     )
                 hangUpV2()
             }
+            btnSwitch.setOnClickListener {
+                cameraRecorder.switchCamera(binding.textureViewTweCall, this@TweCallActivity)
+            }
         }
     }
 
@@ -518,6 +521,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             llOpenid.isVisible = !isCalling
             tvUserList.isVisible = !isCalling
             rvUserList.isVisible = !isCalling
+            btnSwitch.isVisible = isCalling
         }
     }
 

@@ -174,9 +174,9 @@ public class VideoEncoder {
         if (executor.isShutdown()) return;
         executor.submit(() -> {
             byte[] readyToProcessBytes = data;
-//            if (mirror) {
-//                readyToProcessBytes = rotateYV12Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-//            }
+            if (mirror) {
+                readyToProcessBytes = rotateYV12Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+            }
             if (Build.SUPPORTED_64_BIT_ABIS.length > 0) {
                 if (isSupportNV21) {
                     readyToProcessBytes = convertYV12ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
@@ -220,27 +220,27 @@ public class VideoEncoder {
         });
     }
 
-//    private byte[] yv12Rotated;
-//
-//    public byte[] rotateYV12Data180(byte[] yv12Data, int width, int height) {
-//        int frameSize = width * height;
-//        int bufferSize = frameSize * 3 / 2;
-//        if (yv12Rotated == null) {
-//            yv12Rotated = new byte[bufferSize];
-//        }
-//        int count = 0;
-//
-//        for (int i = frameSize - 1; i >= 0; i--) {
-//            yv12Rotated[count] = yv12Data[i];
-//            count++;
-//        }
-//
-//        for (int i = bufferSize - 1; i >= frameSize; i -= 2) {
-//            yv12Rotated[count++] = yv12Data[i - 1];
-//            yv12Rotated[count++] = yv12Data[i];
-//        }
-//        return yv12Rotated;
-//    }
+    private byte[] yv12Rotated;
+
+    public byte[] rotateYV12Data180(byte[] yv12Data, int width, int height) {
+        int frameSize = width * height;
+        int bufferSize = frameSize * 3 / 2;
+        if (yv12Rotated == null) {
+            yv12Rotated = new byte[bufferSize];
+        }
+        int count = 0;
+
+        for (int i = frameSize - 1; i >= 0; i--) {
+            yv12Rotated[count] = yv12Data[i];
+            count++;
+        }
+
+        for (int i = bufferSize - 1; i >= frameSize; i -= 2) {
+            yv12Rotated[count++] = yv12Data[i - 1];
+            yv12Rotated[count++] = yv12Data[i];
+        }
+        return yv12Rotated;
+    }
 
     private byte[] nv12Data;
     public byte[] convertYV12ToNV12(byte[] yv12Data, int width, int height) {

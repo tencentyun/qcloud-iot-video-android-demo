@@ -42,7 +42,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private static final String TAG = "CameraEncoder";
 
     private Camera mCamera;
-    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     public int mVideoWidth = 640;
     public int mVideoHeight = 480;
     private int mVideoFrameRate = 15;
@@ -112,6 +112,16 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         } catch (RuntimeException | IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void switchCamera(TextureView textureView, Activity activity) {
+        if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+        } else {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+        }
+        closeCamera();
+        openCamera(textureView, activity);
     }
 
     public void closeCamera() {
