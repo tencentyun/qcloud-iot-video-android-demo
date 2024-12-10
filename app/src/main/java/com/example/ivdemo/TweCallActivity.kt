@@ -122,6 +122,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         ActivityTweCallBinding.inflate(layoutInflater)
 
     override fun initView() {
+        cameraRecorder.isSaveRecord(true)
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_tweCall)
             titleLayout.ivRightBtn.isVisible = true

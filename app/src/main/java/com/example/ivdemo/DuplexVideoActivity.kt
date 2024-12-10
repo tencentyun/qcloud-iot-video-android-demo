@@ -70,6 +70,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         ActivityDuplexVideoBinding.inflate(layoutInflater)
 
     override fun initView() {
+        cameraRecorder.isSaveRecord(true)
         player.setContext(this)
         with(binding) {
             textureViewDuplex.surfaceTextureListener = listener
