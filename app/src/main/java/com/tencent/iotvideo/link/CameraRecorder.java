@@ -256,7 +256,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (!mIsRecording || mVideoEncoder == null) {
             return;
         }
-        mVideoEncoder.encoderH264(data, false);
+        mVideoEncoder.encoderH264(data, mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT);
         if (isSaveRecord) {
             if (executor.isShutdown()) return;
             executor.submit(() -> {

@@ -224,20 +224,29 @@ public class VideoEncoder {
 
     public byte[] rotateYV12Data180(byte[] yv12Data, int width, int height) {
         int frameSize = width * height;
-        int bufferSize = frameSize * 3 / 2;
+        int qFrameSize = frameSize / 4;
         if (yv12Rotated == null) {
-            yv12Rotated = new byte[bufferSize];
+            yv12Rotated = new byte[yv12Data.length];
         }
-        int count = 0;
-
-        for (int i = frameSize - 1; i >= 0; i--) {
-            yv12Rotated[count] = yv12Data[i];
-            count++;
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                yv12Rotated[(height - i - 1) * width + (width - j - 1)] = yv12Data[i * width + j];
+            }
         }
-
-        for (int i = bufferSize - 1; i >= frameSize; i -= 2) {
-            yv12Rotated[count++] = yv12Data[i - 1];
-            yv12Rotated[count++] = yv12Data[i];
+        int uWidth = width / 2;
+        int uHeight = height / 2;
+        for (int i = 0; i < uHeight; i++) {
+            for (int j = 0; j < uWidth; j++) {
+                yv12Rotated[frameSize + (uHeight - i - 1) * uWidth + (uWidth - j - 1)] = yv12Data[frameSize + i * uWidth + j];
+            }
+        }
+        int vStart = frameSize + qFrameSize;
+        int vWidth = width / 2;
+        int vHeight = height / 2;
+        for (int i = 0; i < vHeight; i++) {
+            for (int j = 0; j < vWidth; j++) {
+                yv12Rotated[vStart + (vHeight - i - 1) * vWidth + (vWidth - j - 1)] = yv12Data[vStart + i * vWidth + j];
+            }
         }
         return yv12Rotated;
     }
