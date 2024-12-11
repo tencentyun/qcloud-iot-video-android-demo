@@ -35,9 +35,11 @@ public class VideoEncoder {
     private final int MAX_FRAMERATE_LENGTH = 18;
     private final int MIN_FRAMERATE_LENGTH = 10;
     private boolean isSupportNV21 = false;
+    private boolean mirror;
 
-    public VideoEncoder(VideoEncodeParam param) {
+    public VideoEncoder(VideoEncodeParam param, boolean mirror) {
         this.videoEncodeParam = param;
+        this.mirror = mirror;
     }
 
     public void start() {
@@ -78,7 +80,11 @@ public class VideoEncoder {
         }
         //设置编码器码率模式为可变
         mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
-        mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
+        if (mirror && Build.SUPPORTED_64_BIT_ABIS.length > 0) {
+            mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 270);
+        } else {
+            mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
+        }
         //设置压缩等级  默认是 baseline
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
@@ -170,7 +176,7 @@ public class VideoEncoder {
     /**
      * 将NV21编码成H264
      */
-    public void encoderH264(byte[] data, boolean mirror) {
+    public void encoderH264(byte[] data) {
         if (executor.isShutdown()) return;
         executor.submit(() -> {
             byte[] readyToProcessBytes = data;
@@ -252,6 +258,7 @@ public class VideoEncoder {
     }
 
     private byte[] nv12Data;
+
     public byte[] convertYV12ToNV12(byte[] yv12Data, int width, int height) {
         int frameSize = width * height;
         int chromaSize = frameSize / 4;
@@ -270,6 +277,7 @@ public class VideoEncoder {
 
 
     private byte[] i420Data;
+
     public byte[] convertYV12ToI420(byte[] yv12Data, int width, int height) {
         int frameSize = width * height;
         int chromaSize = frameSize / 4;

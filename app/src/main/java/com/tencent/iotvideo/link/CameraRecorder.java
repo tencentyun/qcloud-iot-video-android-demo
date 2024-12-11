@@ -120,8 +120,10 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         } else {
             mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
         }
+        stopRecording(visitor, videoResType);
         closeCamera();
         openCamera(textureView, activity);
+        startRecording(visitor, videoResType);
     }
 
     public void closeCamera() {
@@ -148,7 +150,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         encodeParam.setWidth(mVideoWidth);
         encodeParam.setFrameRate(mVideoFrameRate);
         encodeParam.setBitRate(mVideoBitRate);
-        mVideoEncoder = new VideoEncoder(encodeParam);
+        mVideoEncoder = new VideoEncoder(encodeParam, mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT);
         mVideoEncoder.setEncoderListener(this);
         mVideoEncoder.start();
         MicParam micParam = new MicParam();
@@ -256,7 +258,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (!mIsRecording || mVideoEncoder == null) {
             return;
         }
-        mVideoEncoder.encoderH264(data, mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT);
+        mVideoEncoder.encoderH264(data);
         if (isSaveRecord) {
             if (executor.isShutdown()) return;
             executor.submit(() -> {
