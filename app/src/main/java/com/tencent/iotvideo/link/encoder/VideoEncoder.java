@@ -243,7 +243,6 @@ public class VideoEncoder {
                 byte[] outData = new byte[bufferInfo.size];
                 outputBuffer.get(outData);
                 // 打印编码后的数据大小
-                Log.d(TAG, "Encoded data size: " + outData.length);
                 if (encoderListener != null) {
                     encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, true);
                     seq++;

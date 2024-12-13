@@ -74,10 +74,6 @@ class MainActivity : AppCompatActivity() {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 startActivity(OTAUpgradeActivity::class.java)
             }
-            binding.btnTweCall.updateOperate(true)
-            btnClient.setOnClickListener {
-                startActivity(ClientActivity::class.java)
-            }
             btnSettingDevice.setOnClickListener {
                 val dialog = DeviceSettingDialog(this@MainActivity)
                 dialog.setDismissListener {

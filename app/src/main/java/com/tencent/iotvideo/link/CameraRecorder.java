@@ -273,7 +273,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         task.setVideoEncoder(mVideoEncoder);
         task.setDynamicBitRateType(DynamicBitRateType.INTERNET_SPEED_TYPE);
         task.setInfo(visitor, channel, res_type);
-        bitRateTimer.schedule(new AdapterBitRateTask(), 3000, 1000);
+        bitRateTimer.schedule(task, 3000, 1000);
     }
 
     private void stopBitRateAdapter() {

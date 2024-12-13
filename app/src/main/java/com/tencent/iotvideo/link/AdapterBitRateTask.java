@@ -48,7 +48,7 @@ public class AdapterBitRateTask extends TimerTask {
                 int p2p_wl_avg = VideoNativeInterface.getInstance().getAvgMaxMin(bufSize);
                 int now_video_rate = videoEncoder.getVideoBitRate();
                 int now_frame_rate = videoEncoder.getVideoFrameRate();
-                Log.e(TAG, "WATER_LEVEL_TYPE send_bufsize==" + bufSize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
+                Log.d(TAG, "WATER_LEVEL_TYPE send_bufsize==" + bufSize + ",now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate);
                 // 降码率
                 // 当发现p2p的水线超过一定值时，降低视频码率，这是一个经验值，一般来说要大于 [视频码率/2]
                 // 实测设置为 80%视频码率 到 120%视频码率 比较理想
@@ -75,10 +75,9 @@ public class AdapterBitRateTask extends TimerTask {
                 int now_video_rate = videoEncoder.getVideoBitRate();
                 int now_frame_rate = videoEncoder.getVideoFrameRate();
                 Range<Double> nowBitRateInterval = videoEncoder.getBitRateInterval();
-                Log.e(TAG, "INTERNET_SPEED_TYPE now_video_rate==" + now_video_rate + ",avg_index==" + p2p_wl_avg + ",now_frame_rate==" + now_frame_rate + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
                 int new_video_rate = 0;
                 int new_frame_rate = 0;
-                Log.e(TAG, "AveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   now_video_rate/8:" + now_video_rate / 8);
+                Log.d(TAG, "bufSize:" + bufSize + " now_video_rate/8:" + now_video_rate / 8 + " ivP2pSendInfo instNetRate:" + ivP2pSendInfo.getInstNetRate() + ",aveSentRate:" + ivP2pSendInfo.getAveSentRate() + ",sumSentAcked:" + ivP2pSendInfo.getSumSentAcked() + ",linkMode:" + ivP2pSendInfo.getLinkMode());
                 //判断当前码率/8和网速，如果码率/8大于当前网速，并且两次水位值都大于20k，开始降码率
                 if (ivP2pSendInfo.getAveSentRate() < (double) now_video_rate / 8 && exceedLowMark && (exceedLowMark = bufSize > 20 * 1024)) {
                     // 降码率
@@ -101,7 +100,7 @@ public class AdapterBitRateTask extends TimerTask {
                 if (new_frame_rate != 0) {
                     videoEncoder.setVideoFrameRate(new_frame_rate);
                 }
-                Log.d(TAG, "new_video_rate:" + new_video_rate + "  VideoBitRate:" + videoEncoder.getVideoBitRate());
+                Log.d(TAG, "old video bitrate:" + now_video_rate + ",new calculated video bitrate value:" + new_video_rate + ",setting the result:" + videoEncoder.getVideoBitRate());
             }
         }
     }
