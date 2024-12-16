@@ -47,7 +47,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("productId", "") ?: BuildConfig.productId
+            val value = preferences?.getString("productId", null) ?: BuildConfig.productId
             Log.d(TAG, "editor? get date key:productId  value:$value")
             return value
         }
@@ -59,7 +59,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("deviceName", "") ?: BuildConfig.deviceName
+            val value = preferences?.getString("deviceName", null) ?: BuildConfig.deviceName
             Log.d(TAG, "editor? get date key:deviceName  value:$value")
             return value
         }
@@ -71,7 +71,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("deviceKey", "") ?: BuildConfig.deviceKey
+            val value = preferences?.getString("deviceKey", null) ?: BuildConfig.deviceKey
             Log.d(TAG, "editor? get date key:deviceKey  value:$value")
             return value
         }
@@ -83,7 +83,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("modelId", "") ?: BuildConfig.modelId
+            val value = preferences?.getString("modelId", null) ?: BuildConfig.modelId
             Log.d(TAG, "editor? get date key:modelId  value:$value")
             return value
         }
@@ -95,7 +95,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("appId", "") ?: BuildConfig.appId
+            val value = preferences?.getString("appId", null) ?: BuildConfig.appId
             Log.d(TAG, "editor? get date key:appId  value:$value")
             return value
         }
@@ -107,7 +107,7 @@ class DeviceSetting private constructor(context: Context) {
         get() {
             if (!isLoadOpenIds) {
                 isLoadOpenIds = true
-                val value = preferences?.getString("openIdList", "") ?: ""
+                val value = preferences?.getString("openIdList", null) ?: BuildConfig.openId
                 Log.d(TAG, "editor? get date key:openIdList  value:$value")
                 if (value.isNotEmpty()) {
                     kotlin.runCatching {

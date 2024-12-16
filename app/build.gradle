@@ -22,6 +22,7 @@ android {
         buildConfigField 'String', 'deviceKey', "\"${getValue('deviceKey')}\""
         buildConfigField 'String', 'appId', "\"${getValue('appId')}\""
         buildConfigField 'String', 'modelId', "\"${getValue('modelId')}\""
+        buildConfigField 'String', 'openId', "\"${getValue('openId')}\""
     }
 
     buildTypes {
