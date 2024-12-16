@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.tencent.iot.twcall.BuildConfig
 import com.tencent.iotvideo.link.entity.UserEntity
 
 class DeviceSetting private constructor(context: Context) {
@@ -46,7 +47,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("productId", "") ?: ""
+            val value = preferences?.getString("productId", "") ?: BuildConfig.productId
             Log.d(TAG, "editor? get date key:productId  value:$value")
             return value
         }
@@ -58,7 +59,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("deviceName", "") ?: ""
+            val value = preferences?.getString("deviceName", "") ?: BuildConfig.deviceName
             Log.d(TAG, "editor? get date key:deviceName  value:$value")
             return value
         }
@@ -70,7 +71,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("deviceKey", "") ?: ""
+            val value = preferences?.getString("deviceKey", "") ?: BuildConfig.deviceKey
             Log.d(TAG, "editor? get date key:deviceKey  value:$value")
             return value
         }
@@ -82,7 +83,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("modelId", "") ?: ""
+            val value = preferences?.getString("modelId", "") ?: BuildConfig.modelId
             Log.d(TAG, "editor? get date key:modelId  value:$value")
             return value
         }
@@ -94,7 +95,7 @@ class DeviceSetting private constructor(context: Context) {
             editor?.apply()
         }
         get() {
-            val value = preferences?.getString("appId", "") ?: ""
+            val value = preferences?.getString("appId", "") ?: BuildConfig.appId
             Log.d(TAG, "editor? get date key:appId  value:$value")
             return value
         }

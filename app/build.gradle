@@ -1,9 +1,9 @@
 import groovy.xml.XmlSlurper
 
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-}
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+rootProject.ext.configPath = "../device-config.json"
+apply from: "../parse_json.gradle"
 
 android {
     namespace 'com.tencent.iot.twcall'
@@ -17,6 +17,11 @@ android {
         versionName "1.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField 'String', 'productId', "\"${getValue('productId')}\""
+        buildConfigField 'String', 'deviceName', "\"${getValue('deviceName')}\""
+        buildConfigField 'String', 'deviceKey', "\"${getValue('deviceKey')}\""
+        buildConfigField 'String', 'appId', "\"${getValue('appId')}\""
+        buildConfigField 'String', 'modelId', "\"${getValue('modelId')}\""
     }
 
     buildTypes {
@@ -34,6 +39,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
@@ -41,6 +47,16 @@ android {
             outputFileName = newApkName
         }
     }
+}
+
+def getValue(String id) {
+    Properties properties = new Properties()
+    properties.load(new FileInputStream(rootProject.file("local.properties")))
+    def value = properties.getProperty(id, "")
+    if (value.isEmpty()) {
+        value = "${getValueById(id)}"
+    }
+    return value
 }
 
 def getAppName() {
