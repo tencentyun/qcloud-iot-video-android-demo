@@ -172,37 +172,38 @@ public class VideoEncoder {
             if (mirror) {
                 readyToProcessBytes = rotateYV12Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             }
-            // 获取输入缓冲区
-            ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
-            ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
 
             int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
             if (inputBufferIndex >= 0) {
-                ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
-                inputBuffer.clear();
-                inputBuffer.put(readyToProcessBytes);
-                // 将数据传递给编码器
-                mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
+                // 获取输入缓冲区
+                ByteBuffer inputBuffer = mediaCodec.getInputBuffer(inputBufferIndex);
+                if (inputBuffer != null) {
+                    // 将输入数据写入输入缓冲区
+                    inputBuffer.clear();
+                    inputBuffer.put(readyToProcessBytes);
+                    // 提交输入缓冲区
+                    mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
+                }
             }
 
             // 获取输出缓冲区
             MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
             int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
-
             while (outputBufferIndex >= 0) {
-                ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
-
-                // 处理编码后的数据
-                byte[] outData = new byte[bufferInfo.size];
-                outputBuffer.get(outData);
-                // 打印编码后的数据大小
-                if (encoderListener != null) {
-                    encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, true);
-                    seq++;
+                // 获取输出缓冲区
+                ByteBuffer outputBuffer = mediaCodec.getOutputBuffer(outputBufferIndex);
+                if (outputBuffer != null) {
+                    // 处理输出数据
+                    byte[] outData = new byte[bufferInfo.size];
+                    outputBuffer.get(outData);
+                    if (encoderListener != null) {
+                        encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, true);
+                        seq++;
+                    }
+                    // 释放输出缓冲区
+                    mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
                 }
-
-                // 释放输出缓冲区
-                mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
+                // 获取下一个输出缓冲区的索引
                 outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
             }
         });
@@ -247,6 +248,9 @@ public class VideoEncoder {
     }
 
     public void stop() {
+        mediaCodec.stop();
+        mediaCodec.release();
+        mediaCodec = null;
         executor.shutdown();
     }
 }

@@ -1,105 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include
-        android:id="@+id/title_layout"
-        layout="@layout/menu_back_layout" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/tv_device_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:gravity="center"
-        android:text="@string/text_device_info"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_layout" />
+        <include
+            android:id="@+id/title_layout"
+            layout="@layout/menu_back_layout" />
 
-    <TextView
-        android:id="@+id/tv_select_version"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/text_select_version"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_device_info" />
-
-    <RadioGroup
-        android:id="@+id/rg_select_version"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_select_version">
-
-        <RadioButton
-            android:id="@+id/rb_formal_version"
+        <TextView
+            android:id="@+id/tv_device_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="@string/text_formal_version" />
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:text="@string/text_device_info"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title_layout" />
 
-        <RadioButton
-            android:id="@+id/rb_develop_version"
+        <TextView
+            android:id="@+id/tv_select_version"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_develop_version" />
+            android:layout_marginTop="32dp"
+            android:text="@string/text_select_version"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_device_info" />
 
-        <RadioButton
-            android:id="@+id/rb_experience_version"
+        <RadioGroup
+            android:id="@+id/rg_select_version"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_experience_version" />
-    </RadioGroup>
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_select_version">
 
-    <Button
-        android:id="@+id/btn_wx_setting"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="80dp"
-        android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/twe_call_wx_setting"
-        android:textColor="@color/blue_0052D9"
-        android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@+id/rg_select_version"
-        tools:layout_editor_absoluteX="80dp" />
+            <RadioButton
+                android:id="@+id/rb_formal_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/text_formal_version" />
 
-    <Button
-        android:id="@+id/btn_quality_setting"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="80dp"
-        android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/twe_call_quality_setting"
-        android:textColor="@color/blue_0052D9"
-        android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@+id/btn_wx_setting" />
+            <RadioButton
+                android:id="@+id/rb_develop_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_develop_version" />
 
-    <Button
-        android:id="@+id/btn_login_twe_call"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="50dp"
-        android:layout_marginEnd="80dp"
-        android:background="@drawable/background_blue_cell_btn"
-        android:text="@string/twe_call_login"
-        android:textColor="@color/blue_0052D9"
-        android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@+id/btn_quality_setting" />
+            <RadioButton
+                android:id="@+id/rb_experience_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_experience_version" />
+        </RadioGroup>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/btn_wx_setting"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="80dp"
+            android:background="@drawable/background_blue_cell_btn"
+            android:text="@string/twe_call_wx_setting"
+            android:textColor="@color/blue_0052D9"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/rg_select_version"
+            tools:layout_editor_absoluteX="80dp" />
+
+        <Button
+            android:id="@+id/btn_quality_setting"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="80dp"
+            android:background="@drawable/background_blue_cell_btn"
+            android:text="@string/twe_call_quality_setting"
+            android:textColor="@color/blue_0052D9"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_wx_setting" />
+
+        <Button
+            android:id="@+id/btn_login_twe_call"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginTop="50dp"
+            android:layout_marginEnd="80dp"
+            android:background="@drawable/background_blue_cell_btn"
+            android:text="@string/twe_call_login"
+            android:textColor="@color/blue_0052D9"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_quality_setting" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
