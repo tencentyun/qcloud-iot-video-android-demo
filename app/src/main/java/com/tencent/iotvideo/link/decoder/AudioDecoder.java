@@ -113,7 +113,7 @@ public class AudioDecoder {
             mAudioCodec.configure(audioFormat, null, null, 0);
             mAudioCodec.start();
             Log.d(TAG, "start audio codec " + adts_data[0] + " " + adts_data[1]);
-            startAudioPlayThread();
+//            startAudioPlayThread();
         }
     }
 
@@ -131,25 +131,50 @@ public class AudioDecoder {
         // one thread for audio decode
         mAudioExecutor.submit(() -> {
             try {
+                byte[] readyToProcessBytes = data;
                 // PCM format data, no need to decode, just play
                 if (mAudioCodec == null && mAudioTrack != null) {
                     mAudioTrack.write(data, 0, len);
                     return;
                 }
 
-                if (mAudioCodec != null) {
 //                Log.d(TAG, ">>>> queue audio aac data " + len + " pts " + pts);
-                    // queue aac data and decode
-                    int inputBufferIndex = mAudioCodec.dequeueInputBuffer(100000);
-                    if (inputBufferIndex >= 0) {
-                        ByteBuffer inputBuffer = mAudioCodec.getInputBuffer(inputBufferIndex);
+                // queue aac data and decode
+                int inputBufferIndex = mAudioCodec.dequeueInputBuffer(0);
+                if (inputBufferIndex >= 0) {
+                    ByteBuffer inputBuffer = mAudioCodec.getInputBuffer(inputBufferIndex);
+                    if (inputBuffer != null) {
                         inputBuffer.clear();
-//                  Log.d(TAG, "aac input: " + bytesToHex(data, len));
-                        inputBuffer.put(data, 0, len).rewind();
-                        mAudioCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
-                    } else {
-                        Log.e(TAG, "audio inputBufferIndex invalid: " + inputBufferIndex);
+                        inputBuffer.put(readyToProcessBytes);
+                        mAudioCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
                     }
+                } else {
+                    Log.e(TAG, "audio inputBufferIndex invalid: " + inputBufferIndex);
+                }
+
+                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                int outputBufferIndex = mAudioCodec.dequeueOutputBuffer(bufferInfo, 0);
+                while (outputBufferIndex >= 0) {
+                    ByteBuffer outputBuffer = mAudioCodec.getOutputBuffer(outputBufferIndex);
+                    if (outputBuffer != null) {
+                        byte[] outData = new byte[bufferInfo.size];
+                        outputBuffer.get(outData);
+                        long decode_pts = bufferInfo.presentationTimeUs / 1000;
+//                        Log.d(TAG, ">>>>> audio decoder output size " + info.size + " pts " + decode_pts + " current video pts " + currentVideoPts);
+                        // 简单音画同步处理，如果音频帧滞后超过一定时间，直接丢弃
+                        if ((decode_pts + AV_PTS_GAP_MS) < currentVideoPts) {
+                            Log.i(TAG, "drop audio frame as audio pts " + decode_pts + " < video pts " + currentVideoPts);
+                        } else {
+                            if (audioManager != null) {
+                                audioManager.setSpeakerphoneOn(isSpeakerOn);
+                            }
+                            if (mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED) {
+                                mAudioTrack.write(outData, 0, outData.length);
+                            }
+                        }
+                        mAudioCodec.releaseOutputBuffer(outputBufferIndex, false);
+                    }
+                    outputBufferIndex = mAudioCodec.dequeueOutputBuffer(bufferInfo, 0);
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
@@ -189,33 +214,27 @@ public class AudioDecoder {
         @Override
         public void run() {
             Log.i(TAG, "start audio play thread");
-            MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-            while (mAudioCodec != null && mAudioTrack != null) {
-                try {
-                    // dequeue and play
-                    int outputBufId = mAudioCodec.dequeueOutputBuffer(info, 100000);
-//                    Log.d(TAG, "audio outputBufferIndex: " + outputBufId);
-
-                    if (outputBufId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                        Log.i(TAG, "audio format changed");
-                        mAudioTrack.stop();
-                        mAudioTrack.release();
-                        int minBufSize = AudioTrack.getMinBufferSize(audioSampleRate, audioChannelConfig, audioPcmFormat);
-                        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioPcmFormat, 2 * minBufSize, AudioTrack.MODE_STREAM);
-                        mAudioTrack.setVolume(1.5f);
-                        mAudioTrack.play();
-                        outputBufId = mAudioCodec.dequeueOutputBuffer(info, 10000);
-
-                    } else if (outputBufId == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                        continue;
-                    } else {
-                        ByteBuffer outputBuf = mAudioCodec.getOutputBuffer(outputBufId);
-                        byte[] playBuf = new byte[info.size];
-                        outputBuf.get(playBuf);
-                        outputBuf.rewind();
-                        outputBuf.clear();
-                        mAudioCodec.releaseOutputBuffer(outputBufId, false);
-                        long decode_pts = info.presentationTimeUs / 1000;
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+//          Log.d(TAG, "audio outputBufferIndex: " + outputBufId);
+            int outputBufId = mAudioCodec.dequeueOutputBuffer(bufferInfo, 0);
+            while (mAudioCodec != null && mAudioTrack != null && outputBufId >= 0) {
+                // dequeue and play
+                if (outputBufId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    Log.i(TAG, "audio format changed");
+                    mAudioTrack.stop();
+                    mAudioTrack.release();
+                    int minBufSize = AudioTrack.getMinBufferSize(audioSampleRate, audioChannelConfig, audioPcmFormat);
+                    mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioPcmFormat, 2 * minBufSize, AudioTrack.MODE_STREAM);
+                    mAudioTrack.setVolume(1.5f);
+                    mAudioTrack.play();
+                } else if (outputBufId == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                    continue;
+                } else {
+                    ByteBuffer outputBuffer = mAudioCodec.getOutputBuffer(outputBufId);
+                    if (outputBuffer != null) {
+                        byte[] outData = new byte[bufferInfo.size];
+                        outputBuffer.get(outData);
+                        long decode_pts = bufferInfo.presentationTimeUs / 1000;
 //                        Log.d(TAG, ">>>>> audio decoder output size " + info.size + " pts " + decode_pts + " current video pts " + currentVideoPts);
                         // 简单音画同步处理，如果音频帧滞后超过一定时间，直接丢弃
                         if ((decode_pts + AV_PTS_GAP_MS) < currentVideoPts) {
@@ -225,12 +244,12 @@ public class AudioDecoder {
                                 audioManager.setSpeakerphoneOn(isSpeakerOn);
                             }
                             if (mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED) {
-                                mAudioTrack.write(playBuf, 0, info.size);
+                                mAudioTrack.write(outData, 0, outData.length);
                             }
                         }
+                        mAudioCodec.releaseOutputBuffer(outputBufId, false);
                     }
-                } catch (Throwable t) {
-                    t.printStackTrace();
+                    outputBufId = mAudioCodec.dequeueOutputBuffer(bufferInfo, 0);
                 }
             }
             Log.i(TAG, "quit audio play thread");

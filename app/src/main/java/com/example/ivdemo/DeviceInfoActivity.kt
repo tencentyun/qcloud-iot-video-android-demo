@@ -50,7 +50,14 @@ class DeviceInfoActivity : AppCompatActivity() {
         val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
         val codecInfos = codecList.codecInfos
         for (codecInfo in codecInfos) {
-            if (!codecInfo.isEncoder) continue
+            if (!codecInfo.isEncoder){
+                Log.d("Decoder", "Decoder name: " + codecInfo.getName());
+                val supportedTypes = codecInfo.supportedTypes
+                for (type in supportedTypes) {
+                    Log.d("Decoder", "Supported type: $type")
+                }
+                continue;
+            }
             val types = codecInfo.supportedTypes
             for (type in types) {
                 Log.d("DeviceInfoActivity", "Encoder name: " + codecInfo.name + ", type: " + type)
