@@ -1,216 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include
-        android:id="@+id/title_layout"
-        layout="@layout/menu_back_layout" />
-
-    <TextView
-        android:id="@+id/text_dev_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:text="@string/text_device_info"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-        android:textColor="@color/light_blue_900"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_layout" />
-
-    <TextView
-        android:id="@+id/tv_p2p_info"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="4dp"
-        android:text="@string/text_p2p_info"
-        android:textAlignment="textStart"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-        android:textColor="@color/light_blue_900"
-        android:textColorHighlight="#CCCCCC"
-        android:textIsSelectable="true"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@+id/tv_copy"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
-
-    <TextView
-        android:id="@+id/tv_copy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:background="@color/white_0052D9"
-        android:paddingHorizontal="4dp"
-        android:paddingVertical="2dp"
-        android:text="@string/text_copy"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_p2p_info"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_p2p_info" />
-
-    <TextView
-        android:id="@+id/tv_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="监听小程序来电页面"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/cl_call"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info">
+        android:layout_height="560dp">
 
-        <View
-            android:id="@+id/bg_surfaceView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginVertical="16dp"
-            android:background="@color/black_4D000000" />
-
-        <TextureView
-            android:id="@+id/surfaceView_duplex"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
-            app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
-            app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
+        <include
+            android:id="@+id/title_layout"
+            layout="@layout/menu_back_layout" />
 
         <TextView
-            android:id="@+id/tip_text"
+            android:id="@+id/text_dev_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
             android:gravity="center"
-            android:text="小程序呼叫来电"
-            android:textSize="32sp"
-            app:layout_constraintBottom_toBottomOf="@+id/bg_surfaceView"
-            app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
-            app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
-            app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
+            android:text="@string/text_device_info"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+            android:textColor="@color/light_blue_900"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_layout" />
 
-        <LinearLayout
-            android:id="@+id/ll_reject_listen"
+        <TextView
+            android:id="@+id/tv_p2p_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="@string/text_p2p_info"
+            android:textAlignment="textStart"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+            android:textColor="@color/light_blue_900"
+            android:textColorHighlight="#CCCCCC"
+            android:textIsSelectable="true"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toStartOf="@+id/tv_copy"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
+
+        <TextView
+            android:id="@+id/tv_copy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginBottom="48dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:visibility="gone"
+            android:layout_marginEnd="16dp"
+            android:background="@color/white_0052D9"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
+            android:text="@string/text_copy"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_p2p_info"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tv_p2p_info" />
+
+        <TextView
+            android:id="@+id/tv_label"
+            android:layout_width="wrap_content"
+            android:layout_height="560dp"
+            android:gravity="center"
+            android:text="监听小程序来电页面"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@mipmap/icon_hang_up" />
-
-            <TextView
-                android:id="@+id/btn_reject_listen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="拒接"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/ll_answer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="48dp"
-            android:layout_marginBottom="48dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@mipmap/icon_answer" />
-
-            <TextView
-                android:id="@+id/btn_answer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="接听"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/ll_hang_up"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="48dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cl_call"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@mipmap/icon_hang_up" />
+            <View
+                android:id="@+id/bg_surfaceView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginVertical="16dp"
+                android:background="@color/black_4D000000" />
+
+            <TextureView
+                android:id="@+id/surfaceView_duplex"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
+                app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
+                app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
 
             <TextView
-                android:id="@+id/btn_twe_call_hang_up"
+                android:id="@+id/tip_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:gravity="center"
-                android:text="@string/twe_call_hangup"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                android:text="小程序呼叫来电"
+                android:textSize="32sp"
+                app:layout_constraintBottom_toBottomOf="@+id/bg_surfaceView"
+                app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
+                app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
+                app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
+
+            <LinearLayout
+                android:id="@+id/ll_reject_listen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="48dp"
+                android:layout_marginBottom="48dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/icon_hang_up" />
+
+                <TextView
+                    android:id="@+id/btn_reject_listen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="拒接"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_answer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="48dp"
+                android:layout_marginBottom="48dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/icon_answer" />
+
+                <TextView
+                    android:id="@+id/btn_answer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="接听"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_hang_up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="48dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/icon_hang_up" />
+
+                <TextView
+                    android:id="@+id/btn_twe_call_hang_up"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/twe_call_hangup"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/bg_textureView"
+            android:layout_width="144dp"
+            android:layout_height="192dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="32dp"
+            android:background="@color/black_4D000000"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/cl_call"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
+
+        <TextureView
+            android:id="@+id/textureView_duplex"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/bg_textureView"
+            app:layout_constraintEnd_toEndOf="@+id/bg_textureView"
+            app:layout_constraintStart_toStartOf="@+id/bg_textureView"
+            app:layout_constraintTop_toTopOf="@+id/bg_textureView" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <View
-        android:id="@+id/bg_textureView"
-        android:layout_width="144dp"
-        android:layout_height="192dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:background="@color/black_4D000000"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@+id/cl_call"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
-
-    <TextureView
-        android:id="@+id/textureView_duplex"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="@+id/bg_textureView"
-        app:layout_constraintEnd_toEndOf="@+id/bg_textureView"
-        app:layout_constraintStart_toStartOf="@+id/bg_textureView"
-        app:layout_constraintTop_toTopOf="@+id/bg_textureView" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
