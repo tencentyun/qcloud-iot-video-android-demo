@@ -62,7 +62,6 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     private fun initVideoNative() {
         // start run JNI iot_video_demo
         checkDefaultThreadActiveAndExecuteTask {
-            VideoNativeInterface.getInstance().initLog(LogLevelType.IV_eLOG_DEBUG)
             val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
             val sysInit = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
             Log.d(TAG, "initIvSystem,resCode:$sysInit")
