@@ -21,12 +21,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 private val TAG = BaseIPCActivity::class.java.simpleName
 
 abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDeviceCallback,
     IvAvtCallback {
     protected val defaultScope = CoroutineScope(Dispatchers.Default)
+    protected val defaultThread: ExecutorService = Executors.newSingleThreadExecutor()
     protected val productId: String? by lazy { intent.getStringExtra("productId") }
     protected val deviceName: String? by lazy { intent.getStringExtra("deviceName") }
     protected val deviceKey: String? by lazy { intent.getStringExtra("deviceKey") }
@@ -59,26 +62,28 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
      */
     private fun initVideoNative() {
         // start run JNI iot_video_demo
-        VideoNativeInterface.getInstance().initLog(LogLevelType.IV_eLOG_DEBUG)
-        val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
-        val sysInit = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
-        Log.d(TAG, "initIvSystem,resCode:$sysInit")
-        val dmInit = VideoNativeInterface.getInstance().initIvDm()
-        Log.d(TAG, "initIvDm,resCode:$dmInit")
-        val congestion = CongestionCtrlInfo()
-        if (isUserCongestionCtrl) { //启用水位告警以及告警的有高中低三挡水位值，当 p2p 内部缓存的水位到达这个值的时候会收到 onNotify回调
-            congestion.lowMark = 200 * 1024
-            congestion.warnMark = 400 * 1024
-            congestion.highMark = 500 * 1024
-        } else {
-            congestion.lowMark = 0
-            congestion.warnMark = 0
-            congestion.highMark = 0
+        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+            VideoNativeInterface.getInstance().initLog(LogLevelType.IV_eLOG_DEBUG)
+            val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
+            val sysInit = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
+            Log.d(TAG, "initIvSystem,resCode:$sysInit")
+            val dmInit = VideoNativeInterface.getInstance().initIvDm()
+            Log.d(TAG, "initIvDm,resCode:$dmInit")
+            val congestion = CongestionCtrlInfo()
+            if (isUserCongestionCtrl) { //启用水位告警以及告警的有高中低三挡水位值，当 p2p 内部缓存的水位到达这个值的时候会收到 onNotify回调
+                congestion.lowMark = 200 * 1024
+                congestion.warnMark = 400 * 1024
+                congestion.highMark = 500 * 1024
+            } else {
+                congestion.lowMark = 0
+                congestion.warnMark = 0
+                congestion.highMark = 0
+            }
+            val avtInitInfo = AvtInitInfo()
+            avtInitInfo.congestion = congestion
+            val avtInit = VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
+            Log.d(TAG, "initIvAvt,resCode:$avtInit")
         }
-        val avtInitInfo = AvtInitInfo()
-        avtInitInfo.congestion = congestion
-        val avtInit = VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
-        Log.d(TAG, "initIvAvt,resCode:$avtInit")
     }
 
     protected abstract fun getViewBinding(): VB
@@ -87,15 +92,16 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
 
     override fun onDestroy() {
         super.onDestroy()
-        defaultScope.launch(Dispatchers.Default) {
+        defaultThread.checkDefaultThreadActiveAndExecuteTask {
             val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
             Log.d(TAG, "exit avt resCode:$exitIvAvt")
             val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
             Log.d(TAG, "exit dm resCode:$exitIvDm")
             val exitIvSys = VideoNativeInterface.getInstance().exitIvSys()
             Log.d(TAG, "exit sys resCode:$exitIvSys")
-            cancel()
+            defaultThread.shutdown()
         }
+        defaultScope.cancel()
     }
 
     override fun onOnline(netDateTime: Long) {
@@ -356,10 +362,18 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         Log.d(TAG, "onGetPeerOuterNet visitor $visitor channel $channel netInfo$netInfo")
     }
 
-    fun showToast(msg: String) {
+    protected fun showToast(msg: String) {
         Log.d(TAG, "msg:$msg")
         lifecycleScope.launch {
             Toast.makeText(this@BaseIPCActivity.applicationContext, msg, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    protected fun ExecutorService.checkDefaultThreadActiveAndExecuteTask(action: (() -> Unit)? = null) {
+        if (defaultThread.isShutdown) {
+            showToast("defaultThread is Shutdown")
+            return
+        }
+        action?.let { task -> defaultThread.submit(task) }
     }
 }

@@ -27,7 +27,7 @@
 * 使用前请适配 `include\wmpf\wxvoip_os_impl.h` 中的相关接口，并确保所有接口均可正常工作
 * 文件系统要求提供8KB的可用空间用于存放密钥（以FAT32文件系统，簇大小4KB估算，不含FAT表）
 * 文件系统要求断电不丢失可持久化存储，不得使用 RAMFS 等断电丢失的文件系统
-* 本模块依赖 av 模块，需在 av 模块后初始化，iv_avt_notify_cb 回调函数收到 IV_AVT_EVENT_P2P_PEER_READY
+* 本模块依赖 av 模块，需在 av 模块后初始化，onNotify() 回调函数收到 IV_AVT_EVENT_P2P_PEER_READY
   事件后方可进行呼叫
 * 协议相关文档请参阅 https://cloud.tencent.com/document/product/1081/107667
 
@@ -528,8 +528,8 @@ voip模块退出，释放资源。
 
 # 4. 注意事项
 
-1. 本模块依赖av模块内的音视频传输接口，请按顺序初始化 initIvSystem, initIvDm, initIvAvt,
-   initWxCloudVoip
+1. 本模块依赖av模块内的音视频传输接口，请按顺序初始化 initIvSystem(), initIvDm(), initIvAvt(),
+   initWxCloudVoip()
 2. 呼叫前前检查是否占线，占线时无法发起呼叫。如果本机已在通话中可以主动挂断后发起新的呼叫；如有其他用户占线请稍后重试。
 3. doWxCloudVoipCall(...) 呼叫成功后会触发 av 模块中的接口，详细内容请参考 av 模块文档
 4. 当对方出现挂断、占线等情况时，onRecvCommand() 回调函数内会收到 IV_AVT_COMMAND_CALL_XXX
