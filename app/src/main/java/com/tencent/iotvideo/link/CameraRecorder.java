@@ -38,14 +38,14 @@ import java.util.concurrent.Executors;
 public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener {
     private static final String TAG = "CameraEncoder";
 
-    private Camera camera;
     private int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private Camera camera = Camera.open(cameraId);
     public int mVideoWidth = 640;
     public int mVideoHeight = 480;
 
     private int mAudioSampleRate = 16000;
     private int mAudioBitRate = 48000;
-    private VideoEncodeParam  videoEncodeParam;
+    private VideoEncodeParam videoEncodeParam;
     private VideoEncoder mVideoEncoder = null;
     private AudioEncoder mAudioEncoder = null;
     private boolean isMuted = false;

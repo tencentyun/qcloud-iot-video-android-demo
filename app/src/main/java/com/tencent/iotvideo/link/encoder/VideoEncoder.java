@@ -106,7 +106,7 @@ public class VideoEncoder {
         //设置编码器码率模式为可变
         mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 90);
+            mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 0);
         }
         //设置压缩等级  默认是 baseline
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
