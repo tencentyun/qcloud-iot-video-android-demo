@@ -24,6 +24,7 @@ import com.tencent.iot.video.device.model.CsBalanceInfo
 import com.tencent.iot.video.device.model.CsChannelInfo
 import com.tencent.iot.video.device.model.CsEventResultInfo
 import com.tencent.iot.video.device.model.CsNotifyMsgData
+import com.tencent.iot.video.device.model.CsUploadSliceInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.util.copyTextToClipboard
@@ -402,6 +403,21 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback {
     override fun onEventReportResult(channel: Int, resultInfo: CsEventResultInfo?): Int {
         Log.d(TAG, "onEventReportResult  channel:$channel")
         return 0
+    }
+
+    override fun onGetNotifyMsgData(
+        channel: Int,
+        notifyMsgType: Int,
+        sliceInfoNum: Int
+    ): CsNotifyMsgData {
+        val data = CsNotifyMsgData()
+        val sliceInfo = arrayOfNulls<CsUploadSliceInfo>(sliceInfoNum)
+        for (i in 0 until sliceInfoNum) {
+            val info = CsUploadSliceInfo()
+            sliceInfo[i] = info
+        }
+        data.sliceInfo = sliceInfo
+        return data
     }
 
     override fun onNotify(channel: Int, notifyMsgType: Int, notifyData: CsNotifyMsgData?): Int {
