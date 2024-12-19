@@ -2,10 +2,8 @@ package com.example.ivdemo
 
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.google.errorprone.annotations.CheckReturnValue
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityOtaUpgradeBinding
 import com.tencent.iot.video.device.VideoNativeInterface
@@ -68,8 +66,10 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
     private fun checkForNewFirmware() {
         val hasDir = checkAndCreateDirectory(OTA_FIRMWARE_PATH)
         if (hasDir) {
-            VideoNativeInterface.getInstance()
-                .initOTA(OTA_FIRMWARE_PATH, OTA_FIRMWARE_VERSION, this)
+            checkDefaultThreadActiveAndExecuteTask {
+                VideoNativeInterface.getInstance()
+                    .initOTA(OTA_FIRMWARE_PATH, OTA_FIRMWARE_VERSION, this)
+            }
         }
     }
 
@@ -180,7 +180,9 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
 
 
     override fun onDestroy() {
-        defaultScope.launch { exitOTAUpgrade() }
+        checkDefaultThreadActiveAndExecuteTask {
+            exitOTAUpgrade()
+        }
         super.onDestroy()
     }
 

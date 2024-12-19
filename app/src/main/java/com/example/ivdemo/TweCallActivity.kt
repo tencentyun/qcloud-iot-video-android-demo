@@ -188,7 +188,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     }
 
     private fun initTweCall() {
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             initStatus = initWxCloudTweCallV2()
             if (initStatus == 19) {
                 //把device_key文件删掉
@@ -264,7 +264,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
      * @param isVideo
      */
     private fun executeCall(isVideo: Boolean) {
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             // call
             @PixelType val recvPixel =
                 QualitySetting.getInstance(this@TweCallActivity).wxResolution
@@ -294,7 +294,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
      * @param isVideo
      */
     private fun executeCallV2(isVideo: Boolean) {
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             // call
             @PixelType val recvPixel =
                 if (isVideo) QualitySetting.getInstance(this@TweCallActivity).wxResolution else PixelType.IV_CM_PIXEL_VARIABLE
@@ -321,7 +321,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
      * 挂断，暂停维护，请使用v2接口
      */
     private fun hangUp() {
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             val res = VideoNativeInterface.getInstance().doWxCloudVoipHangUp(
                 productId, deviceName, openId, deviceId
             )
@@ -340,7 +340,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
      * 挂断
      */
     private fun hangUpV2() {
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             val res = VideoNativeInterface.getInstance().doWxCloudVoipHangUpV2()
             val result = if (res == 0) "已挂断" else "挂断失败"
             Log.i(TAG, "TweCall call result: $result  resCode:$res")
@@ -362,7 +362,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     override fun onDestroy() {
         Log.d(TAG, "destory")
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
 //            VideoNativeInterface.getInstance().exitWxCloudVoip()
             VideoNativeInterface.getInstance().exitWxCloudVoipV2()
             Log.d(TAG, "exit twecall v2")

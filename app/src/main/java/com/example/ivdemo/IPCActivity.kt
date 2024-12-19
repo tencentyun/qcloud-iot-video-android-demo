@@ -399,7 +399,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback, OnE
     override fun onStartPushStream(channel: Int): Int {
         Log.d(TAG, "onStartPushStream  channel:$channel")
         wareReportSate = true
-        defaultScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             binding.btnCloudVideoWareReport.text = "正在上报告警中..."
         }
         return 0
@@ -408,7 +408,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback, OnE
     override fun onStopPushStream(channel: Int): Int {
         Log.d(TAG, "onStopPushStream  channel:$channel")
         wareReportSate = false
-        defaultScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             binding.btnCloudVideoWareReport.text = getString(R.string.text_cloud_video_ware)
         }
         return 0

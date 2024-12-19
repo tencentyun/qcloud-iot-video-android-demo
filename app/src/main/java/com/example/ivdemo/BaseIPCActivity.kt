@@ -28,7 +28,6 @@ private val TAG = BaseIPCActivity::class.java.simpleName
 
 abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDeviceCallback,
     IvAvtCallback {
-    protected val defaultScope = CoroutineScope(Dispatchers.Default)
     protected val defaultThread: ExecutorService = Executors.newSingleThreadExecutor()
     protected val productId: String? by lazy { intent.getStringExtra("productId") }
     protected val deviceName: String? by lazy { intent.getStringExtra("deviceName") }
@@ -62,7 +61,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
      */
     private fun initVideoNative() {
         // start run JNI iot_video_demo
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             VideoNativeInterface.getInstance().initLog(LogLevelType.IV_eLOG_DEBUG)
             val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
             val sysInit = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
@@ -92,7 +91,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
 
     override fun onDestroy() {
         super.onDestroy()
-        defaultThread.checkDefaultThreadActiveAndExecuteTask {
+        checkDefaultThreadActiveAndExecuteTask {
             val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
             Log.d(TAG, "exit avt resCode:$exitIvAvt")
             val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
@@ -101,7 +100,6 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
             Log.d(TAG, "exit sys resCode:$exitIvSys")
             defaultThread.shutdown()
         }
-        defaultScope.cancel()
     }
 
     override fun onOnline(netDateTime: Long) {
@@ -369,7 +367,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         }
     }
 
-    protected fun ExecutorService.checkDefaultThreadActiveAndExecuteTask(action: (() -> Unit)? = null) {
+    protected fun checkDefaultThreadActiveAndExecuteTask(action: (() -> Unit)? = null) {
         if (defaultThread.isShutdown) {
             showToast("defaultThread is Shutdown")
             return
