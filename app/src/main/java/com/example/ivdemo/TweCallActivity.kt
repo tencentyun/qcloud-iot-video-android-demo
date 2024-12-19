@@ -15,9 +15,6 @@ import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
-import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_240x320
-import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_320x240
-import com.tencent.iot.video.device.annotations.PixelType.IV_CM_PIXEL_480x352
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
@@ -27,9 +24,6 @@ import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
 import com.tencent.iotvideo.link.util.adjustAspectRatio
-import com.tencent.iotvideo.link.util.dip2px
-import com.tencent.iotvideo.link.util.getScreenHeight
-import com.tencent.iotvideo.link.util.getScreenWidth
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -148,15 +142,15 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     true
                 )
             btnTweCallVideoCall.setOnClickListener {
-                textureViewTweCall.isVisible = true
                 if (!checkCallCondition()) return@setOnClickListener
+                textureViewTweCall.isVisible = true
                 dialog =
                     ProgressDialog.show(this@TweCallActivity, "", "呼叫中doWxCloudTweCall", true)
                 executeCallV2(true)
             }
             btnTweCallAudioCall.setOnClickListener {
-                textureViewTweCall.isVisible = false
                 if (!checkCallCondition()) return@setOnClickListener
+                textureViewTweCall.isVisible = false
                 dialog =
                     ProgressDialog.show(
                         this@TweCallActivity,
@@ -413,13 +407,12 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         this.height = height
         this.width = width
         lifecycleScope.launch {
-            val pixel = getPixel()
             adjustAspectRatio(
-                pixel[0],
-                pixel[1],
+                width,
+                height,
                 binding.surfaceViewTweCall,
-                getScreenWidth(resources) - dip2px(this@TweCallActivity, 10f),
-                getScreenHeight(resources) - dip2px(this@TweCallActivity, 115f)
+                binding.surfaceViewTweCallBg.measuredWidth,
+                binding.surfaceViewTweCallBg.measuredHeight
             )
         }
         if (remotePreviewSurface != null) {
@@ -532,32 +525,5 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     override fun onUpdateAuthorizeStatus(openId: String?, status: Int): Int {
         Log.d(TAG, "onUpdateAuthorizeStatus   penId:${openId}  status:$status")
         return 0
-    }
-
-    private fun getPixel(): Array<Int> {
-        val sWidth: Int
-        val sHeight: Int
-        when (QualitySetting.getInstance(this@TweCallActivity).wxResolution) {
-            IV_CM_PIXEL_240x320 -> {
-                sWidth = 320
-                sHeight = 240
-            }
-
-            IV_CM_PIXEL_320x240 -> {
-                sWidth = 240
-                sHeight = 320
-            }
-
-            IV_CM_PIXEL_480x352 -> {
-                sWidth = 352
-                sHeight = 480
-            }
-
-            else -> {
-                sWidth = 640
-                sHeight = 480
-            }
-        }
-        return arrayOf(sWidth, sHeight)
     }
 }
