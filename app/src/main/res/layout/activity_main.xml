@@ -99,7 +99,7 @@
 
         <TextView
             android:id="@+id/tv_tip"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="48dp"
             android:layout_marginTop="16dp"
@@ -107,6 +107,8 @@
             android:textColor="@color/white_0052D9"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/btn_setting_device"
+            app:layout_constraintStart_toStartOf="@+id/btn_setting_device"
             app:layout_constraintTop_toBottomOf="@+id/btn_setting_device" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
