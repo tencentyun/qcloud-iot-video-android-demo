@@ -85,6 +85,19 @@
             app:layout_constraintTop_toBottomOf="@+id/btn_twe_call" />
 
         <Button
+            android:id="@+id/btn_ai_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="80dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="80dp"
+            android:background="@drawable/background_grey_cell_btn"
+            android:text="@string/title_ai_test"
+            android:textColor="@color/white_0052D9"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_ota_upgrade" />
+
+        <Button
             android:id="@+id/btn_setting_device"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -95,7 +108,7 @@
             android:text="@string/title_setting_device"
             android:textColor="@color/blue_0052D9"
             android:textSize="20sp"
-            app:layout_constraintTop_toBottomOf="@+id/btn_ota_upgrade" />
+            app:layout_constraintTop_toBottomOf="@+id/btn_ai_test" />
 
         <TextView
             android:id="@+id/tv_tip"

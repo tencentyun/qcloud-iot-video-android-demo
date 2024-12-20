@@ -5,6 +5,7 @@
 
 
     <string name="title_ipc">IPC</string>
+    <string name="title_ai_test">AI TEST</string>
     <string name="title_audio_video_call">音视频传输</string>
     <string name="title_custom_audio_video_call">接听音视频传输</string>
     <string name="title_tweCall">TWe Call</string>
