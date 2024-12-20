@@ -39,7 +39,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private static final String TAG = "CameraEncoder";
 
     private int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-    private Camera camera = Camera.open(cameraId);
+    private Camera camera;
     public int mVideoWidth = 640;
     public int mVideoHeight = 480;
 
@@ -91,6 +91,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             mVideoEncoder.setEncoderListener(this);
 
             // Configure and start the camera
+            camera = Camera.open(cameraId);
             camera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, cameraId));
             Camera.Parameters parameters = getParameters();
             camera.setParameters(parameters);
@@ -130,6 +131,13 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     public void closeCamera() {
         try {
+            mVideoEncoder.stop();
+            mVideoEncoder = null;
+
+            mAudioEncoder.stop();
+            mAudioEncoder = null;
+            Log.d(TAG, "stop camera recording");
+            stopBitRateAdapter();
             camera.stopPreview();
             camera.setPreviewCallback(null);
             camera.release();
@@ -185,11 +193,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (!mVisitorInfo.isEmpty()) return;
 
         mIsRecording = false;
-        mVideoEncoder.stop();
-        mVideoEncoder = null;
-
-        mAudioEncoder.stop();
-        mAudioEncoder = null;
         Log.d(TAG, "stop camera recording");
         stopBitRateAdapter();
     }

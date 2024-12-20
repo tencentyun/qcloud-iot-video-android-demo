@@ -70,6 +70,7 @@ public class AdapterBitRateTask extends TimerTask {
                 }
             } else if (dynamicBitRateType == DynamicBitRateType.INTERNET_SPEED_TYPE) {
                 IvP2pSendInfo ivP2pSendInfo = VideoNativeInterface.getInstance().getSendStreamStatus(visitor, channel, videoResType);
+                if (ivP2pSendInfo == null) return;
                 int bufSize = VideoNativeInterface.getInstance().getSendStreamBuf(visitor, channel, videoResType);
                 int p2p_wl_avg = getAvgMaxMin(ivP2pSendInfo.getAveSentRate());
                 int now_video_rate = videoEncoder.getVideoBitRate();
