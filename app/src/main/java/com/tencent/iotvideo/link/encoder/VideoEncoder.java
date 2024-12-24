@@ -103,6 +103,7 @@ public class VideoEncoder {
                     MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
                     Log.d(TAG, "using hardware encoder name:" + codecInfo.getName() + "  support colorFormats:" + Arrays.toString(capabilities.colorFormats));
                     mediaCodecInfo = codecInfo;
+                    return;
                 } else if (MediaFormat.MIMETYPE_VIDEO_AVC.equals(type)) {
                     mediaCodecInfo = codecInfo;
                 }
@@ -171,6 +172,7 @@ public class VideoEncoder {
             byte[] readyToProcessBytes = data;
             if (mirror) {
                 readyToProcessBytes = rotateYV12Data180(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+                readyToProcessBytes = mirrorYV12Data(readyToProcessBytes, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
             }
 
             int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
@@ -238,6 +240,43 @@ public class VideoEncoder {
             }
         }
         return yv12Rotated;
+    }
+
+    private byte[] yv12mirror;
+
+    public byte[] mirrorYV12Data(byte[] yv12Data, int width, int height) {
+        int frameSize = width * height;
+        int qFrameSize = frameSize / 4;
+        if (yv12mirror == null) {
+            yv12mirror = new byte[yv12Data.length];
+        }
+
+        // Y 平面
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                yv12mirror[i * width + (width - j - 1)] = yv12Data[i * width + j];
+            }
+        }
+
+        // U 平面
+        int uWidth = width / 2;
+        int uHeight = height / 2;
+        for (int i = 0; i < uHeight; i++) {
+            for (int j = 0; j < uWidth; j++) {
+                yv12mirror[frameSize + i * uWidth + (uWidth - j - 1)] = yv12Data[frameSize + i * uWidth + j];
+            }
+        }
+
+        // V 平面
+        int vStart = frameSize + qFrameSize;
+        int vWidth = width / 2;
+        int vHeight = height / 2;
+        for (int i = 0; i < vHeight; i++) {
+            for (int j = 0; j < vWidth; j++) {
+                yv12mirror[vStart + i * vWidth + (vWidth - j - 1)] = yv12Data[vStart + i * vWidth + j];
+            }
+        }
+        return yv12mirror;
     }
 
     /**
