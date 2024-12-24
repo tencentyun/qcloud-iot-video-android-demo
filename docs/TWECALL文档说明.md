@@ -106,6 +106,13 @@ VideoNativeInterface.getInstance().exitIvSys()
 voip模块初始化，函数内部会执行鉴权等操作。  
 该接口为阻塞接口，阻塞时长视网络情况而定。
 
+**函数原型**
+```
+int iv_avt_voip_init(voip_wxa_type_e type,
+                     const char *data_path, const char *model_id,
+                     const char *device_id, const char *wxa_appid);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | --------- | ------------------ | ------------------------------- | --------- |
@@ -130,6 +137,11 @@ voip模块初始化，函数内部会执行鉴权等操作。
 检测设备是否已经注册。  
 需要在 iv_avt_voip_init 调用完成之后才能调用本函数。
 
+**函数原型**
+```
+int iv_avt_voip_is_registered(int *is_reg);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------- | ----- | -------------------------- | --------- |
@@ -152,6 +164,11 @@ voip模块初始化，函数内部会执行鉴权等操作。
 若设备已经注册，则立即返回。  
 若设备未注册或注册数据错误，会再次注册。
 
+**函数原型**
+```
+int iv_avt_voip_register(const char *ticket);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------- | ------------ | --------------------------------------------------------- | --------- |
@@ -169,6 +186,11 @@ voip模块初始化，函数内部会执行鉴权等操作。
 **功能描述**  
 voip模块退出，释放资源。
 
+**函数原型**
+```
+void iv_avt_voip_exit();
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------- | ---- | ---- | --------- |
@@ -183,6 +205,13 @@ voip模块退出，释放资源。
 
 **功能描述**  
 发起 voip 呼叫，该接口为阻塞接口，阻塞时长视网络情况而定。
+
+**函数原型**
+```
+int iv_avt_voip_call(iv_cm_stream_type_e type, const char *open_id, const char *device_id,
+                     const char *model_id, const char *wxa_appid, voip_video_info_s v_info,
+                     uint32_t caller_camera_switch, uint32_t callee_camera_switch)
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
@@ -229,6 +258,11 @@ voip模块退出，释放资源。
 用于本机主动挂断 voip 呼叫
 对方主动挂断通话时不需要调用此接口
 
+**函数原型**
+```
+int iv_avt_voip_hang_up();
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------- | ---- | ---- | --------- |
@@ -244,6 +278,11 @@ voip模块退出，释放资源。
 
 **功能描述**  
 检查是否占线
+
+**函数原型**
+```
+int iv_avt_voip_is_busy()
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
@@ -337,6 +376,11 @@ voip模块退出，释放资源。
 **功能描述**  
 现场音视频开始播放回调。用于观看端发起现场监控时，SDK 回调设备端以取得此次监控通路的相应音视频信息。
 
+**函数原型**
+```
+void (*iv_avt_get_av_enc_info_cb)(uint32_t visitor, uint32_t channel, iv_avt_video_res_type_e video_res_type,iv_cm_av_data_info_s *av_data_info, void *args);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------------- | ----------------------- | -------------- | --------- |
@@ -353,6 +397,11 @@ voip模块退出，释放资源。
 
 **功能描述**  
 现场音视频开始播放回调。用于观看端发起现场监控时，SDK 回调通知设备端启动相关音视频业务。
+
+**函数原型**
+```
+void (*iv_avt_start_real_play_cb)(uint32_t visitor, uint32_t channel, iv_avt_video_res_type_e video_res_type,void *args);
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
@@ -375,6 +424,11 @@ voip模块退出，释放资源。
 **功能描述**  
 现场音视频停止播放回调，用于观看端停止现场监控时，SDK 回调通知设备端关闭相关音视频业务。
 
+**函数原型**
+```
+void (*iv_avt_stop_real_play_cb)(uint32_t visitor, uint32_t channel, iv_avt_video_res_type_e video_res_type);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------------- | ----------------------- | ---------- | --------- |
@@ -392,6 +446,12 @@ voip模块退出，释放资源。
 
 **功能描述**  
 通知设备开始接收对向数据流回调，并输出数据流的编码信息，在收到第一个音频帧和第一个视频帧时，该回调会被分别调用，即可能被调用两次
+
+**函数原型**
+```
+int (*iv_avt_start_recv_stream_cb)(uint32_t visitor, uint32_t channel, iv_avt_stream_type_e stream_type,
+                                    iv_cm_av_data_info_s *p_av_data_info);
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
@@ -412,6 +472,11 @@ voip模块退出，释放资源。
 **功能描述**  
 通知设备停止接收对向数据流的回调，结束收流的回调只会被调用一次
 
+**函数原型**
+```
+int (*iv_avt_stop_recv_stream_cb)(uint32_t visitor, uint32_t channel, iv_avt_stream_type_e stream_type);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | ----------- | -------------------- | ---------- | --------- |
@@ -429,6 +494,11 @@ voip模块退出，释放资源。
 
 **功能描述**  
 接收对向的数据流回调。用于观看端向设备发送音视频数据时，设备端的接收数据回调，由用户实现对数据进行处理播放。
+
+**函数原型**
+```
+int (*iv_avt_recv_stream_cb)(uint32_t visitor, uint32_t channel, iv_avt_stream_type_e stream_type, void *p_stream);
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
@@ -449,6 +519,12 @@ voip模块退出，释放资源。
 **功能描述**  
 监控过程中，事件通知接口，用户在该回调中可以根据事件类型做相应的操作。当前版本主要是拥塞控制的事件回调;
 
+**函数原型**
+```
+void (*iv_avt_notify_cb)(iv_avt_event_e event, uint32_t visitor, uint32_t channel,
+                            iv_avt_stream_type_e stream_type);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | ----------- | -------------------- | ---------------- | --------- |
@@ -467,6 +543,12 @@ voip模块退出，释放资源。
 
 **功能描述**  
 接收信令处理回调
+
+**函数原型**
+```
+int (*iv_avt_recv_command_cb)(iv_avt_command_type_e command, uint32_t visitor, uint32_t channel,
+                                iv_avt_video_res_type_e video_res_type, void *args);
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
@@ -491,6 +573,12 @@ voip模块退出，释放资源。
 **功能描述**  
 文件下载回调
 
+**函数原型**
+```
+int (*iv_avt_download_file_cb)(iv_avt_download_status_e status, uint32_t visitor,
+                                uint32_t channel, void *args);
+```
+
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
 | -------- | ------------------------ | -------- | --------- |
@@ -512,6 +600,11 @@ voip模块退出，释放资源。
 
 **功能描述**  
 获取对端外网IP信息回调
+
+**函数原型**
+```
+void (*iv_avt_get_peer_outer_net_cb)(uint32_t visitor, uint32_t channel, char *net_info);
+```
 
 **参数说明**  
 | 参数名称 | 类型 | 描述 | 输入/输出 |
