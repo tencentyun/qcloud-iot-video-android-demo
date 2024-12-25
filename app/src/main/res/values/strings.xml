@@ -84,4 +84,6 @@
     <string name="text_send_command">发送信令</string>
     <string name="text_send">发送</string>
     <string name="title_log">Log</string>
+    <string name="text_start_ai">开始</string>
+    <string name="text_end_ai">结束</string>
 </resources>

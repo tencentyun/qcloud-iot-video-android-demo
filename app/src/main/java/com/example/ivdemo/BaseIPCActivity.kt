@@ -37,6 +37,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     protected var channel: Int = 0
     protected var videoResType: Int = 0
     protected var isOnline = false
+    protected var isP2pReady = false
     private val region = "china"
     private val isUserCongestionCtrl = true
 
@@ -201,6 +202,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
             P2pEventType.IV_AVT_EVENT_P2P_PEER_CONNECT_FAIL, P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR -> {
                 Log.d(TAG, "receive event: peer error")
                 msg = "network err"
+                isP2pReady = false
             }
 
             P2pEventType.IV_AVT_EVENT_P2P_PEER_ADDR_CHANGED -> {
@@ -208,7 +210,15 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
                 msg = "peer change"
             }
 
-            P2pEventType.IV_AVT_EVENT_P2P_PEER_READY, P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_LOW, P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_WARN, P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_HIGH, P2pEventType.IV_AVT_EVENT_P2P_LOCAL_NET_READY -> {}
+            P2pEventType.IV_AVT_EVENT_P2P_PEER_READY, P2pEventType.IV_AVT_EVENT_P2P_LOCAL_NET_READY -> {
+                isP2pReady = true
+            }
+
+            P2pEventType.IV_AVT_EVENT_P2P_LINK_DISCONNECT -> {
+                isP2pReady = false
+            }
+
+            P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_LOW, P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_WARN, P2pEventType.IV_AVT_EVENT_P2P_WATERMARK_HIGH, P2pEventType.IV_AVT_EVENT_P2P_LOCAL_NET_READY -> {}
             else -> {
                 Log.d(TAG, "not support event")
                 msg = "unsupport event type $event"
