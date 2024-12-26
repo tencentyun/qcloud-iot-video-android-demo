@@ -96,6 +96,14 @@ class AiTestActivity : BaseIPCActivity<AcitivtyAiTestBinding>(), OnEncodeListene
             player.stopVideoPlay(visitor)
         }
     }
+    override fun onRecvStream(visitor: Int, streamType: Int, data: ByteArray?, len: Int, pts: Long, seq: Long): Int {
+        if (streamType == 1) {
+            return player.playVideoStream(visitor, data, len, pts, seq)
+        } else if (streamType == 0) {
+            return player.playAudioStream(visitor, data, len, pts, seq)
+        }
+        return 0
+    }
 
     override fun onDestroy() {
         checkDefaultThreadActiveAndExecuteTask {
@@ -108,7 +116,7 @@ class AiTestActivity : BaseIPCActivity<AcitivtyAiTestBinding>(), OnEncodeListene
 
     override fun onAudioEncoded(datas: ByteArray?, pts: Long, seq: Long) {
 //        if (wareReportSate) {
-        VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, channel, IV_AVT_VIDEO_AUDIO)
+        VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, channel, videoResType)
 //        }
     }
 
