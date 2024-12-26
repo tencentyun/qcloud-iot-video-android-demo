@@ -75,5 +75,5 @@ dependencies {
     implementation libs.androidx.core.ktx
     implementation libs.kotlinx.coroutines.android
     implementation libs.gson
-    implementation 'com.tencent.iot.video:video-device-android:1.0.7.9-SNAPSHOT'
+    implementation 'com.tencent.iot.video:video-device-android:1.0.7.9.03-SNAPSHOT'
 }
