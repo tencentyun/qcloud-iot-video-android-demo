@@ -67,22 +67,12 @@ public class VideoEncoder {
      * @return
      */
     private MediaCodecInfo getMediaCodecInfo() {
-        MediaCodecList codecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-        MediaCodecInfo[] codecInfos = codecList.getCodecInfos();
-        MediaCodecInfo resInfo = null;
-        for (MediaCodecInfo codecInfo : codecInfos) {
-            if (!codecInfo.isEncoder()) continue;
-            String[] types = codecInfo.getSupportedTypes();
-            for (String type : types) {
-                if (!type.startsWith("video/")) continue;
-                if (encoderList.contains(codecInfo.getName())) {
-                    MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(type);
-                    Log.d(TAG, "using hardware encoder name:" + codecInfo.getName() + "  support colorFormats:" + Arrays.toString(capabilities.colorFormats));
-                    return codecInfo;
-                } else {
-                    resInfo = codecInfo;
-                }
-            }
+        MediaCodecInfo resInfo = videoEncodeParam.getCodecInfo();
+        String[] types = resInfo.getSupportedTypes();
+        for (String type : types) {
+            if (!type.startsWith("video/")) continue;
+            MediaCodecInfo.CodecCapabilities capabilities = resInfo.getCapabilitiesForType(type);
+            Log.d(TAG, "using encoder name:" + resInfo.getName() + "  support colorFormats:" + Arrays.toString(capabilities.colorFormats));
         }
         return resInfo;
     }

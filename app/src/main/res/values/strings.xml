@@ -83,4 +83,6 @@
     <string name="text_send_command">发送信令</string>
     <string name="text_send">发送</string>
     <string name="title_log">Log</string>
+    <string name="text_soft_encode">软编码</string>
+    <string name="text_hard_encode">硬编码</string>
 </resources>

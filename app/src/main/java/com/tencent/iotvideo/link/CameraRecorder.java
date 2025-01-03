@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.AudioFormat;
+import android.media.MediaCodecInfo;
 import android.media.MediaRecorder;
 import android.text.TextUtils;
 import android.util.Log;
@@ -77,9 +78,12 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     public void openCamera(TextureView textureView, Activity activity) {
         try {
-            int videoWidth = QualitySetting.getInstance(activity.getApplicationContext()).getWidth();
-            int videoHeight = QualitySetting.getInstance(activity.getApplicationContext()).getHeight();
-            int videoFrameRate = QualitySetting.getInstance(activity.getApplicationContext()).getFrameRate();
+            QualitySetting setting = QualitySetting.getInstance(activity.getApplicationContext());
+            int videoWidth = setting.getResolutionEntity().getWidth();
+            int videoHeight = setting.getResolutionEntity().getHeight();
+            int videoFrameRate = setting.getFrameRate();
+            int videoEncodeType = setting.getEncodeType();
+            MediaCodecInfo info = setting.getMediaCodecInfo();
             Range<Double> range = getBitRateIntervalByPixel(videoWidth, videoHeight);
             int videoBitRate = (int) ((range.getUpper() + range.getLower()) / 2);
             videoEncodeParam = new VideoEncodeParam();
@@ -87,6 +91,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             videoEncodeParam.setWidth(videoWidth);
             videoEncodeParam.setFrameRate(videoFrameRate);
             videoEncodeParam.setBitRate(videoBitRate);
+            videoEncodeParam.setEncodeType(videoEncodeType);
+            videoEncodeParam.setCodecInfo(info);
             mVideoEncoder = new VideoEncoder(videoEncodeParam);
             mVideoEncoder.setEncoderListener(this);
 
@@ -131,20 +137,24 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     public void closeCamera() {
         try {
-            mVideoEncoder.stop();
-            mVideoEncoder = null;
+            if (mVideoEncoder != null) {
+                mVideoEncoder.stop();
+                mVideoEncoder = null;
+            }
+            if (mAudioEncoder != null) {
+                mAudioEncoder.stop();
+                mAudioEncoder = null;
+            }
 
-            mAudioEncoder.stop();
-            mAudioEncoder = null;
             Log.d(TAG, "stop camera recording");
             stopBitRateAdapter();
             camera.stopPreview();
             camera.setPreviewCallback(null);
             camera.release();
-            isRunning = false;
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+        isRunning = false;
     }
 
     public void startRecording(int visitor, int channel, int res_type) {

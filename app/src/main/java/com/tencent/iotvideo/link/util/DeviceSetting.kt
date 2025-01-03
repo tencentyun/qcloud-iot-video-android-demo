@@ -107,14 +107,16 @@ class DeviceSetting private constructor(context: Context) {
         get() {
             if (!isLoadOpenIds) {
                 isLoadOpenIds = true
-                val value = preferences?.getString("openIdList", null) ?: BuildConfig.openId
+                val value = preferences?.getString("openIdList", null)
                 Log.d(TAG, "editor? get date key:openIdList  value:$value")
-                if (value.isNotEmpty()) {
+                if (value?.isNotEmpty() == true) {
                     kotlin.runCatching {
                         val listType = object : TypeToken<ArrayList<UserEntity>>() {}.type
                         val arrayList: ArrayList<UserEntity> = gson.fromJson(value, listType)
                         openIds.addAll(arrayList)
                     }
+                } else {
+                    openIds.add(UserEntity(BuildConfig.openId))
                 }
             }
             return openIds

@@ -7,13 +7,12 @@
     android:layout_height="match_parent"
     android:background="@color/dialog_background">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:background="@drawable/background_setting_layout"
-        android:orientation="vertical"
-        android:paddingVertical="16dp"
+        android:padding="16dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout2">
 
         <TextView
@@ -22,149 +21,147 @@
             android:layout_height="wrap_content"
             android:drawableStart="@mipmap/wx_setting"
             android:drawablePadding="8dp"
-            android:paddingStart="16dp"
             android:text="@string/quality_setting_text"
             android:textColor="@color/black"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <View
+            android:id="@+id/view"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/dashed_line" />
+            android:background="@drawable/dashed_line"
+            app:layout_constraintTop_toBottomOf="@+id/tv_quality_setting"
+            tools:layout_editor_absoluteX="16dp" />
 
         <TextView
-            android:id="@+id/text_twe_call_local_resolution"
+            android:id="@+id/tv_encoder_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"
+            android:text="请选择编码方式:"
+            app:layout_constraintTop_toBottomOf="@+id/view" />
+
+        <TextView
+            android:id="@+id/tv_encoder_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="(注：软编码灵活兼容性好，性能差；硬编码性能好，兼容性差)"
+
+            android:textSize="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_encoder_label"
+            app:layout_constraintStart_toEndOf="@+id/tv_encoder_label" />
+
+        <RadioGroup
+            android:id="@+id/rg_select_encode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@+id/tv_encoder_label">
+
+            <RadioButton
+                android:id="@+id/rb_soft_encode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:tag="0"
+                android:text="@string/text_soft_encode"
+                android:textSize="12sp" />
+
+            <RadioButton
+                android:id="@+id/rb_hard_encode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="1"
+                android:text="@string/text_hard_encode"
+                android:textSize="12sp" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/ll_select_encode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@+id/rg_select_encode">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="请选择编码器:" />
+
+            <Spinner
+                android:id="@+id/sp_select_encode"
+                android:layout_width="150dp"
+                android:layout_height="40dp"
+                android:textAlignment="center"
+                android:textSize="12sp"
+                app:layout_constraintTop_toBottomOf="@+id/text_twe_call_local_pixels" />
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/text_twe_call_local_pixels"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="@string/local_resolution"
             android:textAlignment="center"
-            android:textSize="16sp" />
+            app:layout_constraintTop_toBottomOf="@+id/ll_select_encode" />
 
         <Spinner
-            android:id="@+id/sp_twe_call_local_resolution"
+            android:id="@+id/sp_twe_call_local_pixels"
             android:layout_width="150dp"
             android:layout_height="40dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
             android:textAlignment="center"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@+id/text_twe_call_local_pixels" />
 
         <TextView
-            android:id="@+id/text_twe_call_local_frame_rate"
+            android:id="@+id/text_twe_call_wx_pixels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:gravity="center"
-            android:text="@string/local_frame_rate"
-            android:textAlignment="center"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@color/white"
-            android:orientation="horizontal">
-
-            <SeekBar
-                android:id="@+id/sb_twe_call_local_frame_rate"
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="5dp"
-                android:textAlignment="center"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/tv_twe_call_local_frame_rate_tip"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:text="@string/local_frame_rate_tip"
-                android:textSize="12sp" />
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/text_twe_call_local_bit_rate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:gravity="center"
-            android:text="@string/local_bit_rate"
-            android:textAlignment="center"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@color/white"
-            android:orientation="horizontal">
-
-            <SeekBar
-                android:id="@+id/sb_twe_call_local_bit_rate"
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="5dp"
-                android:textAlignment="center"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/tv_twe_call_local_frame_bit_tip"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:text="@string/local_bit_rate_tip"
-                android:textSize="12sp" />
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/text_twe_call_wx_resolution"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="@string/wx_resolution"
             android:textAlignment="center"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@+id/sp_twe_call_local_pixels" />
 
         <Spinner
-            android:id="@+id/sp_twe_call_wx_resolution"
+            android:id="@+id/sp_twe_call_wx_pixels"
             android:layout_width="150dp"
             android:layout_height="40dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
+            android:entries="@array/call_wx_pixels_values"
             android:textAlignment="center"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@+id/text_twe_call_wx_pixels" />
+
+
 
         <TextView
             android:id="@+id/text_twe_call_wx_camera_is_open"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="@string/wx_camera_setting"
             android:textAlignment="center"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@+id/sp_twe_call_wx_pixels" />
 
         <Switch
             android:id="@+id/sw_twe_call_wx_camera_is_open"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
             android:textAlignment="center"
+            app:layout_constraintTop_toBottomOf="@+id/text_twe_call_wx_camera_is_open"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout2"

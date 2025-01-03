@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="call_wx_pixels_values">
+        <item>可变自适应</item>
+        <item>240x320</item>
+        <item>320x240</item>
+        <item>480x352</item>
+        <item>480x640</item>
+    </string-array>
+
+    <string-array name="call_local_pixels_values">
+        <item>1920x1080</item>
+        <item>1280x960</item>
+        <item>960x720</item>
+        <item>640x480</item>
+        <item>480x360</item>
+        <item>320x240</item>
+    </string-array>
+</resources>
