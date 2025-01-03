@@ -60,7 +60,8 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback, OnE
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(binding.textureViewIpc, this@IPCActivity)
+                cameraRecorder.setPreviewView(binding.textureViewIpc)
+                cameraRecorder.openCamera()
                 Log.d("IPCActivity", "onSurfaceTextureAvailable")
             }
         }
@@ -86,8 +87,9 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback, OnE
 
     override fun getViewBinding(): ActivityIpcBinding = ActivityIpcBinding.inflate(layoutInflater)
     override fun initView() {
-        prepareCs()
+        cameraRecorder.init(this)
         cameraRecorder.setOnEncodeListener(this)
+        prepareCs()
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ipc)
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
@@ -96,7 +98,7 @@ class IPCActivity : BaseIPCActivity<ActivityIpcBinding>(), IvCsInitCallback, OnE
                 val dialog = QualitySettingDialog(this@IPCActivity)
                 dialog.setOnDismissListener {
                     cameraRecorder.closeCamera()
-                    cameraRecorder.openCamera(binding.textureViewIpc, this@IPCActivity)
+                    cameraRecorder.openCamera()
                 }
                 dialog.show(supportFragmentManager)
             }

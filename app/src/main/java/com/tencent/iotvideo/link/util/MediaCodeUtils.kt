@@ -3,6 +3,7 @@ package com.tencent.iotvideo.link.util
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
+import android.util.Log
 
 private val softEncoderList = arrayOf("OMX.google.h264.encoder")
 private val hardEncoderList = mutableListOf(
@@ -32,5 +33,18 @@ fun getSupportVideoEncoder(type: Int): List<MediaCodecInfo> {
             }
         }
     }
+    Log.d("util", "mediaCodecList:$mediaCodecList")
     return mediaCodecList;
+}
+
+fun getMediaCodecInfoByName(encoderName: String): MediaCodecInfo? {
+    val mediaCodecList = arrayListOf<MediaCodecInfo>()
+    val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
+    val codecInfos = codecList.codecInfos
+    for (codecInfo in codecInfos) {
+        if (!codecInfo.isEncoder) continue
+        if (codecInfo.name == encoderName) return codecInfo;
+    }
+    Log.d("util", "mediaCodecList:$mediaCodecList")
+    return null;
 }

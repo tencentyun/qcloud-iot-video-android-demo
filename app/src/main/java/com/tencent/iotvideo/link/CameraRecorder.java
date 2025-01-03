@@ -3,7 +3,6 @@ package com.tencent.iotvideo.link;
 import static com.tencent.iotvideo.link.util.UtilsKt.getBitRateIntervalByPixel;
 
 import android.app.Activity;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.MediaCodecInfo;
@@ -63,6 +62,10 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private FileOutputStream fos;
     private String speakH264FilePath = "/sdcard/video.h264";
 
+    private Activity context;
+
+    private TextureView previewView;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private OnEncodeListener encodeListener;
@@ -71,37 +74,59 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         this.encodeListener = listener;
     }
 
-    public void isSaveRecord(boolean isSaveRecord) {
-        this.isSaveRecord = isSaveRecord;
-        recordSpeakH264(isSaveRecord);
+    public void init(Activity context) {
+        this.context = context;
+        QualitySetting setting = QualitySetting.getInstance(context.getApplicationContext());
+        int videoWidth = setting.getResolutionEntity().getWidth();
+        int videoHeight = setting.getResolutionEntity().getHeight();
+        int videoFrameRate = setting.getFrameRate();
+        int videoEncodeType = setting.getEncodeType();
+        MediaCodecInfo info = setting.getMediaCodecInfo();
+        Range<Double> range = getBitRateIntervalByPixel(videoWidth, videoHeight);
+        int videoBitRate = (int) ((range.getUpper() + range.getLower()) / 2);
+        videoEncodeParam = new VideoEncodeParam();
+        videoEncodeParam.setHeight(videoHeight);
+        videoEncodeParam.setWidth(videoWidth);
+        videoEncodeParam.setFrameRate(videoFrameRate);
+        videoEncodeParam.setBitRate(videoBitRate);
+        videoEncodeParam.setEncodeType(videoEncodeType);
+        videoEncodeParam.setCodecInfo(info);
+        mVideoEncoder = new VideoEncoder(videoEncodeParam);
+        mVideoEncoder.setEncoderListener(this);
+
+        MicParam micParam = new MicParam();
+        micParam.setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
+        micParam.setChannelConfig(AudioFormat.CHANNEL_IN_MONO);
+        micParam.setSampleRateInHz(mAudioSampleRate);
+        micParam.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
+        AudioEncodeParam audioEncodeParam = new AudioEncodeParam();
+        audioEncodeParam.setBitRate(mAudioBitRate);
+        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
+        mAudioEncoder.setOnEncodeListener(this);
     }
 
-    public void openCamera(TextureView textureView, Activity activity) {
-        try {
-            QualitySetting setting = QualitySetting.getInstance(activity.getApplicationContext());
-            int videoWidth = setting.getResolutionEntity().getWidth();
-            int videoHeight = setting.getResolutionEntity().getHeight();
-            int videoFrameRate = setting.getFrameRate();
-            int videoEncodeType = setting.getEncodeType();
-            MediaCodecInfo info = setting.getMediaCodecInfo();
-            Range<Double> range = getBitRateIntervalByPixel(videoWidth, videoHeight);
-            int videoBitRate = (int) ((range.getUpper() + range.getLower()) / 2);
-            videoEncodeParam = new VideoEncodeParam();
-            videoEncodeParam.setHeight(videoHeight);
-            videoEncodeParam.setWidth(videoWidth);
-            videoEncodeParam.setFrameRate(videoFrameRate);
-            videoEncodeParam.setBitRate(videoBitRate);
-            videoEncodeParam.setEncodeType(videoEncodeType);
-            videoEncodeParam.setCodecInfo(info);
-            mVideoEncoder = new VideoEncoder(videoEncodeParam);
-            mVideoEncoder.setEncoderListener(this);
+    public void setPreviewView(TextureView textureView) {
+        this.previewView = textureView;
+    }
 
+    public void openCamera() {
+        try {
             // Configure and start the camera
             camera = Camera.open(cameraId);
-            camera.setDisplayOrientation(CameraUtils.getDisplayOrientation(activity, cameraId));
+            camera.setErrorCallback((error, camera) -> {
+                if (error == Camera.CAMERA_ERROR_SERVER_DIED || error == Camera.CAMERA_ERROR_UNKNOWN) {
+                    closeCamera();
+                    openCamera();
+                }
+            });
+            if (context != null) {
+                camera.setDisplayOrientation(CameraUtils.getDisplayOrientation(context, cameraId));
+            }
+            if (previewView != null) {
+                camera.setPreviewTexture(previewView.getSurfaceTexture());
+            }
             Camera.Parameters parameters = getParameters();
             camera.setParameters(parameters);
-            camera.setPreviewTexture(textureView.getSurfaceTexture());
             camera.setPreviewCallback(this);
             camera.startPreview();
             isRunning = true;
@@ -123,7 +148,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         return parameters;
     }
 
-//    public void switchCamera(TextureView textureView, Activity activity) {
+//    public void switchCamera() {
 //        if (cameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
 //            cameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
 //        } else {
@@ -137,25 +162,18 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     public void closeCamera() {
         try {
-            if (mVideoEncoder != null) {
-                mVideoEncoder.stop();
-                mVideoEncoder = null;
+            if (camera != null) {
+                camera.stopPreview();
+                camera.setPreviewCallback(null);
+                camera.release();
+                camera = null;
             }
-            if (mAudioEncoder != null) {
-                mAudioEncoder.stop();
-                mAudioEncoder = null;
-            }
-
-            Log.d(TAG, "stop camera recording");
-            stopBitRateAdapter();
-            camera.stopPreview();
-            camera.setPreviewCallback(null);
-            camera.release();
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
         isRunning = false;
     }
+
 
     public void startRecording(int visitor, int channel, int res_type) {
         if (mIsRecording) {
@@ -164,20 +182,30 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
         mVisitorInfo.put(visitor, new Pair<>(channel, res_type));
         mVideoEncoder.start();
-        MicParam micParam = new MicParam();
-        micParam.setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
-        micParam.setChannelConfig(AudioFormat.CHANNEL_IN_MONO);
-        micParam.setSampleRateInHz(mAudioSampleRate);
-        micParam.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-        AudioEncodeParam audioEncodeParam = new AudioEncodeParam();
-        audioEncodeParam.setBitRate(mAudioBitRate);
-        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
-        mAudioEncoder.setOnEncodeListener(this);
         mAudioEncoder.setMuted(isMuted);
         mAudioEncoder.start();
         mIsRecording = true;
         Log.d(TAG, "start camera recording");
         startBitRateAdapter(visitor, channel, res_type);
+    }
+
+    public void stopRecording(int visitor, int res_type) {
+        if (!mIsRecording) {
+            return;
+        }
+        if (mVideoEncoder != null) {
+            mVideoEncoder.stop();
+            mVideoEncoder = null;
+        }
+        if (mAudioEncoder != null) {
+            mAudioEncoder.stop();
+            mAudioEncoder = null;
+        }
+        mIsRecording = false;
+        mVisitorInfo.remove(visitor);
+        if (!mVisitorInfo.isEmpty()) return;
+        Log.d(TAG, "stop camera recording");
+        stopBitRateAdapter();
     }
 
     public void setMuted(boolean muted) {
@@ -192,19 +220,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             return mAudioEncoder.isMuted();
         }
         return isMuted;
-    }
-
-    public void stopRecording(int visitor, int res_type) {
-        if (!mIsRecording) {
-            return;
-        }
-
-        mVisitorInfo.remove(visitor);
-        if (!mVisitorInfo.isEmpty()) return;
-
-        mIsRecording = false;
-        Log.d(TAG, "stop camera recording");
-        stopBitRateAdapter();
     }
 
     @Override
@@ -240,6 +255,8 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 if (ret != 0) {
                     int buf_size = iv.getSendStreamBuf(visitor, channel, res_type);
                     Log.e(TAG, "sendVideoData to visitor " + visitor + " failed: " + ret + " buf size " + buf_size);
+                }else {
+                    Log.e(TAG, "sendVideoData to success");
                 }
 
                 if ((stat_cnt++ % 50) == 0) {
@@ -248,19 +265,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
                 }
             }
-            if (isSaveRecord) {
-                if (executor.isShutdown()) return;
-                executor.submit(() -> {
-                    if (fos != null) {
-                        try {
-                            fos.write(datas);
-                            fos.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
+            saveH264(datas);
         }
     }
 
@@ -286,6 +291,16 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
     }
 
+    /**
+     * 保存h264数据
+     *
+     * @param isSaveRecord
+     */
+    public void isSaveRecord(boolean isSaveRecord) {
+        this.isSaveRecord = isSaveRecord;
+        recordSpeakH264(isSaveRecord);
+    }
+
     public void recordSpeakH264(boolean isRecord) {
         if (isRecord) {
             if (!TextUtils.isEmpty(speakH264FilePath)) {
@@ -297,6 +312,22 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     Log.e(TAG, speakH264FilePath + "临时缓存文件未找到");
                 }
             }
+        }
+    }
+
+    public void saveH264(byte[] datas) {
+        if (isSaveRecord) {
+            if (executor.isShutdown()) return;
+            executor.submit(() -> {
+                if (fos != null) {
+                    try {
+                        fos.write(datas);
+                        fos.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
     }
 }

@@ -209,10 +209,14 @@ public class VideoEncoder {
     }
 
     public void stop() {
-        if (mediaCodec != null) {
-            mediaCodec.stop();
-            mediaCodec.release();
-            mediaCodec = null;
+        try {
+            if (mediaCodec != null) {
+                mediaCodec.stop();
+                mediaCodec.release();
+                mediaCodec = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         executor.shutdown();
     }

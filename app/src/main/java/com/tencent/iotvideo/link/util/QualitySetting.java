@@ -1,5 +1,6 @@
 package com.tencent.iotvideo.link.util;
 
+import static com.tencent.iotvideo.link.util.MediaCodeUtilsKt.getMediaCodecInfoByName;
 import static com.tencent.iotvideo.link.util.MediaCodeUtilsKt.getSupportVideoEncoder;
 
 import android.content.Context;
@@ -53,11 +54,12 @@ public class QualitySetting {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("encodeType", encodeType);
         editor.putString("resolutionEntity", gson.toJson(resolutionEntity));
-        editor.putString("mediaCodecInfo", gson.toJson(mediaCodecInfo));
+        editor.putString("encoderName", mediaCodecInfo.getName());
         editor.putInt("frameRate", this.frameRate);
         editor.putInt("bitRate", this.bitRate);
         editor.putInt("wxResolution", this.wxResolution);
         editor.putBoolean("wxCameraOn", this.wxCameraOn);
+        Log.d(TAG, "save data encodeType:" + encodeType + " resolutionEntity:" + gson.toJson(resolutionEntity) + " encoderName:" + mediaCodecInfo.getName() + " frameRate:" + frameRate + " bitRate:" + bitRate + " wxResolution:" + wxResolution + " wxCameraOn:" + wxCameraOn);
         editor.apply();
     }
 
@@ -70,9 +72,9 @@ public class QualitySetting {
         } else {
             resolutionEntity = new ResolutionEntity(640, 480, "480p");
         }
-        MediaCodecInfo info = gson.fromJson(preferences.getString("mediaCodecInfo", ""), MediaCodecInfo.class);
-        if (info != null) {
-            mediaCodecInfo = info;
+        String encoderName = preferences.getString("encoderName", "");
+        if (!encoderName.isEmpty()) {
+            mediaCodecInfo = getMediaCodecInfoByName(encoderName);
         } else {
             List<MediaCodecInfo> list = MediaCodeUtilsKt.getSupportVideoEncoder(0);
             if (list.isEmpty()) {
@@ -85,6 +87,7 @@ public class QualitySetting {
         this.bitRate = preferences.getInt("bitRate", 800);
         this.wxResolution = preferences.getInt("wxResolution", 0);
         this.wxCameraOn = preferences.getBoolean("wxCameraOn", true);
+        Log.d(TAG, "load data encodeType:" + encodeType + " resolutionEntity:" + gson.toJson(resolutionEntity) + " mediaCodecInfo:" + mediaCodecInfo.getName() + " frameRate:" + frameRate + " bitRate:" + bitRate + " wxResolution:" + wxResolution + " wxCameraOn:" + wxCameraOn);
     }
 
     public int getEncodeType() {

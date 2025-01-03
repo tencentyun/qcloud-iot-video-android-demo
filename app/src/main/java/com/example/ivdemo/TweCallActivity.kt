@@ -74,7 +74,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(binding.textureViewTweCall, this@TweCallActivity)
+                cameraRecorder.setPreviewView(binding.textureViewTweCall)
+                cameraRecorder.openCamera()
             } else if (surface == binding.surfaceViewTweCall.surfaceTexture) {
                 remotePreviewSurface = surface
                 synchronized(lock) {
@@ -117,6 +118,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         ActivityTweCallBinding.inflate(layoutInflater)
 
     override fun initView() {
+        cameraRecorder.init(this)
+        cameraRecorder.isSaveRecord(true)
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_tweCall)
             titleLayout.ivRightBtn.isVisible = true

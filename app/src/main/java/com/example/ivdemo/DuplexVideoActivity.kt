@@ -44,7 +44,8 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                 localPreviewSurface = surface
 
                 // Start the camera encoder
-                cameraRecorder.openCamera(binding.textureViewDuplex, this@DuplexVideoActivity)
+                cameraRecorder.setPreviewView(binding.textureViewDuplex)
+                cameraRecorder.openCamera()
             } else if (surface == binding.surfaceViewDuplex.surfaceTexture) {
                 remotePreviewSurface = surface
             }
@@ -71,6 +72,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         ActivityDuplexVideoBinding.inflate(layoutInflater)
 
     override fun initView() {
+        cameraRecorder.init(this)
         player.setContext(this)
         with(binding) {
             textureViewDuplex.surfaceTextureListener = listener
@@ -82,7 +84,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                 val dialog = QualitySettingDialog(this@DuplexVideoActivity)
                 dialog.setOnDismissListener {
                     cameraRecorder.closeCamera()
-                    cameraRecorder.openCamera(binding.textureViewDuplex, this@DuplexVideoActivity)
+                    cameraRecorder.openCamera()
                 }
                 dialog.show(supportFragmentManager)
             }
@@ -125,7 +127,7 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
                     binding.textureViewDuplex.isVisible = true
                     ivVideo.setImageResource(R.mipmap.icon_video_open)
                     btnVideo.text = "摄像头开"
-                    cameraRecorder.openCamera(binding.textureViewDuplex, this@DuplexVideoActivity)
+                    cameraRecorder.openCamera()
                 }
             }
         }
