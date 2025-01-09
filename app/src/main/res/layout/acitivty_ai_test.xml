@@ -13,19 +13,31 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:gravity="center_horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/btn_start_ai"
+        android:text="阅读示例"
+        app:layout_constraintBottom_toTopOf="@+id/tv_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title_layout" />
+
+    <TextView
+        android:id="@+id/tv_text"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:gravity="center_horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/btn_start_ai"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_content" />
 
     <Button
         android:id="@+id/btn_start_ai"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        android:background="@drawable/background_blue_cell_btn"
+        android:background="@drawable/background_grey_cell_btn"
         android:text="@string/text_start_ai"
-        android:textColor="@color/blue_0052D9"
+        android:enabled="false"
+        android:textColor="@color/white_0052D9"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/btn_end_ai"
@@ -39,6 +51,7 @@
         android:layout_marginBottom="80dp"
         android:background="@drawable/background_blue_cell_btn"
         android:text="@string/text_end_ai"
+        android:visibility="gone"
         android:textColor="@color/blue_0052D9"
         android:textSize="20sp"
         android:textStyle="bold"
