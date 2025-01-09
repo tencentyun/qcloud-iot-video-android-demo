@@ -37,6 +37,8 @@ class AiTestActivity : BaseIPCActivity<AcitivtyAiTestBinding>(), OnEncodeListene
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_ai_test)
             titleLayout.ivBack.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            textDevInfo.text = String.format((getString(R.string.text_device_info)), "${productId}_$deviceName")
+
             tvContent.text = "   观沧海\n" +
                     "   东汉末年/三国·曹操  \n" +
                     "  东临碣石，以观沧海。\n" +
