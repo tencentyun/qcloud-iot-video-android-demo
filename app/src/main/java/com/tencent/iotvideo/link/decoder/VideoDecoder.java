@@ -2,6 +2,7 @@ package com.tencent.iotvideo.link.decoder;
 
 import static com.tencent.iotvideo.link.util.UtilsKt.getFile;
 
+import android.annotation.SuppressLint;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -53,6 +54,7 @@ public class VideoDecoder {
         }
     }
 
+    @SuppressLint("WrongConstant")
     private void initVideo(int width, int height, Surface surface) throws IOException {
         mVideoExecutor = Executors.newSingleThreadExecutor();
         mVideoCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);

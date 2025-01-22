@@ -1,5 +1,6 @@
 package com.tencent.iotvideo.link.encoder;
 
+import android.annotation.SuppressLint;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -77,6 +78,7 @@ public class AudioEncoder {
         this.encodeListener = listener;
     }
 
+    @SuppressLint("MissingPermission")
     private void initAudio() {
         bufferSizeInBytes = 2 * AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
         Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
