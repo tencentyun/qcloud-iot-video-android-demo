@@ -21,6 +21,6 @@
         <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryDark">@color/white</item>
         <item name="android:statusBarColor">@color/white</item>
-        <item name="android:windowLightStatusBar">true</item> <!-- 使状态栏图标变为深色 -->
+        <item name="android:windowLightStatusBar" tools:targetApi="m" tools:ignore="NewApi">true</item> <!-- 使状态栏图标变为深色 -->
     </style>
 </resources>
