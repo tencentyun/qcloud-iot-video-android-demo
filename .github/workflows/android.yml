@@ -11,6 +11,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      IOT_SONATYPE_USERNAME: ${{ secrets.IOT_SONATYPE_USERNAME }}
+      IOT_SONATYPE_PASSWORD: ${{ secrets.IOT_SONATYPE_PASSWORD }}
+
     steps:
     - uses: actions/checkout@v4
     - name: set up JDK 17
