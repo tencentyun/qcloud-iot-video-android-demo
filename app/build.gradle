@@ -52,7 +52,11 @@ android {
 
 def getValue(String id) {
     Properties properties = new Properties()
-    properties.load(new FileInputStream(rootProject.file("local.properties")))
+    File localPropertiesFile = rootProject.file("local.properties")
+    if (!localPropertiesFile.exists()) {
+        return "${getValueById(id)}"
+    }
+    properties.load(new FileInputStream(localPropertiesFile))
     def value = properties.getProperty(id, "")
     if (value.isEmpty()) {
         value = "${getValueById(id)}"
