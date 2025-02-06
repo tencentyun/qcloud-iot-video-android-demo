@@ -199,7 +199,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             } else {
                 showToast("twecall初始化成功")
                 val activeDeviceInfo = VideoNativeInterface.getInstance().voipActiveDeviceInfoV2
-                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis()) {
+                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis()/1000) {
                     val activateRes = VideoNativeInterface.getInstance()
                         .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_IPC)
                     if (activateRes == 0) {
