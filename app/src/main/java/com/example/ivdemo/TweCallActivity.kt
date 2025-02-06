@@ -16,6 +16,7 @@ import com.tencent.iot.video.device.VideoNativeInterface
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
+import com.tencent.iot.video.device.annotations.VoipActivateType
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iotvideo.link.CameraRecorder
@@ -197,6 +198,16 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 showToast("初始化失败，resCode:$initStatus")
             } else {
                 showToast("twecall初始化成功")
+                val activeDeviceInfo = VideoNativeInterface.getInstance().voipActiveDeviceInfoV2
+                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis()) {
+                    val activateRes = VideoNativeInterface.getInstance()
+                        .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_IPC)
+                    if (activateRes == 0) {
+                        showToast("检查设备过期，激活结果成功，resCode:$activateRes")
+                    } else {
+                        showToast("检查设备过期，激活结果失败，resCode:$activateRes")
+                    }
+                }
             }
         }
     }
