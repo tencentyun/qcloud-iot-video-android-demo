@@ -201,7 +201,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 val activeDeviceInfo = VideoNativeInterface.getInstance().voipActiveDeviceInfoV2
                 if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis()/1000) {
                     val activateRes = VideoNativeInterface.getInstance()
-                        .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_IPC)
+                        .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_TEST)
                     if (activateRes == 0) {
                         showToast("检查设备过期，激活结果成功，resCode:$activateRes")
                     } else {
