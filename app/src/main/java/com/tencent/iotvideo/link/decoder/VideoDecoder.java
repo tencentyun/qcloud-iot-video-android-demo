@@ -25,7 +25,7 @@ public class VideoDecoder {
     private MediaCodec mVideoCodec;
     private ExecutorService mVideoExecutor;
     private long currentVideoPts = 0;
-    private final ExecutorService decoderH264executor = Executors.newSingleThreadExecutor();
+    private ExecutorService decoderH264executor = Executors.newSingleThreadExecutor();
     private String decoderH264FilePath = "/sdcard/videoDecoder.h264";
     private FileOutputStream fos;
 
@@ -116,6 +116,9 @@ public class VideoDecoder {
     }
 
     private void saveRawDataStream(byte[] data) {
+        if (decoderH264executor.isShutdown()){
+            decoderH264executor = Executors.newSingleThreadExecutor();
+        }
         decoderH264executor.submit(() -> {
             if (fos != null) {
                 try {

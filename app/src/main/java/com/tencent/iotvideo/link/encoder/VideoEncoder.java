@@ -36,7 +36,7 @@ public class VideoEncoder {
     private MediaCodecInfo mediaCodecInfo;
     private int colorFormat;
     private final VideoEncodeParam videoEncodeParam;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private MediaCodec mediaCodec;
     private OnEncodeListener encoderListener;
     private Range<Double> bitRateInterval;
@@ -153,7 +153,9 @@ public class VideoEncoder {
      * 将NV21编码成H264
      */
     public void encoderH264(byte[] data, boolean mirror) {
-        if (executor.isShutdown()) return;
+        if (executor.isShutdown()) {
+            executor = Executors.newSingleThreadExecutor();
+        }
         executor.submit(() -> {
             byte[] readyToProcessBytes = convertData(data);
             // 获取输入缓冲区
@@ -218,6 +220,9 @@ public class VideoEncoder {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void release() {
         executor.shutdown();
     }
 

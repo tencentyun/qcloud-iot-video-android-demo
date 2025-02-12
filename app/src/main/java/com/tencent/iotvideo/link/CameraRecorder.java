@@ -162,6 +162,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     public void closeCamera() {
         try {
+            if (mVideoEncoder != null) {
+                mVideoEncoder.release();
+            }
             if (camera != null) {
                 camera.stopPreview();
                 camera.setPreviewCallback(null);
@@ -195,11 +198,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
         if (mVideoEncoder != null) {
             mVideoEncoder.stop();
-            mVideoEncoder = null;
         }
         if (mAudioEncoder != null) {
             mAudioEncoder.stop();
-            mAudioEncoder = null;
         }
         mIsRecording = false;
         mVisitorInfo.remove(visitor);
@@ -255,7 +256,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 if (ret != 0) {
                     int buf_size = iv.getSendStreamBuf(visitor, channel, res_type);
                     Log.e(TAG, "sendVideoData to visitor " + visitor + " failed: " + ret + " buf size " + buf_size);
-                }else {
+                } else {
                     Log.e(TAG, "sendVideoData to success");
                 }
 
