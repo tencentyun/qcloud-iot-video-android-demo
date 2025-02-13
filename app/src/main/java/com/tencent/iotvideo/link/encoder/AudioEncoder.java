@@ -56,6 +56,10 @@ public class AudioEncoder {
     private int bufferSizeInBytes;
     private boolean isMuted = false;
 
+    private boolean enableAEC;
+
+    private boolean enableAGC;
+
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam) {
         this(micParam, audioEncodeParam, false, false);
     }
@@ -64,6 +68,12 @@ public class AudioEncoder {
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC) {
         this.micParam = micParam;
         this.audioEncodeParam = audioEncodeParam;
+        this.enableAEC = enableAEC;
+        this.enableAGC = enableAGC;
+        init();
+    }
+
+    private void init(){
         initAudio();
         int audioSessionId = audioRecord.getAudioSessionId();
         if (enableAEC && audioSessionId != 0) {
@@ -98,6 +108,7 @@ public class AudioEncoder {
     }
 
     public void start() {
+        init();
         new Thread(this::record).start();
     }
 
