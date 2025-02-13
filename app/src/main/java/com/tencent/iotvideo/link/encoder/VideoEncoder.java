@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 
 public class VideoEncoder {
 
-    private final String TAG = VideoEncoder.class.getSimpleName();
+    private static final String TAG = VideoEncoder.class.getSimpleName();
     private static final int OMX_QCOM_COLOR_FORMAT = 0x7FA30C00;// 高通特定的 YUV 4:2:0 打包半平面格式
     private static final int OMX_MTK_COLOR_FORMAT = 0x7F000200;//联发科特定的 YUV 4:2:0 YV12 格式。
     private static final int OMX_HISI_COLOR_FORMAT = 0x7F000789;//海思特定的 YUV 4:2:0 YV12 格式。
@@ -47,9 +47,7 @@ public class VideoEncoder {
     public VideoEncoder(VideoEncodeParam param) {
         this.videoEncodeParam = param;
         mediaCodecInfo = getMediaCodecInfo();
-        if (mediaCodecInfo != null) {
-            colorFormat = getColorFormat(mediaCodecInfo, MediaFormat.MIMETYPE_VIDEO_AVC);
-        }
+        colorFormat = getColorFormat(mediaCodecInfo, MediaFormat.MIMETYPE_VIDEO_AVC);
     }
 
     public void start() {
@@ -153,9 +151,7 @@ public class VideoEncoder {
      * 将NV21编码成H264
      */
     public void encoderH264(byte[] data, boolean mirror) {
-        if (executor.isShutdown()) {
-            executor = Executors.newSingleThreadExecutor();
-        }
+        if (executor.isShutdown()) return;
         executor.submit(() -> {
             byte[] readyToProcessBytes = convertData(data);
             // 获取输入缓冲区
@@ -197,7 +193,7 @@ public class VideoEncoder {
     private byte[] convertData(byte[] data) {
         if ("OMX.MTK.VIDEO.ENCODER.AVC".equals(mediaCodecInfo.getName()) || "OMX.hisi.video.encoder.avc".equals(mediaCodecInfo.getName()) || "OMX.qcom.video.encoder.avc".equals(mediaCodecInfo.getName())) {
             return data;
-        } else if (isSupportNV21()) {
+        } else if (isSupportNV21(mediaCodecInfo)) {
             return CodeUtils.INSTANCE.convertNV21ToNV12(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
         } else
             return CodeUtils.INSTANCE.convertNV21ToYUV420(data, videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
@@ -217,13 +213,10 @@ public class VideoEncoder {
                 mediaCodec.release();
                 mediaCodec = null;
             }
+            executor.shutdown();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void release() {
-        executor.shutdown();
     }
 
     /**
@@ -238,9 +231,9 @@ public class VideoEncoder {
             return OMX_MTK_COLOR_FORMAT;
         } else if ("OMX.hisi.video.encoder.avc".equals(mediaCodecInfo.getName())) {
             return OMX_HISI_COLOR_FORMAT;
-        } else if (isSupportNV21()) {
+        } else if (isSupportNV21(mediaCodecInfo)) {
             return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar;
-        } else if (isSupportYV12()) {
+        } else if (isSupportYV12(mediaCodecInfo)) {
             return MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar;
         } else {
             return colorFormat;
@@ -252,12 +245,12 @@ public class VideoEncoder {
      *
      * @return
      */
-    public int getFormat() {
+    public static int getFormat(MediaCodecInfo mediaCodecInfo) {
         if ("OMX.MTK.VIDEO.ENCODER.AVC".equals(mediaCodecInfo.getName())) {
             return ImageFormat.YV12;
-        } else if ("OMX.hisi.video.encoder.avc".equals(mediaCodecInfo.getName()) || "OMX.qcom.video.encoder.avc".equals(mediaCodecInfo.getName()) || isSupportNV21()) {
+        } else if ("OMX.hisi.video.encoder.avc".equals(mediaCodecInfo.getName()) || "OMX.qcom.video.encoder.avc".equals(mediaCodecInfo.getName()) || isSupportNV21(mediaCodecInfo)) {
             return ImageFormat.NV21;
-        } else if (isSupportYV12()) {
+        } else if (isSupportYV12(mediaCodecInfo)) {
             return ImageFormat.YV12;
         }
         Log.d(TAG, "no get ImageFormat");
@@ -269,7 +262,7 @@ public class VideoEncoder {
      *
      * @return
      */
-    public boolean isSupportNV21() {
+    public static boolean isSupportNV21(MediaCodecInfo mediaCodecInfo) {
         return isColorFormatSupported(mediaCodecInfo, MediaFormat.MIMETYPE_VIDEO_AVC, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
     }
 
@@ -278,11 +271,11 @@ public class VideoEncoder {
      *
      * @return
      */
-    public boolean isSupportYV12() {
+    public static boolean isSupportYV12(MediaCodecInfo mediaCodecInfo) {
         return isColorFormatSupported(mediaCodecInfo, MediaFormat.MIMETYPE_VIDEO_AVC, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
     }
 
-    private boolean isColorFormatSupported(MediaCodecInfo codecInfo, String mimeType, int colorFormat) {
+    private static boolean isColorFormatSupported(MediaCodecInfo codecInfo, String mimeType, int colorFormat) {
         MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(mimeType);
         for (int format : capabilities.colorFormats) {
             if (format == colorFormat) return true;

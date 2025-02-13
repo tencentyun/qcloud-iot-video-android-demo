@@ -46,6 +46,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private int mAudioSampleRate = 16000;
     private int mAudioBitRate = 48000;
     private VideoEncodeParam videoEncodeParam;
+    private MicParam micParam;
     private VideoEncoder mVideoEncoder = null;
     private AudioEncoder mAudioEncoder = null;
     private boolean isMuted = false;
@@ -91,18 +92,12 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         videoEncodeParam.setBitRate(videoBitRate);
         videoEncodeParam.setEncodeType(videoEncodeType);
         videoEncodeParam.setCodecInfo(info);
-        mVideoEncoder = new VideoEncoder(videoEncodeParam);
-        mVideoEncoder.setEncoderListener(this);
 
-        MicParam micParam = new MicParam();
+        micParam = new MicParam();
         micParam.setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
         micParam.setChannelConfig(AudioFormat.CHANNEL_IN_MONO);
         micParam.setSampleRateInHz(mAudioSampleRate);
         micParam.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-        AudioEncodeParam audioEncodeParam = new AudioEncodeParam();
-        audioEncodeParam.setBitRate(mAudioBitRate);
-        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
-        mAudioEncoder.setOnEncodeListener(this);
     }
 
     public void setPreviewView(TextureView textureView) {
@@ -143,7 +138,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         }
         parameters.setPreviewSize(videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-        parameters.setPreviewFormat(mVideoEncoder.getFormat());
+        parameters.setPreviewFormat(VideoEncoder.getFormat(videoEncodeParam.getCodecInfo()));
         parameters.setPreviewFrameRate(videoEncodeParam.getFrameRate());
         return parameters;
     }
@@ -162,9 +157,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     public void closeCamera() {
         try {
-            if (mVideoEncoder != null) {
-                mVideoEncoder.release();
-            }
             if (camera != null) {
                 camera.stopPreview();
                 camera.setPreviewCallback(null);
@@ -184,7 +176,13 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             return;
         }
         mVisitorInfo.put(visitor, new Pair<>(channel, res_type));
+        mVideoEncoder = new VideoEncoder(videoEncodeParam);
+        mVideoEncoder.setEncoderListener(this);
         mVideoEncoder.start();
+        AudioEncodeParam audioEncodeParam = new AudioEncodeParam();
+        audioEncodeParam.setBitRate(mAudioBitRate);
+        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
+        mAudioEncoder.setOnEncodeListener(this);
         mAudioEncoder.setMuted(isMuted);
         mAudioEncoder.start();
         mIsRecording = true;
@@ -198,9 +196,11 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
         if (mVideoEncoder != null) {
             mVideoEncoder.stop();
+            mVideoEncoder = null;
         }
         if (mAudioEncoder != null) {
             mAudioEncoder.stop();
+            mAudioEncoder = null;
         }
         mIsRecording = false;
         mVisitorInfo.remove(visitor);
@@ -272,7 +272,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        if (mVideoEncoder == null) return;
+        if (!mIsRecording || mVideoEncoder == null) return;
         mVideoEncoder.encoderH264(data, cameraId == Camera.CameraInfo.CAMERA_FACING_FRONT);
     }
 
