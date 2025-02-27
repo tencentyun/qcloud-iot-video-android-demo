@@ -60,8 +60,13 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     // for test only
     private boolean isSaveRecord = false;
 
-    private FileOutputStream fos;
+    private FileOutputStream h264Fos;
+
+    private FileOutputStream aacFos;
+
     private String speakH264FilePath = "/sdcard/video.h264";
+
+    private String speakAacFilePath = "/sdcard/audio.aac";
 
     private Activity context;
 
@@ -236,6 +241,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 int ret = VideoNativeInterface.getInstance().sendAvtAudioData(datas, pts, seq, visitor, channel, res_type);
                 if (ret != 0) Log.e(TAG, "sendAudioData to visitor " + visitor + " failed: " + ret);
             }
+            saveAac(datas);
         }
     }
 
@@ -293,13 +299,14 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     }
 
     /**
-     * 保存h264数据
+     * 保存音视频数据
      *
      * @param isSaveRecord
      */
     public void isSaveRecord(boolean isSaveRecord) {
         this.isSaveRecord = isSaveRecord;
         recordSpeakH264(isSaveRecord);
+        recordSpeakAac(isSaveRecord);
     }
 
     public void recordSpeakH264(boolean isRecord) {
@@ -307,10 +314,24 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
             if (!TextUtils.isEmpty(speakH264FilePath)) {
                 try {
                     File file = UtilsKt.getFile(speakH264FilePath);
-                    fos = new FileOutputStream(file);
+                    h264Fos = new FileOutputStream(file);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Log.e(TAG, speakH264FilePath + "临时缓存文件未找到");
+                }
+            }
+        }
+    }
+
+    public void recordSpeakAac(boolean isRecord) {
+        if (isRecord) {
+            if (!TextUtils.isEmpty(speakAacFilePath)) {
+                try {
+                    File file = UtilsKt.getFile(speakAacFilePath);
+                    aacFos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, speakAacFilePath + "临时缓存文件未找到");
                 }
             }
         }
@@ -320,10 +341,26 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (isSaveRecord) {
             if (executor.isShutdown()) return;
             executor.submit(() -> {
-                if (fos != null) {
+                if (h264Fos != null) {
                     try {
-                        fos.write(datas);
-                        fos.flush();
+                        h264Fos.write(datas);
+                        h264Fos.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
+    public void saveAac(byte[] datas) {
+        if (isSaveRecord) {
+            if (executor.isShutdown()) return;
+            executor.submit(() -> {
+                if (aacFos != null) {
+                    try {
+                        aacFos.write(datas);
+                        aacFos.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
