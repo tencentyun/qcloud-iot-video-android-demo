@@ -88,6 +88,26 @@
         <!--            android:inputType="textMultiLine"-->
         <!--            android:lines="6"-->
         <!--            android:textSize="15sp" />-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/btn_paste"
+                android:layout_width="66dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_blue_cell_btn"
+                android:text="粘贴"
+                android:textColor="@color/blue_0052D9"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="（注：按以下顺序与换行进行分割，ProductId/DeviceName/DeviceKey/AppId/ModelId/OpenId）"
+                android:textSize="8sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
