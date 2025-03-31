@@ -13,12 +13,17 @@ import com.example.ivdemo.adapter.UserListAdapter
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import com.tencent.iot.video.device.annotations.AudioEncType
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
+import com.tencent.iot.video.device.annotations.VideoEncType
 import com.tencent.iot.video.device.annotations.VoipActivateType
+import com.tencent.iot.video.device.annotations.VoipRecvVFpsType
+import com.tencent.iot.video.device.annotations.VoipRecvVRotateType
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
+import com.tencent.iot.video.device.model.VoipVideoInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.entity.UserEntity
@@ -280,9 +285,17 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
             val callType =
                 if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
+            val videoInfo = VoipVideoInfo(
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                recvPixel,
+                AudioEncType.IV_CM_AENC_TYPE_AAC,
+                VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE
+            )
             val res = VideoNativeInterface.getInstance().doWxCloudVoipCall(
                 modelId, wxaAppId, openId, deviceId,
-                callType, recvPixel, true, calleeCameraSwitch
+                callType, videoInfo, true, calleeCameraSwitch
             )
             val result = when (res) {
                 -2 -> "通话中"
@@ -310,8 +323,16 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
             val callType =
                 if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
+            val videoInfo = VoipVideoInfo(
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                recvPixel,
+                AudioEncType.IV_CM_AENC_TYPE_AAC,
+                VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE
+            )
             val res = VideoNativeInterface.getInstance()
-                .doWxCloudVoipCallV2(openId, callType, recvPixel, true, calleeCameraSwitch)
+                .doWxCloudVoipCallV2(openId, callType, videoInfo, true, calleeCameraSwitch)
             val result = when (res) {
                 -2 -> "通话中"
                 0 -> "呼叫成功"
