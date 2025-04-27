@@ -38,6 +38,7 @@ private const val DATA_PATH = "/storage/emulated/0/"
 
 class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback {
 
+    @Volatile
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
 
     private var condition1 = false
@@ -204,7 +205,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             } else {
                 showToast("twecall初始化成功")
                 val activeDeviceInfo = VideoNativeInterface.getInstance().voipActiveDeviceInfoV2
-                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis()/1000) {
+                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis() / 1000) {
                     val activateRes = VideoNativeInterface.getInstance()
                         .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_IPC)
                     if (activateRes == 0) {
@@ -393,8 +394,10 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         Log.d(TAG, "destory")
         checkDefaultThreadActiveAndExecuteTask {
 //            VideoNativeInterface.getInstance().exitWxCloudVoip()
-            VideoNativeInterface.getInstance().exitWxCloudVoipV2()
-            Log.d(TAG, "exit twecall v2")
+            if (initStatus == 0) {
+                VideoNativeInterface.getInstance().exitWxCloudVoipV2()
+                Log.d(TAG, "exit twecall v2")
+            }
         }
         super.onDestroy()
     }
