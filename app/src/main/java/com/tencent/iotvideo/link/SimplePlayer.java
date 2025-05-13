@@ -2,17 +2,30 @@ package com.tencent.iotvideo.link;
 
 import android.content.Context;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 
 import com.tencent.iotvideo.link.decoder.AudioDecoder;
 import com.tencent.iotvideo.link.decoder.VideoDecoder;
+import com.tencent.iotvideo.link.util.UtilsKt;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SimplePlayer {
     private static final String TAG = "SimplePlayer";
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+
+    private String receiveH264FilePath = "/sdcard/wx_video.h264";
+    private String receiveAacFilePath = "/sdcard/wx_audio.aac";
+    private FileOutputStream h264Fos;
+    private FileOutputStream aacFos;
+    private boolean isSaveReceiveRecord = false;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static String bytesToHex(byte[] bytes, int length) {
         char[] hexChars = new char[length * 2];
@@ -31,6 +44,45 @@ public class SimplePlayer {
     public void setContext(Context context) {
         if (audioDecoder != null) {
             audioDecoder.setContext(context);
+        }
+    }
+
+    /**
+     * 保存音视频数据
+     *
+     * @param isSaveReceiveRecord
+     */
+    public void isSaveReceiveRecord(boolean isSaveReceiveRecord) {
+        this.isSaveReceiveRecord = isSaveReceiveRecord;
+        recordSpeakH264(isSaveReceiveRecord);
+        recordSpeakAac(isSaveReceiveRecord);
+    }
+
+    public void recordSpeakH264(boolean isRecord) {
+        if (isRecord) {
+            if (!TextUtils.isEmpty(receiveH264FilePath)) {
+                try {
+                    File file = UtilsKt.getFile(receiveH264FilePath);
+                    h264Fos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, receiveH264FilePath + "临时缓存文件未找到");
+                }
+            }
+        }
+    }
+
+    public void recordSpeakAac(boolean isRecord) {
+        if (isRecord) {
+            if (!TextUtils.isEmpty(receiveAacFilePath)) {
+                try {
+                    File file = UtilsKt.getFile(receiveAacFilePath);
+                    aacFos = new FileOutputStream(file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, receiveAacFilePath + "临时缓存文件未找到");
+                }
+            }
         }
     }
 
@@ -99,7 +151,9 @@ public class SimplePlayer {
     public int playVideoStream(int visitor, byte[] data, int len, long pts, long seq) {
 //        Log.d(TAG, "video frame: visitor "+ visitor + " len " + len + " pts " + pts + " seq " + seq);
         if (videoDecoder != null) {
-            return videoDecoder.decoderH264(data, len, pts);
+            int resCode = videoDecoder.decoderH264(data, len, pts);
+            saveH264(data);
+            return resCode;
         }
         return 0;
     }
@@ -111,8 +165,42 @@ public class SimplePlayer {
             if (videoDecoder != null) {
                 audioDecoder.setCurrentVideoPts(videoDecoder.getCurrentVideoPts());
             }
-            return audioDecoder.decoderAAC(data, len, pts);
+            int resCode = audioDecoder.decoderAAC(data, len, pts);
+            saveAac(data);
+            return resCode;
         }
         return 0;
+    }
+
+    public void saveH264(byte[] datas) {
+        if (isSaveReceiveRecord) {
+            if (executor.isShutdown()) return;
+            executor.submit(() -> {
+                if (h264Fos != null) {
+                    try {
+                        h264Fos.write(datas);
+                        h264Fos.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
+    public void saveAac(byte[] datas) {
+        if (isSaveReceiveRecord) {
+            if (executor.isShutdown()) return;
+            executor.submit(() -> {
+                if (aacFos != null) {
+                    try {
+                        aacFos.write(datas);
+                        aacFos.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
 }

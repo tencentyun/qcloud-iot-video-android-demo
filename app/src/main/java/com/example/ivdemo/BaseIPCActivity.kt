@@ -222,7 +222,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         this.visitor = visitor
         this.channel = channel
         this.videoResType = videoResType
-        Log.w(TAG, "onNotify()")
+        Log.w(TAG, "onNotify() called with event = $event, visitor = $visitor, channel = $channel, videoResType = $videoResType")
         var msg = ""
         when (event) {
             P2pEventType.IV_AVT_EVENT_P2P_PEER_CONNECT_FAIL, P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR -> {
