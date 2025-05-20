@@ -40,6 +40,15 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     private val region = "china"
     private val isUserCongestionCtrl = true
 
+    @Volatile
+    protected var sysInitResCode = -1
+
+    @Volatile
+    protected var dmInitResCode = -1
+
+    @Volatile
+    protected var avtInitResCode = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!checkPerformCreate()) return
@@ -63,10 +72,18 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         // start run JNI iot_video_demo
         checkDefaultThreadActiveAndExecuteTask {
             val sysInitInfo = SysInitInfo(productId, deviceName, deviceKey, region)
-            val sysInit = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
-            Log.d(TAG, "initIvSystem,resCode:$sysInit")
-            val dmInit = VideoNativeInterface.getInstance().initIvDm()
-            Log.d(TAG, "initIvDm,resCode:$dmInit")
+            sysInitResCode = VideoNativeInterface.getInstance().initIvSystem(sysInitInfo, this)
+            Log.d(TAG, "initIvSystem,resCode:$sysInitResCode")
+            if (sysInitResCode != 0) {
+                showToast("initIvSystem fail,resCode:$sysInitResCode")
+                return@checkDefaultThreadActiveAndExecuteTask
+            }
+            dmInitResCode = VideoNativeInterface.getInstance().initIvDm()
+            Log.d(TAG, "initIvDm,resCode:$dmInitResCode")
+            if (dmInitResCode != 0) {
+                showToast("initIvDm fail,resCode:$dmInitResCode")
+                return@checkDefaultThreadActiveAndExecuteTask
+            }
             val congestion = CongestionCtrlInfo()
             if (isUserCongestionCtrl) { //启用水位告警以及告警的有高中低三挡水位值，当 p2p 内部缓存的水位到达这个值的时候会收到 onNotify回调
                 congestion.lowMark = 200 * 1024
@@ -79,8 +96,12 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
             }
             val avtInitInfo = AvtInitInfo()
             avtInitInfo.congestion = congestion
-            val avtInit = VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
-            Log.d(TAG, "initIvAvt,resCode:$avtInit")
+            avtInitResCode = VideoNativeInterface.getInstance().initIvAvt(avtInitInfo, this)
+            Log.d(TAG, "initIvAvt,resCode:$avtInitResCode")
+            if (avtInitResCode != 0) {
+                showToast("initIvDm fail,resCode:$avtInitResCode")
+                return@checkDefaultThreadActiveAndExecuteTask
+            }
         }
     }
 
@@ -91,12 +112,18 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
     override fun onDestroy() {
         super.onDestroy()
         checkDefaultThreadActiveAndExecuteTask {
-            val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
-            Log.d(TAG, "exit avt resCode:$exitIvAvt")
-            val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
-            Log.d(TAG, "exit dm resCode:$exitIvDm")
-            val exitIvSys = VideoNativeInterface.getInstance().exitIvSys()
-            Log.d(TAG, "exit sys resCode:$exitIvSys")
+            if (avtInitResCode == 0) {
+                val exitIvAvt = VideoNativeInterface.getInstance().exitIvAvt()
+                Log.d(TAG, "exit avt resCode:$exitIvAvt")
+            }
+            if (dmInitResCode == 0) {
+                val exitIvDm = VideoNativeInterface.getInstance().exitIvDm()
+                Log.d(TAG, "exit dm resCode:$exitIvDm")
+            }
+            if (sysInitResCode == 0) {
+                val exitIvSys = VideoNativeInterface.getInstance().exitIvSys()
+                Log.d(TAG, "exit sys resCode:$exitIvSys")
+            }
             defaultThread.shutdown()
         }
     }
@@ -195,7 +222,7 @@ abstract class BaseIPCActivity<VB : ViewBinding> : AppCompatActivity(), IvDevice
         this.visitor = visitor
         this.channel = channel
         this.videoResType = videoResType
-        Log.w(TAG, "onNotify()")
+        Log.w(TAG, "onNotify() called with event = $event, visitor = $visitor, channel = $channel, videoResType = $videoResType")
         var msg = ""
         when (event) {
             P2pEventType.IV_AVT_EVENT_P2P_PEER_CONNECT_FAIL, P2pEventType.IV_AVT_EVENT_P2P_PEER_ERROR -> {

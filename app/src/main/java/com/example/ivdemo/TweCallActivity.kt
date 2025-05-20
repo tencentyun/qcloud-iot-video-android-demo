@@ -13,12 +13,17 @@ import com.example.ivdemo.adapter.UserListAdapter
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
+import com.tencent.iot.video.device.annotations.AudioEncType
 import com.tencent.iot.video.device.annotations.CallType
 import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
+import com.tencent.iot.video.device.annotations.VideoEncType
 import com.tencent.iot.video.device.annotations.VoipActivateType
+import com.tencent.iot.video.device.annotations.VoipRecvVFpsType
+import com.tencent.iot.video.device.annotations.VoipRecvVRotateType
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.model.AvDataInfo
+import com.tencent.iot.video.device.model.VoipVideoInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.entity.UserEntity
@@ -33,6 +38,7 @@ private const val DATA_PATH = "/storage/emulated/0/"
 
 class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback {
 
+    @Volatile
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
 
     private var condition1 = false
@@ -120,7 +126,6 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     override fun initView() {
         cameraRecorder.init(this)
-        cameraRecorder.isSaveRecord(true)
         with(binding) {
             titleLayout.tvTitle.text = getString(R.string.title_tweCall)
             titleLayout.ivRightBtn.isVisible = true
@@ -199,7 +204,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             } else {
                 showToast("twecall初始化成功")
                 val activeDeviceInfo = VideoNativeInterface.getInstance().voipActiveDeviceInfoV2
-                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis()/1000) {
+                if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis() / 1000) {
                     val activateRes = VideoNativeInterface.getInstance()
                         .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_IPC)
                     if (activateRes == 0) {
@@ -280,9 +285,17 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
             val callType =
                 if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
+            val videoInfo = VoipVideoInfo(
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                recvPixel,
+                AudioEncType.IV_CM_AENC_TYPE_AAC,
+                VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE
+            )
             val res = VideoNativeInterface.getInstance().doWxCloudVoipCall(
                 modelId, wxaAppId, openId, deviceId,
-                callType, recvPixel, true, calleeCameraSwitch
+                callType, videoInfo, true, calleeCameraSwitch
             )
             val result = when (res) {
                 -2 -> "通话中"
@@ -310,8 +323,16 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 if (isVideo) QualitySetting.getInstance(this@TweCallActivity).isWxCameraOn else true
             val callType =
                 if (isVideo) CallType.IV_CM_STREAM_TYPE_VIDEO else CallType.IV_CM_STREAM_TYPE_AUDIO
+            val videoInfo = VoipVideoInfo(
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                recvPixel,
+                AudioEncType.IV_CM_AENC_TYPE_AAC,
+                VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE
+            )
             val res = VideoNativeInterface.getInstance()
-                .doWxCloudVoipCallV2(openId, callType, recvPixel, true, calleeCameraSwitch)
+                .doWxCloudVoipCallV2(openId, callType, videoInfo, true, calleeCameraSwitch)
             val result = when (res) {
                 -2 -> "通话中"
                 0 -> "呼叫成功"
@@ -372,8 +393,10 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         Log.d(TAG, "destory")
         checkDefaultThreadActiveAndExecuteTask {
 //            VideoNativeInterface.getInstance().exitWxCloudVoip()
-            VideoNativeInterface.getInstance().exitWxCloudVoipV2()
-            Log.d(TAG, "exit twecall v2")
+            if (initStatus == 0) {
+                VideoNativeInterface.getInstance().exitWxCloudVoipV2()
+                Log.d(TAG, "exit twecall v2")
+            }
         }
         super.onDestroy()
     }

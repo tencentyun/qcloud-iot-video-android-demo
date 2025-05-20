@@ -1,6 +1,7 @@
 package com.example.ivdemo.popup
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
@@ -43,7 +44,11 @@ class CustomCommandDialog(context: Context, private val visitor: Int) :
     }
 
     fun receiveCommand(msg: String): JSONObject {
-        binding.tvResult.append("接受信令 ==> $msg\n\n")
+        Log.d("IPCActivity","receiveCommand msg:$msg")
+
+        lifecycleScope.launch {
+            binding.tvResult.append("接受信令 ==> $msg\n\n")
+        }
         var replyMsg = binding.tvCommand.text.toString()
         if (replyMsg.isEmpty()) {
             showToast("回复信令内容不能为空，已取默认值success")
@@ -57,7 +62,10 @@ class CustomCommandDialog(context: Context, private val visitor: Int) :
         } catch (e: JSONException) {
             e.printStackTrace()
         }
-        binding.tvResult.append("回复信令 ==> $resJson\n\n")
+        lifecycleScope.launch {
+            binding.tvResult.append("回复信令 ==> $resJson\n\n")
+        }
+        Log.d("IPCActivity","receiveCommand returnJson:$resJson")
         return resJson
     }
 

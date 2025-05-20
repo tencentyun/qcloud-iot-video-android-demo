@@ -1,13 +1,16 @@
 package com.example.ivdemo.popup
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import com.tencent.iot.twcall.databinding.PopupDeviceSettingLayoutBinding
+import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.updateOperate
 
@@ -16,6 +19,9 @@ class DeviceSettingDialog(private val context: Context) :
 
     private val deviceSetting by lazy { DeviceSetting.getInstance(context) }
     private var ipcType: Int = 2
+    private var wxAppId: String? = null
+    private var modelId: String? = null
+    private var openId: String? = null
     private val textWatcher = object : TextWatcher {
         override fun beforeTextChanged(
             s: CharSequence?,
@@ -57,6 +63,23 @@ class DeviceSettingDialog(private val context: Context) :
             rgSelectWay.setOnCheckedChangeListener { group, checkedId ->
                 ipcType = group.findViewById<RadioButton>(checkedId).tag.toString().toInt()
             }
+            btnPaste.setOnClickListener {
+                val clipboard =
+                    ContextCompat.getSystemService(context, ClipboardManager::class.java);
+                if (clipboard != null && clipboard.hasPrimaryClip()) {
+                    clipboard.primaryClip?.getItemAt(0)?.text.toString().split("\n")
+                        .forEachIndexed { index, s ->
+                            when (index) {
+                                0 -> binding.etLoginProductId.setText(s)
+                                1 -> binding.etLoginDeviceName.setText(s)
+                                2 -> binding.etLoginDeviceKey.setText(s)
+                                3 -> wxAppId = s
+                                4 -> modelId = s
+                                5 -> openId = s
+                            }
+                        }
+                }
+            }
 
             btnConfirm.setOnClickListener(View.OnClickListener {
                 if (!checkDeviceInfo()) {
@@ -83,6 +106,15 @@ class DeviceSettingDialog(private val context: Context) :
             deviceSetting.productId = etLoginProductId.text.toString()
             deviceSetting.deviceName = etLoginDeviceName.text.toString()
             deviceSetting.deviceKey = etLoginDeviceKey.text.toString()
+            wxAppId?.let {
+                deviceSetting.appId = it
+            }
+            modelId?.let {
+                deviceSetting.modelId = it
+            }
+            openId?.let {
+                deviceSetting.addOnlyEntity(UserEntity(openId, false))
+            }
         }
     }
 
