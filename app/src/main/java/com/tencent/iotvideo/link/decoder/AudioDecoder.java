@@ -19,8 +19,8 @@ import java.util.concurrent.Executors;
 public class AudioDecoder {
     private static final String TAG = "AudioDecoder";
     private static final int AV_PTS_GAP_MS = 1500;
-    private AudioTrack mAudioTrack;
     private MediaCodec mAudioCodec;
+    private AudioTrack mAudioTrack;
     private ExecutorService mAudioExecutor;
     private Thread mAudioPlayThread;
 
@@ -190,50 +190,102 @@ public class AudioDecoder {
         public void run() {
             Log.i(TAG, "start audio play thread");
             MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-            while (mAudioCodec != null && mAudioTrack != null) {
-                try {
-                    // dequeue and play
-                    int outputBufId = mAudioCodec.dequeueOutputBuffer(info, 100000);
-//                    Log.d(TAG, "audio outputBufferIndex: " + outputBufId);
 
-                    if (outputBufId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                        Log.i(TAG, "audio format changed");
-                        mAudioTrack.stop();
-                        mAudioTrack.release();
-                        int minBufSize = AudioTrack.getMinBufferSize(audioSampleRate, audioChannelConfig, audioPcmFormat);
-                        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioPcmFormat, 2 * minBufSize, AudioTrack.MODE_STREAM);
-                        mAudioTrack.setVolume(1.5f);
-                        mAudioTrack.play();
-                        outputBufId = mAudioCodec.dequeueOutputBuffer(info, 10000);
-
-                    } else if (outputBufId == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                        continue;
-                    } else {
-                        ByteBuffer outputBuf = mAudioCodec.getOutputBuffer(outputBufId);
-                        byte[] playBuf = new byte[info.size];
-                        outputBuf.get(playBuf);
-                        outputBuf.rewind();
-                        outputBuf.clear();
-                        mAudioCodec.releaseOutputBuffer(outputBufId, false);
-                        long decode_pts = info.presentationTimeUs / 1000;
-//                        Log.d(TAG, ">>>>> audio decoder output size " + info.size + " pts " + decode_pts + " current video pts " + currentVideoPts);
-                        // 简单音画同步处理，如果音频帧滞后超过一定时间，直接丢弃
-                        if ((decode_pts + AV_PTS_GAP_MS) < currentVideoPts) {
-                            Log.i(TAG, "drop audio frame as audio pts " + decode_pts + " < video pts " + currentVideoPts);
-                        } else {
-                            if (audioManager != null) {
-                                audioManager.setSpeakerphoneOn(isSpeakerOn);
-                            }
-                            if (mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED) {
-                                mAudioTrack.write(playBuf, 0, info.size);
-                            }
-                        }
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    // 检查必要组件是否就绪
+                    if (mAudioCodec == null || mAudioTrack == null) {
+                        Log.w(TAG, "The audio component is not initialized, exit the playback thread");
+                        break;
                     }
-                } catch (Throwable t) {
-                    t.printStackTrace();
+
+                    try {
+                        // 从解码器获取输出缓冲区
+                        int outputBufId = mAudioCodec.dequeueOutputBuffer(info, 100_000);
+
+                        if (outputBufId == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                            continue;
+                        } else if (outputBufId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                            handleFormatChange();
+                            continue;
+                        } else if (outputBufId == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+                            Log.i(TAG, "The audio output buffer changes");
+                            // 在API 21以下需要调用getOutputBuffers()更新缓冲区
+                            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+                                try {
+                                    mAudioCodec.getOutputBuffers(); // 更新输出缓冲区
+                                } catch (IllegalStateException e) {
+                                    Log.e(TAG, "Failed to get output buffer", e);
+                                }
+                            }
+                            continue;
+                        } else if (outputBufId < 0) {
+                            Log.w(TAG, "Invalid output buffer ID: " + outputBufId);
+                            continue;
+                        }
+                        // 处理解码后的音频数据
+                        processDecodedAudio(outputBufId, info);
+                    } catch (Exception e) {
+                        Log.i(TAG, "Abnormal audio playback: " + e.getMessage(), e);
+                        break;
+                    }
+                }
+            } finally {
+                Log.i(TAG, "Audio playback thread exits");
+            }
+        }
+
+        private void handleFormatChange() {
+            Log.i(TAG, "The audio format has changed, reinitialize AudioTrack");
+            if (mAudioTrack != null) {
+                mAudioTrack.stop();
+                mAudioTrack.release();
+            }
+
+            int minBufSize = AudioTrack.getMinBufferSize(audioSampleRate, audioChannelConfig, audioPcmFormat);
+            mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                    audioSampleRate, audioChannelConfig,
+                    audioPcmFormat, 2 * minBufSize, AudioTrack.MODE_STREAM);
+            mAudioTrack.setVolume(1.5f);
+            mAudioTrack.play();
+        }
+
+        private void processDecodedAudio(int outputBufId, MediaCodec.BufferInfo info) {
+            ByteBuffer outputBuf = mAudioCodec.getOutputBuffer(outputBufId);
+            if (outputBuf == null || info.size <= 0) {
+                mAudioCodec.releaseOutputBuffer(outputBufId, false);
+                return;
+            }
+
+            byte[] playBuf = new byte[info.size];
+            outputBuf.get(playBuf);
+            mAudioCodec.releaseOutputBuffer(outputBufId, false);
+
+            long audioPts = info.presentationTimeUs / 1000;
+            if (shouldDropAudioFrame(audioPts)) {
+                Log.i(TAG, String.format("丢弃音频帧(pts: %d < 视频pts: %d)", audioPts, currentVideoPts));
+                return;
+            }
+
+            playAudioData(playBuf);
+        }
+
+        private boolean shouldDropAudioFrame(long audioPts) {
+            return (audioPts + AV_PTS_GAP_MS) < currentVideoPts;
+        }
+
+        private void playAudioData(byte[] audioData) {
+            if (audioManager != null) {
+                audioManager.setSpeakerphoneOn(isSpeakerOn);
+            }
+
+            if (mAudioTrack != null && mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED) {
+                try {
+                    mAudioTrack.write(audioData, 0, audioData.length);
+                } catch (IllegalStateException e) {
+                    Log.e(TAG, "AudioTrack写入失败: " + e.getMessage());
                 }
             }
-            Log.i(TAG, "quit audio play thread");
         }
     }
 }
