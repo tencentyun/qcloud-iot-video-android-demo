@@ -63,6 +63,10 @@ public class VideoDecoder {
         mFormat.setInteger(MediaFormat.KEY_ROTATION, 0);
         mFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline);
         mFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel31);
+        mFormat.setInteger(MediaFormat.KEY_PRIORITY, 0); // 设置低优先级
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1); // 启用低延迟模式
+        }
         String model = Build.MODEL;
         if (model.contains("KONKA") && model.contains("9652") || model.contains("KONKA") && model.contains("9653") || model.contains("XY01")) { // 康佳 MTK的一个SoC 型号
             mFormat.setInteger("low-latency", 1);
@@ -88,22 +92,22 @@ public class VideoDecoder {
             try {
                 ByteBuffer[] inputBuffers = mVideoCodec.getInputBuffers();
                 // queue and decode
-                int inputBufferIndex = mVideoCodec.dequeueInputBuffer(-1);
+                int inputBufferIndex = mVideoCodec.dequeueInputBuffer(10000);
                 if (inputBufferIndex >= 0) {
                     ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
                     inputBuffer.clear();
                     inputBuffer.put(data, 0, len);
-                    mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, 0, 0);
+                    mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
                 } else {
                     Log.e(TAG, "video inputBufferIndex invalid: " + inputBufferIndex);
                 }
 
                 // dequeue and render
                 MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-                int outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);
+                int outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 10000);
                 while (outputBufferIndex >= 0) {
                     mVideoCodec.releaseOutputBuffer(outputBufferIndex, true);
-                    outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 0);
+                    outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 10000);
                 }
             } catch (Throwable t) {
                 t.printStackTrace();

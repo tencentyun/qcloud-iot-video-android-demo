@@ -214,6 +214,19 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
         }
     }
 
+    override fun onStartRecvAudioStream(
+        visitor: Int,
+        channel: Int,
+        type: Int,
+        option: Int,
+        mode: Int,
+        width: Int,
+        sample_rate: Int,
+        sample_num: Int
+    ): Int {
+        return player.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num)
+    }
+
     private fun checkConditions() {
         if (condition1 && condition2 && remotePreviewSurface != null && surface == null) {
             surface = Surface(remotePreviewSurface)
