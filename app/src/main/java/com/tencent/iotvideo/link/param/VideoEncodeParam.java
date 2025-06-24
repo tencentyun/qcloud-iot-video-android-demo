@@ -84,6 +84,18 @@ public class VideoEncodeParam {
         this.codecInfo = codecInfo;
     }
 
+    @Override
+    public String toString() {
+        return "VideoEncodeParam{" +
+                "width=" + width +
+                ", height=" + height +
+                ", frameRate=" + frameRate +
+                ", iFrameInterval=" + iFrameInterval +
+                ", bitRate=" + bitRate +
+                ", mime='" + mime + '\'' +
+                ", encodeType=" + encodeType +
+                '}';
+    }
 //    public static class Builder {
 //        private VideoEncodeParam videoEncodeParam;
 //

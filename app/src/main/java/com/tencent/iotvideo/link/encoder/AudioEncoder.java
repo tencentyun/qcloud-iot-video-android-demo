@@ -131,6 +131,7 @@ public class AudioEncoder {
             return false;
         }
         canceler = AcousticEchoCanceler.create(audioSession);
+        if (canceler == null) return false;
         canceler.setEnabled(true);
         return canceler.getEnabled();
     }
@@ -150,6 +151,7 @@ public class AudioEncoder {
             return false;
         }
         control = AutomaticGainControl.create(audioSession);
+        if (control == null) return false;
         control.setEnabled(true);
         return control.getEnabled();
     }

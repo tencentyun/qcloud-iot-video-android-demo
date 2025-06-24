@@ -54,6 +54,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
     private static final int MaxVisitors = 4;
     private final Map<Integer, Pair<Integer, Integer>> mVisitorInfo = new HashMap<>(MaxVisitors);
     private static Timer bitRateTimer;
+    private long clientId = -1;
 
     public boolean isRunning = false;
 
@@ -191,7 +192,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         mAudioEncoder.setMuted(isMuted);
         mAudioEncoder.start();
         mIsRecording = true;
-        Log.d(TAG, "start camera recording");
+        Log.d(TAG, "start camera recording, video params: " + videoEncodeParam + ", audio params: " + micParam);
         startBitRateAdapter(visitor, channel, res_type);
     }
 
@@ -233,7 +234,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (encodeListener != null) {
             encodeListener.onAudioEncoded(datas, pts, seq);
         }
-        if (mIsRecording) {
+        if (mIsRecording && clientId <= -1) {
             for (Map.Entry<Integer, Pair<Integer, Integer>> entry : mVisitorInfo.entrySet()) {
                 int visitor = entry.getKey().intValue();
                 int channel = entry.getValue().first;
@@ -252,7 +253,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (encodeListener != null) {
             encodeListener.onVideoEncoded(datas, pts, seq, isKeyFrame);
         }
-        if (mIsRecording) {
+        if (mIsRecording && clientId <= -1) {
             for (Map.Entry<Integer, Pair<Integer, Integer>> entry : mVisitorInfo.entrySet()) {
                 int visitor = entry.getKey().intValue();
                 int channel = entry.getValue().first;
@@ -367,5 +368,9 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                 }
             });
         }
+    }
+
+    public void setClientId(long clientId) {
+        this.clientId = clientId;
     }
 }

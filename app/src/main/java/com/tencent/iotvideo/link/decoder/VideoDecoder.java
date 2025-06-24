@@ -64,9 +64,9 @@ public class VideoDecoder {
         mFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline);
         mFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel31);
         mFormat.setInteger(MediaFormat.KEY_PRIORITY, 0); // 设置低优先级
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1); // 启用低延迟模式
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            mFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1); // 启用低延迟模式
+//        }
         String model = Build.MODEL;
         if (model.contains("KONKA") && model.contains("9652") || model.contains("KONKA") && model.contains("9653") || model.contains("XY01")) { // 康佳 MTK的一个SoC 型号
             mFormat.setInteger("low-latency", 1);

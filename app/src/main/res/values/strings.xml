@@ -10,6 +10,7 @@
     <string name="title_tweCall">TWe Call</string>
     <string name="title_twe_call_lib_demo">TWE CALL LIB DEMO</string>
     <string name="title_setting_device">配置设备</string>
+    <string name="title_call_device">设备呼设备</string>
     <string name="model_id">Model ID</string>
     <string name="sn">SN</string>
     <string name="sn_ticket">SN Ticket</string>

@@ -168,3 +168,7 @@ fun adjustAspectRatio1(
 fun getBitRateIntervalByPixel(width: Int, height: Int): Range<Double> {
     return Range((width * height * 0.5), width * height * 2.0)
 }
+
+fun ByteArray.toHexString(): String {
+    return joinToString(separator = " ") { byte -> "%02X".format(byte) }
+}

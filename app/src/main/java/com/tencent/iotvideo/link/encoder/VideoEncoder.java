@@ -5,7 +5,6 @@ import static com.tencent.iotvideo.link.util.UtilsKt.getBitRateIntervalByPixel;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,6 +14,7 @@ import android.util.Range;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.VideoEncodeParam;
 import com.tencent.iotvideo.link.util.CodeUtils;
+import com.tencent.iotvideo.link.util.UtilsKt;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -43,6 +43,8 @@ public class VideoEncoder {
     private long seq = 0L;
     private int MAX_FRAMERATE_LENGTH = 20;
     private int MIN_FRAMERATE_LENGTH = 5;
+    // 缓存 SPS PPS 信息
+    ByteBuffer mSpsPpsBuffer = null;
 
     public VideoEncoder(VideoEncodeParam param) {
         this.videoEncodeParam = param;
@@ -172,22 +174,61 @@ public class VideoEncoder {
             MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
             int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
 
+
             while (outputBufferIndex >= 0) {
                 ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
 
                 // 处理编码后的数据
                 byte[] outData = new byte[bufferInfo.size];
                 outputBuffer.get(outData);
-                // 打印编码后的数据大小
-                if (encoderListener != null) {
-                    encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, true);
-                    seq++;
+                boolean isKeyFrame = false;
+
+                if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+//                    Log.w(TAG, "encoderH264: sps pps info, outData: " + UtilsKt.toHexString(outData));
+
+                    if (mSpsPpsBuffer != null) {
+                        mSpsPpsBuffer.clear();
+                        mSpsPpsBuffer = null;
+                    }
+
+                    // 缓存 SPS/PPS
+                    mSpsPpsBuffer = ByteBuffer.allocate(outData.length);
+                    mSpsPpsBuffer.put(outData);
+                    mSpsPpsBuffer.flip();
+                } else if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
+//                    Log.w(TAG, "encoderH264: I frame, outData: " + UtilsKt.toHexString(outData));
+                    isKeyFrame = true;
+
+                    if (mSpsPpsBuffer != null) {
+                        byte[] spsPpsData = new byte[mSpsPpsBuffer.remaining()];
+                        mSpsPpsBuffer.get(spsPpsData);
+                        mSpsPpsBuffer.rewind();
+                        Log.w(TAG, "encoderH264: I frame, spsPpsData: " + UtilsKt.toHexString(spsPpsData));
+
+                        if (spsPpsData.length > 0) {
+                            notifyEncoded(spsPpsData, isKeyFrame);
+                        } else {
+                            Log.w(TAG, "encoderH264: no sps pps data");
+                        }
+                    } else {
+                        Log.w(TAG, "encoderH264: I frame spsPpsBuffer = null");
+                    }
                 }
+
+                // 打印编码后的数据大小
+                notifyEncoded(outData, isKeyFrame);
                 // 释放输出缓冲区
                 mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
                 outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
             }
         });
+    }
+
+    private void notifyEncoded(byte[] outData, boolean isKeyFrame) {
+        if (encoderListener != null) {
+            encoderListener.onVideoEncoded(outData, System.currentTimeMillis(), seq, isKeyFrame);
+            seq++;
+        }
     }
 
     private byte[] convertData(byte[] data) {
@@ -213,6 +254,12 @@ public class VideoEncoder {
                 mediaCodec.release();
                 mediaCodec = null;
             }
+
+            if (mSpsPpsBuffer != null) {
+                mSpsPpsBuffer.clear();
+                mSpsPpsBuffer = null;
+            }
+
             executor.shutdown();
         } catch (Exception e) {
             e.printStackTrace();

@@ -62,6 +62,17 @@ public class MicParam {
         this.mode = mode;
     }
 
+    @Override
+    public String toString() {
+        return "MicParam{" +
+                "audioSource=" + audioSource +
+                ", sampleRateInHz=" + sampleRateInHz +
+                ", channelConfig=" + channelConfig +
+                ", audioFormat=" + audioFormat +
+                ", streamType=" + streamType +
+                ", mode=" + mode +
+                '}';
+    }
 //    public static class Builder {
 //        private MicParam micParam;
 //

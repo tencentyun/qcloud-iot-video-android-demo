@@ -74,6 +74,10 @@ class MainActivity : AppCompatActivity() {
                 if (!checkDeviceInfo()) return@setOnClickListener
                 startActivity(OTAUpgradeActivity::class.java)
             }
+            btnCallDevice.setOnClickListener {
+                if (!checkDeviceInfo()) return@setOnClickListener
+                startActivity(ClientActivity::class.java)
+            }
             btnSettingDevice.setOnClickListener {
                 val dialog = DeviceSettingDialog(this@MainActivity)
                 dialog.setDismissListener {
@@ -90,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnLoginDuplexVideo.updateOperate(isOperate)
         binding.btnTweCall.updateOperate(isOperate)
         binding.btnOtaUpgrade.updateOperate(isOperate)
+        binding.btnCallDevice.updateOperate(isOperate)
     }
 
     override fun onRequestPermissionsResult(
