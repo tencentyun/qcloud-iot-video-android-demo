@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView.SurfaceTextureListener
+import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.adapter.UserListAdapter
@@ -19,28 +20,37 @@ import com.tencent.iot.video.device.annotations.PixelType
 import com.tencent.iot.video.device.annotations.StreamType
 import com.tencent.iot.video.device.annotations.VideoEncType
 import com.tencent.iot.video.device.annotations.VoipActivateType
+import com.tencent.iot.video.device.annotations.VoipCalledStatus
 import com.tencent.iot.video.device.annotations.VoipRecvVFpsType
 import com.tencent.iot.video.device.annotations.VoipRecvVRotateType
 import com.tencent.iot.video.device.callback.IvVoipCallback
+import com.tencent.iot.video.device.consts.CommandType
+import com.tencent.iot.video.device.consts.IvErrCode
 import com.tencent.iot.video.device.model.AvDataInfo
 import com.tencent.iot.video.device.model.VoipVideoInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
+import com.tencent.iotvideo.link.consts.CallState
 import com.tencent.iotvideo.link.entity.UserEntity
 import com.tencent.iotvideo.link.util.DeviceSetting
 import com.tencent.iotvideo.link.util.QualitySetting
 import com.tencent.iotvideo.link.util.adjustAspectRatio
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 
 private val TAG: String = TweCallActivity::class.java.simpleName
 private const val DATA_PATH = "/storage/emulated/0/"
+private const val INCOMING_CALL_TIMEOUT = 55 * 1000L
+private const val IS_DEBUG = true
 
 class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback {
 
     @Volatile
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
-
+    @Volatile
+    private var callState = CallState.IDLE
     private var condition1 = false
     private var condition2 = false
     private val lock = Any()
@@ -48,7 +58,6 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     private var type = 0
     private var height = 0
     private var width = 0
-
     private val player = SimplePlayer()
 
     private val cameraRecorder = CameraRecorder()
@@ -57,12 +66,14 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     private var remotePreviewSurface: SurfaceTexture? = null
     private var dialog: ProgressDialog? = null
+    private var mIncomingCallJob: Job? = null
 
     // wx twe call init
     private var modelId: String? = null
     private var deviceId: String? = null
     private var wxaAppId: String? = null
 
+    private var roomId: String? = null
     private var openId: String = ""
     private val miniProgramVersion by lazy {
         intent.getIntExtra(
@@ -169,7 +180,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     )
                 executeCallV2(false)
             }
-            llTweCallHangUp.setOnClickListener {
+            btnTweCallHangUp.setOnClickListener {
                 if (initStatus == -1) {
                     showToast("initWxCloudTweCall还未完成初始化")
                     return@setOnClickListener
@@ -178,14 +189,80 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     showToast("initWxCloudTweCall初始化失败：$initStatus")
                     return@setOnClickListener
                 }
-                dialog =
-                    ProgressDialog.show(
-                        this@TweCallActivity,
-                        "",
-                        "挂断doWxCloudTweCallHangUp",
-                        true
-                    )
-                hangUpV2()
+
+                if (callState == CallState.IDLE) {
+                    showToast("未开启通话")
+                    return@setOnClickListener
+                }
+
+                if (roomId != null && callState == CallState.INCOMING_CALL) {
+                    Log.d(TAG, "reject incoming call, roomId: $roomId")
+                    dialog = ProgressDialog.show(this@TweCallActivity, "", "拒接来电，roomId: $roomId", true)
+                    replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_REFUSE)
+                    tvBeCallStatus.text = getString(R.string.wx_voip_refuse)
+                    updateBeCallUI(false)
+                    roomId = null
+                } else {
+                    dialog =
+                        ProgressDialog.show(
+                            this@TweCallActivity,
+                            "",
+                            "挂断doWxCloudTweCallHangUp",
+                            true
+                        )
+                    hangUpV2()
+                }
+
+                callState = CallState.IDLE
+            }
+
+            btnTweCallAnswer.setOnClickListener {
+                if (initStatus == -1) {
+                    showToast("initWxCloudTweCall还未完成初始化")
+                    return@setOnClickListener
+                }
+
+                if (initStatus != 0) {
+                    showToast("initWxCloudTweCall初始化失败：$initStatus")
+                    return@setOnClickListener
+                }
+
+                if (roomId == null) {
+                    showToast("roomId 为空，无法接听通话")
+                    return@setOnClickListener
+                }
+
+                dialog = ProgressDialog.show(this@TweCallActivity, "", "正在加入通话", true)
+                replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_ACCEPT)
+            }
+
+            if (IS_DEBUG) {
+                btnTweCallBusy.setOnClickListener {
+                    if (initStatus == -1) {
+                        showToast("initWxCloudTweCall还未完成初始化")
+                        return@setOnClickListener
+                    }
+
+                    if (initStatus != 0) {
+                        showToast("initWxCloudTweCall初始化失败：$initStatus")
+                        return@setOnClickListener
+                    }
+
+                    if (roomId == null) {
+                        showToast("roomId 为空，无法进行通话占线操作")
+                        return@setOnClickListener
+                    }
+
+                    if (roomId != null && callState == CallState.INCOMING_CALL) {
+                        Log.d(TAG, "busy action for incoming call, roomId: $roomId")
+                        dialog = ProgressDialog.show(this@TweCallActivity, "", "占线来电，roomId: $roomId", true)
+                        replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_BUSY)
+                        tvBeCallStatus.text = getString(R.string.wx_voip_busy)
+                        updateBeCallUI(false)
+                        callState = CallState.IDLE
+                        roomId = null
+                    }
+                }
             }
         }
     }
@@ -291,7 +368,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 recvPixel,
                 AudioEncType.IV_CM_AENC_TYPE_AAC,
                 VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
-                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE,
+                0, 0
             )
             val res = VideoNativeInterface.getInstance().doWxCloudVoipCall(
                 modelId, wxaAppId, openId, deviceId,
@@ -329,13 +407,17 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 recvPixel,
                 AudioEncType.IV_CM_AENC_TYPE_AAC,
                 VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
-                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE,
+                0, 0
             )
             val res = VideoNativeInterface.getInstance()
                 .doWxCloudVoipCallV2(openId, callType, videoInfo, true, calleeCameraSwitch)
             val result = when (res) {
                 -2 -> "通话中"
-                0 -> "呼叫成功"
+                0 -> {
+                    callState = CallState.IS_CALLING
+                    "呼叫成功"
+                }
                 else -> "呼叫失败"
             }
             Log.i(TAG, " call result: $result, resCode: $res")
@@ -382,6 +464,52 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         }
     }
 
+    private fun replyRoomCall(@VoipCalledStatus reply: Int) {
+        cancelIncomingCallJob()
+
+        checkDefaultThreadActiveAndExecuteTask {
+            @PixelType val recvPixel = QualitySetting.getInstance(this@TweCallActivity).wxResolution
+            val videoInfo = VoipVideoInfo(
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                VideoEncType.IV_CM_VENC_TYPE_H264,
+                recvPixel,
+                AudioEncType.IV_CM_AENC_TYPE_AAC,
+                VoipRecvVFpsType.VOIP_RECV_V_FPS_MAX,
+                VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE,
+                0, 0
+            )
+            val res = VideoNativeInterface.getInstance().doWxCloudVoipJoinV2(roomId, videoInfo, reply)
+
+            val result = when (res) {
+                IvErrCode.IV_ERR_NONE -> "响应房间成功"
+                IvErrCode.IV_ERR_AVT_REQ_CHN_BUSY -> "占线"
+                IvErrCode.IV_ERR_AVT_VOIP_EXPIRED -> "服务到期"
+                IvErrCode.IV_ERR_AVT_INPUT_PARAM_INVAILD -> "初始化失败或未初始化"
+                IvErrCode.IV_ERR_AVT_FAILED -> "其他错误"
+                else -> "响应房间失败"
+            }
+
+            Log.i(TAG, "replyRoomCall: result: $result, res: $res")
+
+            dismissDialog {
+                showToast("$result, resCode: $res")
+
+                if (res == IvErrCode.IV_ERR_NONE) {
+                    binding.btnTweCallAnswer.visibility = View.GONE
+
+                    if (IS_DEBUG) {
+                        binding.btnTweCallBusy.visibility = View.GONE
+                    }
+
+                    if (reply == VoipCalledStatus.VOIP_CALLED_STATUS_ACCEPT) {
+                        binding.tvBeCallStatus.isVisible = false
+                        callState = CallState.ON_CALL
+                    }
+                }
+            }
+        }
+    }
+
     private fun dismissDialog(block: (() -> Unit)? = null) {
         lifecycleScope.launch {
             dialog?.dismiss()
@@ -391,6 +519,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     override fun onDestroy() {
         Log.d(TAG, "destory")
+        cancelIncomingCallJob()
+
         checkDefaultThreadActiveAndExecuteTask {
 //            VideoNativeInterface.getInstance().exitWxCloudVoip()
             if (initStatus == 0) {
@@ -418,6 +548,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     override fun onStartRealPlay(visitor: Int, channel: Int, videoResType: Int) {
         super.onStartRealPlay(visitor, channel, videoResType)
+        callState = CallState.ON_CALL
         cameraRecorder.startRecording(visitor, channel, videoResType)
     }
 
@@ -476,16 +607,48 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         pts: Long,
         seq: Long
     ): Int {
-        Log.d(
-            TAG,
-            "onRecvStream visitor:$visitor  streamType:$streamType  data:$data  len:$len  pts:$pts  seq:$seq"
-        )
+//        Log.d(
+//            TAG,
+//            "onRecvStream visitor:$visitor  streamType:$streamType  data:$data  len:$len  pts:$pts  seq:$seq"
+//        )
         if (streamType == 1) {
             return player.playVideoStream(visitor, data, len, pts, seq)
         } else if (streamType == 0) {
             return player.playAudioStream(visitor, data, len, pts, seq)
         }
         return 0
+    }
+
+    override fun onRecvCommand(
+        command: Int,
+        visitor: Int,
+        channel: Int,
+        videoResType: Int,
+        args: String?
+    ): String {
+        Log.d(
+            TAG,
+            "onRecvCommand command $command visitor $visitor channel$channel   videoResType$videoResType   args$args"
+        )
+
+        if (command == CommandType.IV_AVT_COMMAND_CALL_CANCEL || command == CommandType.IV_AVT_COMMAND_CALL_TIMEOUT) {
+            lifecycleScope.launch {
+                updateBeCallUI(false)
+                callState = CallState.IDLE
+                roomId = null
+
+                when (command) {
+                    CommandType.IV_AVT_COMMAND_CALL_CANCEL -> {
+                        binding.tvBeCallStatus.text = getString(R.string.wx_voip_peer_cancel)
+                    }
+                    CommandType.IV_AVT_COMMAND_CALL_TIMEOUT -> {
+                        binding.tvBeCallStatus.text = getString(R.string.wx_voip_timeout)
+                    }
+                }
+            }
+        }
+
+        return super.onRecvCommand(command, visitor, channel, videoResType, args)
     }
 
     override fun onStopRecvStream(visitor: Int, channel: Int, streamType: Int): Int {
@@ -506,6 +669,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         lifecycleScope.launch {
             updateVideoUI(false)
             updateAudioUI(false)
+            callState = CallState.IDLE
         }
     }
 
@@ -533,12 +697,12 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             if (isCalling) {
                 surfaceViewTweCall.bringToFront()
                 textureViewTweCall.bringToFront()
-                llTweCallHangUp.bringToFront()
+                btnTweCallHangUp.bringToFront()
             }
             surfaceViewTweCallBg.isVisible = isCalling
             surfaceViewTweCall.isVisible = isCalling
             textureViewTweCall.isVisible = isCalling
-            llTweCallHangUp.isVisible = isCalling
+            btnTweCallHangUp.isVisible = isCalling
             llButtons.isVisible = !isCalling
             llOpenid.isVisible = !isCalling
             tvUserList.isVisible = !isCalling
@@ -550,7 +714,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         with(binding) {
             tvTips.isVisible = isCalling
             ivAudio.isVisible = isCalling
-            llTweCallHangUp.isVisible = isCalling
+            btnTweCallHangUp.isVisible = isCalling
             llButtons.isVisible = !isCalling
             rvUserList.isVisible = !isCalling
             llOpenid.isVisible = !isCalling
@@ -558,9 +722,93 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         }
     }
 
+    private fun updateBeCallUI(isShow: Boolean) {
+        with(binding) {
+            if (isShow) {
+                tvBeCallStatus.text = getString(R.string.wx_voip_incoming_call)
+                surfaceViewTweCall.bringToFront()
+                textureViewTweCall.bringToFront()
+                btnTweCallHangUp.bringToFront()
+                btnTweCallAnswer.bringToFront()
+
+                if (IS_DEBUG) {
+                    btnTweCallBusy.bringToFront()
+                }
+            }
+
+            llButtons.isVisible = !isShow
+            llOpenid.isVisible = !isShow
+            tvUserList.isVisible = !isShow
+            rvUserList.isVisible = !isShow
+            surfaceViewTweCallBg.isVisible = isShow
+            surfaceViewTweCall.isVisible = isShow
+            textureViewTweCall.isVisible = isShow
+            tvBeCallStatus.isVisible = isShow
+            btnTweCallAnswer.visibility = if (isShow) View.VISIBLE else View.GONE
+            btnTweCallHangUp.isVisible = isShow
+
+            if (IS_DEBUG) {
+                btnTweCallBusy.visibility = if (isShow) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun cancelIncomingCallJob() {
+        mIncomingCallJob?.cancel()
+        mIncomingCallJob = null
+    }
+
     //获取激活设备信息
     override fun onUpdateAuthorizeStatus(openId: String?, status: Int): Int {
         Log.d(TAG, "onUpdateAuthorizeStatus   penId:${openId}  status:$status")
         return 0
+    }
+
+    override fun onJoinNotify(roomId: String?): Int {
+        Log.d(TAG, "onJoinNotify: roomId: $roomId")
+
+        if (callState != CallState.IDLE) {
+            replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_BUSY)
+            return 0
+        }
+
+        this.roomId = roomId
+
+        mIncomingCallJob = lifecycleScope.launch {
+            callState = CallState.INCOMING_CALL
+            updateBeCallUI(true)
+            delay(INCOMING_CALL_TIMEOUT)
+
+            if (callState == CallState.INCOMING_CALL) {
+                binding.tvBeCallStatus.text = getString(R.string.wx_voip_timeout)
+                showToast("超时无应答")
+                callState = CallState.IDLE
+                this@TweCallActivity.roomId = null
+                delay(1000L)
+                updateBeCallUI(false)
+            }
+        }
+
+        return 0
+    }
+
+    override fun onCancelNotify(roomId: String?): Int {
+        Log.d(TAG, "onCancelNotify: roomId: $roomId")
+
+        lifecycleScope.launch {
+            if (this@TweCallActivity.roomId == roomId) {
+                cancelIncomingCallJob()
+                binding.tvBeCallStatus.text = getString(R.string.wx_voip_peer_cancel)
+                showToast("对方取消呼叫")
+                callState = CallState.IDLE
+                this@TweCallActivity.roomId = null
+                delay(1000L)
+                updateBeCallUI(false)
+            } else {
+                Log.w(TAG, "onCancelNotify: room id is different!")
+            }
+        }
+
+        return 0;
     }
 }

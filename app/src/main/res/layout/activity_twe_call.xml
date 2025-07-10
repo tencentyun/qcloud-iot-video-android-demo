@@ -146,12 +146,13 @@
 
         <TextView
             android:id="@+id/tv_tips"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:visibility="gone"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            android:gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
@@ -165,13 +166,26 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title_layout" />
 
+        <TextView
+            android:id="@+id/tv_be_call_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:text="@string/wx_voip_incoming_call"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@id/surfaceView_twe_call_bg"
+            app:layout_constraintEnd_toEndOf="@id/surfaceView_twe_call_bg"
+            app:layout_constraintTop_toTopOf="@id/surfaceView_twe_call_bg"
+            app:layout_constraintBottom_toBottomOf="@id/surfaceView_twe_call_bg" />
+
         <View
             android:id="@+id/surfaceView_twe_call_bg"
             android:layout_width="match_parent"
             android:layout_height="600dp"
             android:layout_marginHorizontal="10dp"
             android:layout_marginTop="20dp"
-            android:background="@color/black"
+            android:background="@color/black_4D000000"
             android:gravity="center"
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
@@ -208,32 +222,61 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
 
-        <LinearLayout
-            android:id="@+id/ll_twe_call_hang_up"
+        <!-- region answer & hangup button -->
+        <TextView
+            android:id="@+id/btn_twe_call_answer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
             android:visibility="gone"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:gravity="center"
+            android:text="@string/twe_call_answer"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:drawablePadding="4dp"
+            app:drawableTopCompat="@mipmap/icon_answer"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent">
+            app:layout_constraintEnd_toStartOf="@id/btn_twe_call_busy"
+            app:layout_constraintStart_toStartOf="parent" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@mipmap/icon_hang_up" />
+        <TextView
+            android:id="@+id/btn_twe_call_busy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:gravity="center"
+            android:text="@string/twe_call_busy"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:drawablePadding="4dp"
+            app:drawableTopCompat="@mipmap/icon_hang_up"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btn_twe_call_answer"
+            app:layout_constraintEnd_toStartOf="@id/btn_twe_call_hang_up"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-            <TextView
-                android:id="@+id/btn_twe_call_hang_up"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="@string/twe_call_hangup"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/btn_twe_call_hang_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:gravity="center"
+            android:text="@string/twe_call_hangup"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:drawablePadding="4dp"
+            app:drawableTopCompat="@mipmap/icon_hang_up"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btn_twe_call_busy"
+            app:layout_constraintEnd_toEndOf="parent" />
+        <!-- endregion answer & hangup button -->
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

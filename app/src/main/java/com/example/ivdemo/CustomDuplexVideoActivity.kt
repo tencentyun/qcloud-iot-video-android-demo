@@ -341,6 +341,7 @@ class CustomDuplexVideoActivity : BaseIPCActivity<ActivityCustomDuplexVideoBindi
             bgSurfaceView.visibility = View.VISIBLE
             surfaceViewDuplex.visibility = View.VISIBLE
             surfaceViewDuplex.bringToFront()
+            llHangUp.bringToFront()
             bgTextureView.visibility = View.VISIBLE
             textureViewDuplex.visibility = View.VISIBLE
             textureViewDuplex.bringToFront()

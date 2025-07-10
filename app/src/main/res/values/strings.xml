@@ -30,6 +30,16 @@
     <string name="twe_call_video_call">视频通话</string>
     <string name="twe_call_audio_call">音频通话</string>
     <string name="twe_call_hangup">挂断</string>
+    <string name="twe_call_busy">占线</string>
+    <string name="twe_call_answer">接听</string>
+
+    <string name="wx_voip_incoming_call">来电</string>
+    <string name="wx_voip_hangup">已挂断</string>
+    <string name="wx_voip_refuse">已拒接</string>
+    <string name="wx_voip_busy">返回占线</string>
+    <string name="wx_voip_timeout">已超时</string>
+    <string name="wx_voip_peer_hangup">对方挂断</string>
+    <string name="wx_voip_peer_cancel">对方取消</string>
 
     <string name="local_resolution">请选择本地分辨率</string>
     <string name="local_frame_rate">请选择本地帧率</string>

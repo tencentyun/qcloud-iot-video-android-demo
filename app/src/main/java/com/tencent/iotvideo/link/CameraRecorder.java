@@ -264,13 +264,13 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     int buf_size = iv.getSendStreamBuf(visitor, channel, res_type);
                     Log.e(TAG, "sendVideoData to visitor " + visitor + " failed: " + ret + " buf size " + buf_size);
                 } else {
-                    Log.e(TAG, "sendVideoData to success");
+//                    Log.e(TAG, "sendVideoData to success");
                 }
 
                 if ((stat_cnt++ % 50) == 0) {
                     int buf_size = iv.getSendStreamBuf(visitor, channel, res_type);
                     IvP2pSendInfo ivP2pSendInfo = iv.getSendStreamStatus(visitor, channel, res_type);
-                    Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
+//                    Log.d(TAG, "visitor " + visitor + " buf size " + buf_size + " link mode " + ivP2pSendInfo.getLinkMode() + "  instNetRate:" + ivP2pSendInfo.getInstNetRate() + "   aveSentRate:" + ivP2pSendInfo.getAveSentRate() + "   sumSentAcked:" + ivP2pSendInfo.getSumSentAcked());
                 }
             }
             saveH264(datas);
