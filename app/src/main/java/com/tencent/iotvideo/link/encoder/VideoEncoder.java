@@ -43,8 +43,6 @@ public class VideoEncoder {
     private long seq = 0L;
     private int MAX_FRAMERATE_LENGTH = 20;
     private int MIN_FRAMERATE_LENGTH = 5;
-    // 缓存 SPS PPS 信息
-    ByteBuffer mSpsPpsBuffer = null;
 
     public VideoEncoder(VideoEncodeParam param) {
         this.videoEncodeParam = param;
@@ -183,40 +181,24 @@ public class VideoEncoder {
                 outputBuffer.get(outData);
                 boolean isKeyFrame = false;
 
-                if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-//                    Log.w(TAG, "encoderH264: sps pps info, outData: " + UtilsKt.toHexString(outData));
-
-                    if (mSpsPpsBuffer != null) {
-                        mSpsPpsBuffer.clear();
-                        mSpsPpsBuffer = null;
-                    }
-
-                    // 缓存 SPS/PPS
-                    mSpsPpsBuffer = ByteBuffer.allocate(outData.length);
-                    mSpsPpsBuffer.put(outData);
-                    mSpsPpsBuffer.flip();
-                } else if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
-//                    Log.w(TAG, "encoderH264: I frame, outData: " + UtilsKt.toHexString(outData));
+                if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
                     isKeyFrame = true;
-
-                    if (mSpsPpsBuffer != null) {
-                        byte[] spsPpsData = new byte[mSpsPpsBuffer.remaining()];
-                        mSpsPpsBuffer.get(spsPpsData);
-                        mSpsPpsBuffer.rewind();
-                        Log.w(TAG, "encoderH264: I frame, spsPpsData: " + UtilsKt.toHexString(spsPpsData));
-
-                        if (spsPpsData.length > 0) {
-                            notifyEncoded(spsPpsData, isKeyFrame);
-                        } else {
-                            Log.w(TAG, "encoderH264: no sps pps data");
-                        }
-                    } else {
-                        Log.w(TAG, "encoderH264: I frame spsPpsBuffer = null");
-                    }
+                    ByteBuffer spsb = mediaCodec.getOutputFormat().getByteBuffer("csd-0");
+                    byte[] sps = new byte[spsb.remaining()];
+                    spsb.get(sps, 0, sps.length);
+                    ByteBuffer ppsb = mediaCodec.getOutputFormat().getByteBuffer("csd-1");
+                    byte[] pps = new byte[ppsb.remaining()];
+                    ppsb.get(pps, 0, pps.length);
+                    byte[] dataBytes = new byte[sps.length + pps.length + outData.length];
+                    System.arraycopy(sps, 0, dataBytes, 0, sps.length);
+                    System.arraycopy(pps, 0, dataBytes, sps.length, pps.length);
+                    System.arraycopy(outData, 0, dataBytes, pps.length + sps.length, outData.length);
+                    notifyEncoded(dataBytes, isKeyFrame);
+                } else {
+                    // 打印编码后的数据大小
+                    notifyEncoded(outData, isKeyFrame);
                 }
 
-                // 打印编码后的数据大小
-                notifyEncoded(outData, isKeyFrame);
                 // 释放输出缓冲区
                 mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
                 outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
@@ -253,11 +235,6 @@ public class VideoEncoder {
                 mediaCodec.stop();
                 mediaCodec.release();
                 mediaCodec = null;
-            }
-
-            if (mSpsPpsBuffer != null) {
-                mSpsPpsBuffer.clear();
-                mSpsPpsBuffer = null;
             }
 
             executor.shutdown();

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.os.Bundle
 import android.util.Log
+import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
@@ -27,6 +28,7 @@ import com.tencent.iot.video.device.model.IvStreamInfo
 import com.tencent.iotvideo.link.CameraRecorder
 import com.tencent.iotvideo.link.SimplePlayer
 import com.tencent.iotvideo.link.listener.OnEncodeListener
+import com.tencent.iotvideo.link.util.adjustAspectRatio
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.nio.ByteBuffer
@@ -364,9 +366,9 @@ class ClientActivity : AppCompatActivity(), IvClientCallback, OnEncodeListener {
         this.width = width
 
         lifecycleScope.launch {
-//            adjustAspectRatio(width, height, binding.tvRemoteVideo, binding.tvRemoteVideo.height, binding.tvRemoteVideo.width)
+//            adjustAspectRatio(width, height, binding.tvRemoteVideo, resources.displayMetrics.widthPixels, resources.displayMetrics.heightPixels)
             val params = binding.tvRemoteVideo.layoutParams as ConstraintLayout.LayoutParams
-            params.dimensionRatio = "H,$width:$height"
+            params.dimensionRatio = "H,$height:$width"
             binding.tvRemoteVideo.layoutParams = params
         }
 
@@ -555,6 +557,31 @@ class ClientActivity : AppCompatActivity(), IvClientCallback, OnEncodeListener {
         }
 
         return params.joinToString("&")
+    }
+
+    private fun getNewSize(width: Int, height: Int): Size? {
+        if (width < 0 || height < 0) {
+            Log.w(TAG, "getNewSize: width or height must >= 0!")
+            return null
+        }
+
+        val screenWidth = resources.displayMetrics.widthPixels
+        val screenHeight = resources.displayMetrics.heightPixels
+        val ratio = height.toFloat() / width
+        var newWidth = width
+        var newHeight = height
+
+        if (width < screenHeight) {
+            newWidth = screenHeight
+            newHeight = (screenWidth * ratio).toInt()
+        }
+
+        Log.d(
+            TAG,
+            "getNewSize: width: $width, height: $height, newWidth: $newWidth, newHeight: $newHeight"
+        )
+
+        return Size(newWidth, newHeight)
     }
 
     private fun sendCommand(cmd: String?, timeout: Long = 5000L): Int {
