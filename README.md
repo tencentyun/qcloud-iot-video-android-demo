@@ -97,6 +97,10 @@ allprojects {
         maven {
             url "https://oss.sonatype.org/content/repositories/snapshots"
         }
+        maven {
+            name = 'Central Portal Snapshots'
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+        }
     }
 }
 ```
