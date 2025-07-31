@@ -71,7 +71,7 @@ SETTING，配置appid和modelid
 
 # 2. 接入方式
 
-使用Android aar库
+使用Android aar库，/***注：版本号后缀有LP为低功耗版本***/
 
 ## 2.1 引用稳定版：
 

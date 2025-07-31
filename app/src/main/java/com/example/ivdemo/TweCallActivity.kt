@@ -49,6 +49,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
     @Volatile
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
+
     @Volatile
     private var callState = CallState.IDLE
     private var condition1 = false
@@ -197,7 +198,12 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
                 if (roomId != null && callState == CallState.INCOMING_CALL) {
                     Log.d(TAG, "reject incoming call, roomId: $roomId")
-                    dialog = ProgressDialog.show(this@TweCallActivity, "", "拒接来电，roomId: $roomId", true)
+                    dialog = ProgressDialog.show(
+                        this@TweCallActivity,
+                        "",
+                        "拒接来电，roomId: $roomId",
+                        true
+                    )
                     replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_REFUSE)
                     tvBeCallStatus.text = getString(R.string.wx_voip_refuse)
                     updateBeCallUI(false)
@@ -255,7 +261,12 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
                     if (roomId != null && callState == CallState.INCOMING_CALL) {
                         Log.d(TAG, "busy action for incoming call, roomId: $roomId")
-                        dialog = ProgressDialog.show(this@TweCallActivity, "", "占线来电，roomId: $roomId", true)
+                        dialog = ProgressDialog.show(
+                            this@TweCallActivity,
+                            "",
+                            "占线来电，roomId: $roomId",
+                            true
+                        )
                         replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_BUSY)
                         tvBeCallStatus.text = getString(R.string.wx_voip_busy)
                         updateBeCallUI(false)
@@ -371,8 +382,9 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE,
                 0, 0
             )
+            val customMsg = ""
             val res = VideoNativeInterface.getInstance().doWxCloudVoipCall(
-                modelId, wxaAppId, openId, deviceId,
+                modelId, wxaAppId, openId, deviceId, customMsg,
                 callType, videoInfo, true, calleeCameraSwitch
             )
             val result = when (res) {
@@ -410,14 +422,18 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE,
                 0, 0
             )
+            val customMsg = ""
             val res = VideoNativeInterface.getInstance()
-                .doWxCloudVoipCallV2(openId, callType, videoInfo, true, calleeCameraSwitch)
+                .doWxCloudVoipCallV2(
+                    openId, customMsg, callType, videoInfo, true, calleeCameraSwitch
+                )
             val result = when (res) {
                 -2 -> "通话中"
                 0 -> {
                     callState = CallState.IS_CALLING
                     "呼叫成功"
                 }
+
                 else -> "呼叫失败"
             }
             Log.i(TAG, " call result: $result, resCode: $res")
@@ -478,7 +494,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 VoipRecvVRotateType.VOIP_RECV_V_ROTATE_NONE,
                 0, 0
             )
-            val res = VideoNativeInterface.getInstance().doWxCloudVoipJoinV2(roomId, videoInfo, reply)
+            val res =
+                VideoNativeInterface.getInstance().doWxCloudVoipJoinV2(roomId, videoInfo, reply)
 
             val result = when (res) {
                 IvErrCode.IV_ERR_NONE -> "响应房间成功"
@@ -641,6 +658,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                     CommandType.IV_AVT_COMMAND_CALL_CANCEL -> {
                         binding.tvBeCallStatus.text = getString(R.string.wx_voip_peer_cancel)
                     }
+
                     CommandType.IV_AVT_COMMAND_CALL_TIMEOUT -> {
                         binding.tvBeCallStatus.text = getString(R.string.wx_voip_timeout)
                     }

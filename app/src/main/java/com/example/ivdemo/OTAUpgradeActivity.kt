@@ -178,6 +178,10 @@ class OTAUpgradeActivity : BaseIPCActivity<ActivityOtaUpgradeBinding>(), IvOTACa
         }
     }
 
+    override fun onOtaThreadExit(mqttOnline: Int) {
+
+    }
+
 
     override fun onDestroy() {
         checkDefaultThreadActiveAndExecuteTask {
