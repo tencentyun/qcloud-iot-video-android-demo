@@ -3,6 +3,8 @@ package com.tencent.iotvideo.link;
 import static com.tencent.iotvideo.link.util.UtilsKt.getBitRateIntervalByPixel;
 
 import android.app.Activity;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.MediaCodecInfo;
@@ -26,6 +28,7 @@ import com.tencent.iotvideo.link.util.CameraUtils;
 import com.tencent.iotvideo.link.util.QualitySetting;
 import com.tencent.iotvideo.link.util.UtilsKt;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -277,10 +280,27 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
     }
 
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if (!mIsRecording || mVideoEncoder == null) return;
         mVideoEncoder.encoderH264(data, cameraId == Camera.CameraInfo.CAMERA_FACING_FRONT);
+
+        /**
+        Camera.Parameters parameters = camera.getParameters();
+        Camera.Size size = parameters.getPreviewSize();
+
+        // 转换YUV数据为JPEG
+        YuvImage image = new YuvImage(data, parameters.getPreviewFormat(), size.width, size.height, null);
+        out.reset();
+        if (image.compressToJpeg(new Rect(0, 0, size.width, size.height), 100, out)){
+            // 得到JPEG数据
+            byte[] jpegData = out.toByteArray();
+            // 发送或处理 JPEG 数据，例如通过网络发送
+//            sendMjpegFrame(jpegData);
+        }
+         */
     }
 
     private void startBitRateAdapter(int visitor, int channel, int res_type) {
