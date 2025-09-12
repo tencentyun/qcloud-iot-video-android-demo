@@ -589,18 +589,22 @@ class ClientActivity : AppCompatActivity(), IvClientCallback, OnEncodeListener {
             val responseResult = mVideoNativeInterface.sendClientCommand(clientId, cmd.toByteArray(), timeout)
             val res = String(responseResult)
             val jsonResult = JSONObject(res)
-            val code = jsonResult.getInt("code")
-            val msg = jsonResult.getString("errMsg")
-            Log.d(TAG, "send client command: $cmd result: $res")
+            var code = -1
+            if (jsonResult.has("code")){
+                code = jsonResult.getInt("code")
 
+            }
+            var msg = ""
+            if (jsonResult.has("errMsg")){
+                msg = jsonResult.getString("errMsg")
+            }
+            Log.d(TAG, "send client command: $cmd result: $res")
             if (code != 0) {
                 Log.e(TAG, "send client command error, code: $code, msg: $msg")
             }
-
             return code
         } else {
             Log.w(TAG, "send client command error, cmd is null or empty")
-
             return -1
         }
     }
