@@ -60,6 +60,8 @@
     <string name="text_p2p_info">P2P信息:%s</string>
     <string name="text_exit_ota">OTA退出升级</string>
     <string name="text_select_version">请选择下面通信的小程序版本</string>
+    <string name="text_active_type">请选择激活类型</string>
+    <string name="text_active_type_tip">注：若出现过期情况，请按照控制台\n选择激活类型</string>
     <string name="text_formal_version">正式版</string>
     <string name="text_develop_version">开发版</string>
     <string name="text_experience_version">体验版</string>
@@ -96,4 +98,7 @@
     <string name="title_log">Log</string>
     <string name="text_soft_encode">软编码</string>
     <string name="text_hard_encode">硬编码</string>
+    <string name="text_active_code">测试激活码</string>
+    <string name="text_room_ipc">家庭安防场景</string>
+    <string name="text_wearable">可穿戴设备</string>
 </resources>

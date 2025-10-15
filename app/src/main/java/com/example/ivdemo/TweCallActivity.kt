@@ -293,8 +293,11 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 showToast("twecall初始化成功")
                 val activeDeviceInfo = VideoNativeInterface.getInstance().voipActiveDeviceInfoV2
                 if (activeDeviceInfo == null || activeDeviceInfo.expireTime < System.currentTimeMillis() / 1000) {
+                    val selectActiveType =
+                        intent.getIntExtra("activeType", VoipActivateType.VOIP_ACT_IPC)
+                    Log.i(TAG, "激活类型:$selectActiveType")
                     val activateRes = VideoNativeInterface.getInstance()
-                        .activateVoipLicenseV2(VoipActivateType.VOIP_ACT_IPC)
+                        .activateVoipLicenseV2(selectActiveType)
                     if (activateRes == 0) {
                         showToast("检查设备过期，激活结果成功，resCode:$activateRes")
                     } else {
