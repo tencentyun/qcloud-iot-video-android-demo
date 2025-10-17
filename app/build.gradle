@@ -80,5 +80,5 @@ dependencies {
     implementation libs.kotlinx.coroutines.android
     implementation libs.gson
     //后缀中有LP的为低功耗 sdk
-    implementation 'com.tencent.iot.video:video-device-android:1.1.1-SNAPSHOT'
+    implementation 'com.tencent.iot.video:video-device-android:1.1.0'
 }
