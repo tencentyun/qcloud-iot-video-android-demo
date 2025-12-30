@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#ECEFF1"
     android:keepScreenOn="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -13,66 +14,142 @@
             android:id="@+id/title_layout"
             layout="@layout/menu_back_layout" />
 
-        <TextView
-            android:id="@+id/text_dev_info"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="@string/text_device_info"
-            android:textAlignment="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-            android:textColor="@color/light_blue_900"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title_layout" />
-
-        <TextView
-            android:id="@+id/tv_p2p_info"
+        <FrameLayout
+            android:id="@+id/card_device_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:text="@string/text_p2p_info"
-            android:textAlignment="textStart"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-            android:textColor="@color/light_blue_900"
-            android:textColorHighlight="#CCCCCC"
-            android:textIsSelectable="true"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toStartOf="@+id/tv_copy"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
-
-        <TextView
-            android:id="@+id/tv_copy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            android:background="@color/white_0052D9"
-            android:paddingHorizontal="4dp"
-            android:paddingVertical="2dp"
-            android:text="@string/text_copy"
-            android:textAlignment="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toBottomOf="@+id/tv_p2p_info"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/tv_p2p_info" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_layout">
 
-        <TextView
-            android:id="@+id/tv_label"
-            android:layout_width="wrap_content"
-            android:layout_height="560dp"
-            android:gravity="center"
-            android:text="监听小程序来电页面"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            <TextView
+                android:id="@+id/text_dev_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="@string/text_device_info"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- P2P信息卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_p2p_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/card_device_title">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp"
+                android:background="@drawable/background_info_card_gradient">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_p2p_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/text_p2p_info"
+                        android:textColor="#263238"
+                        android:textColorHighlight="#B3E5FC"
+                        android:textIsSelectable="true"
+                        android:textSize="15sp"
+                        android:lineSpacingExtra="2dp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/tv_copy"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/text_copy"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_content_copy"
+                    app:tint="#1976D2" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 监听状态卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_listening"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
+            app:layout_constraintTop_toBottomOf="@+id/card_p2p_info">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/background_listening_card"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="32dp">
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@mipmap/icon_answer"
+                    app:tint="#1976D2"
+                    android:layout_marginBottom="24dp" />
+
+                <TextView
+                    android:id="@+id/tv_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="监听小程序来电页面"
+                    android:textColor="#1565C0"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    android:shadowColor="#40FFFFFF"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="8" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="等待小程序呼叫..."
+                    android:textColor="#546E7A"
+                    android:textSize="16sp"
+                    android:alpha="0.8" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_call"
@@ -82,24 +159,38 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info">
+            app:layout_constraintTop_toBottomOf="@+id/card_p2p_info">
 
-            <View
-                android:id="@+id/bg_surfaceView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/black_4D000000" />
+            <!-- 主视频容器 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_video_container"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="12dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <View
+                    android:id="@+id/bg_surfaceView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/background_video_main" />
+            </androidx.cardview.widget.CardView>
 
             <TextureView
                 android:id="@+id/surfaceView_duplex"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/bg_surfaceView"
-                app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
-                app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
-                app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
+                app:layout_constraintBottom_toBottomOf="@+id/card_video_container"
+                app:layout_constraintEnd_toEndOf="@+id/card_video_container"
+                app:layout_constraintStart_toStartOf="@+id/card_video_container"
+                app:layout_constraintTop_toTopOf="@+id/card_video_container" />
 
             <TextView
                 android:id="@+id/tip_text"
@@ -107,108 +198,142 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="小程序呼叫来电"
+                android:textColor="@color/white"
                 android:textSize="32sp"
-                app:layout_constraintBottom_toBottomOf="@+id/bg_surfaceView"
-                app:layout_constraintEnd_toEndOf="@+id/bg_surfaceView"
-                app:layout_constraintStart_toStartOf="@+id/bg_surfaceView"
-                app:layout_constraintTop_toTopOf="@+id/bg_surfaceView" />
+                android:textStyle="bold"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="4"
+                android:shadowRadius="8"
+                app:layout_constraintBottom_toBottomOf="@+id/card_video_container"
+                app:layout_constraintEnd_toEndOf="@+id/card_video_container"
+                app:layout_constraintStart_toStartOf="@+id/card_video_container"
+                app:layout_constraintTop_toTopOf="@+id/card_video_container" />
 
             <LinearLayout
                 android:id="@+id/ll_reject_listen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="48dp"
-                android:layout_marginBottom="48dp"
-                android:gravity="center_horizontal"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/background_call_button_reject"
+                android:elevation="12dp"
+                android:gravity="center"
                 android:orientation="vertical"
+                android:padding="10dp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_hang_up" />
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@mipmap/icon_hang_up"
+                    app:tint="@color/white" />
 
                 <TextView
                     android:id="@+id/btn_reject_listen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="拒接"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="4" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/ll_answer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="48dp"
-                android:layout_marginBottom="48dp"
-                android:gravity="center_horizontal"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="60dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/background_call_button_answer"
+                android:elevation="12dp"
+                android:gravity="center"
                 android:orientation="vertical"
+                android:padding="10dp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_answer" />
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@mipmap/icon_answer"
+                    app:tint="@color/white" />
 
                 <TextView
                     android:id="@+id/btn_answer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="接听"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="4" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/ll_hang_up"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="48dp"
-                android:gravity="center_horizontal"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/background_call_button_reject"
+                android:elevation="12dp"
+                android:gravity="center"
                 android:orientation="vertical"
+                android:padding="10dp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/icon_hang_up" />
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@mipmap/icon_hang_up"
+                    app:tint="@color/white" />
 
                 <TextView
                     android:id="@+id/btn_twe_call_hang_up"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="@string/twe_call_hangup"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="4" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <!-- 小视频窗口背景 -->
         <View
             android:id="@+id/bg_textureView"
-            android:layout_width="144dp"
-            android:layout_height="192dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="32dp"
-            android:background="@color/black_4D000000"
+            android:layout_width="130dp"
+            android:layout_height="173dp"
+            android:layout_marginTop="44dp"
+            android:layout_marginEnd="48dp"
+            android:background="@drawable/background_small_video_premium"
+            android:elevation="4dp"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="@+id/cl_call"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_p2p_info" />
+            app:layout_constraintTop_toBottomOf="@+id/card_p2p_info" />
 
         <TextureView
             android:id="@+id/textureView_duplex"

@@ -101,4 +101,9 @@
     <string name="text_active_code">测试激活码</string>
     <string name="text_room_ipc">家庭安防场景</string>
     <string name="text_wearable">可穿戴设备</string>
+    
+    <!-- 新增字符串用于优化布局 -->
+    <string name="text_live_preview">实时预览</string>
+    <string name="text_device_operations">设备操作</string>
+    <string name="text_reporting_alarm">正在上报告警中...</string>
 </resources>

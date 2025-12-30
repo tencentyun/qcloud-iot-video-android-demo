@@ -3,146 +3,200 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/gray_100">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="20dp">
+        android:paddingBottom="32dp">
 
         <include
             android:id="@+id/title_layout"
             layout="@layout/menu_back_layout" />
 
-        <TextView
-            android:id="@+id/tv_device_info"
-            android:layout_width="wrap_content"
+        <!-- 标题卡片 -->
+        <FrameLayout
+            android:id="@+id/card_title"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:gravity="center"
-            android:text="@string/text_device_info"
-            android:textSize="20sp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/title_layout" />
-
-        <TextView
-            android:id="@+id/tv_select_version"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="@string/text_select_version"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_device_info" />
-
-        <RadioGroup
-            android:id="@+id/rg_select_version"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_select_version">
-
-            <RadioButton
-                android:id="@+id/rb_formal_version"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/text_formal_version" />
-
-            <RadioButton
-                android:id="@+id/rb_develop_version"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/text_develop_version" />
-
-            <RadioButton
-                android:id="@+id/rb_experience_version"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/text_experience_version" />
-        </RadioGroup>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/ll_select_active_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="32dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/rg_select_version">
+            app:layout_constraintTop_toBottomOf="@id/title_layout">
 
             <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_device_info"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/text_active_type"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:gravity="center"
+                android:padding="20dp"
+                android:text="@string/text_device_info"
+                android:textColor="@color/blue_0052D9"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </FrameLayout>
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
+        <!-- 版本选择卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_version"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/card_title">
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/text_active_type_tip"
-                android:textSize="6sp"
-                app:layout_constraintBottom_toBottomOf="@+id/textView2"
-                app:layout_constraintStart_toEndOf="@+id/textView2" />
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <Spinner
-                android:id="@+id/sp_select_active_type"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:textAlignment="center"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView2" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/tv_select_version"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/text_select_version"
+                    android:textColor="@color/on_surface"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
+                <RadioGroup
+                    android:id="@+id/rg_select_version"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rb_formal_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:checked="true"
+                        android:text="@string/text_formal_version"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_develop_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/text_develop_version"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_experience_version"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_experience_version"
+                        android:textSize="14sp" />
+                </RadioGroup>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/ll_select_active_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="32dp">
+
+                    <TextView
+                        android:id="@+id/textView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_active_type"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_active_type_tip"
+                        android:textSize="6sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/textView2"
+                        app:layout_constraintStart_toEndOf="@+id/textView2" />
+
+                    <Spinner
+                        android:id="@+id/sp_select_active_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:textAlignment="center"
+                        android:textSize="12sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+        <!-- 操作按钮区域 -->
         <Button
             android:id="@+id/btn_wx_setting"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="80dp"
-            android:layout_marginTop="40dp"
-            android:layout_marginEnd="80dp"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="32dp"
             android:background="@drawable/background_blue_cell_btn"
+            android:elevation="4dp"
             android:text="@string/twe_call_wx_setting"
             android:textColor="@color/blue_0052D9"
-            android:textSize="20sp"
-            app:layout_constraintTop_toBottomOf="@+id/ll_select_active_type"
-            tools:layout_editor_absoluteX="80dp" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/card_version" />
 
         <Button
             android:id="@+id/btn_quality_setting"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="80dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="80dp"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="32dp"
             android:background="@drawable/background_blue_cell_btn"
+            android:elevation="4dp"
             android:text="@string/twe_call_quality_setting"
             android:textColor="@color/blue_0052D9"
-            android:textSize="20sp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btn_wx_setting" />
 
         <Button
             android:id="@+id/btn_login_twe_call"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="80dp"
-            android:layout_marginTop="50dp"
-            android:layout_marginEnd="80dp"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="32dp"
             android:background="@drawable/background_blue_cell_btn"
+            android:elevation="4dp"
             android:text="@string/twe_call_login"
             android:textColor="@color/blue_0052D9"
-            android:textSize="20sp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btn_quality_setting" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

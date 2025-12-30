@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?><!--<ScrollView-->
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#ECEFF1">
 
     <ScrollView
         android:layout_width="0dp"
@@ -18,6 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingBottom="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -27,193 +29,329 @@
                 android:id="@+id/title_layout"
                 layout="@layout/menu_back_layout" />
 
-            <LinearLayout
+            <!-- 设备信息卡片 -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="10dp">
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/white">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/text_product_id"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
-
-                <EditText
-                    android:id="@+id/et_product_id"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="16dp"
-                    android:hint="@string/product_id"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:textSize="14sp" />
-            </LinearLayout>
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-            <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="设备连接信息"
+                        android:textColor="#1565C0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_product_id"
+                        android:textColor="#546E7A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/et_product_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/background_input_field"
+                        android:hint="@string/product_id"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_device_name"
+                        android:textColor="#546E7A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/et_device_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/background_input_field"
+                        android:hint="@string/device_name"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_xp2p_info"
+                        android:textColor="#546E7A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/et_xp2p_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/background_input_field"
+                        android:hint="@string/device_xp2pinfo"
+                        android:maxLines="1"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <Button
+                            android:id="@+id/btn_connect_client"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/background_gradient_button"
+                            android:text="连接设备"
+                            android:textColor="@color/white"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/btn_disconnect_client"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/background_button_secondary"
+                            android:enabled="false"
+                            android:text="断开连接"
+                            android:textColor="@color/white"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 自定义信令卡片 -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="10dp">
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/white">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/text_device_name"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
-
-                <EditText
-                    android:id="@+id/et_device_name"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:hint="@string/device_name"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="10dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/text_xp2p_info"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                <EditText
-                    android:id="@+id/et_xp2p_info"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:hint="@string/device_xp2pinfo"
-                    android:maxLines="1"
-                    android:textSize="14sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="自定义信令"
+                        android:textColor="#1565C0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="信令内容"
+                        android:textColor="#546E7A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/btn_connect_client"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    android:layout_marginStart="10dp"
-                    android:text="connect_client" />
+                    <EditText
+                        android:id="@+id/et_command"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/background_input_field"
+                        android:enabled="false"
+                        android:hint="请输入信令内容"
+                        android:maxLines="1"
+                        android:paddingHorizontal="16dp"
+                        android:textSize="14sp" />
 
-                <Button
-                    android:id="@+id/btn_disconnect_client"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginEnd="10dp"
-                    android:enabled="false"
-                    android:text="disconnect_client" />
+                    <Button
+                        android:id="@+id/send_command"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:background="@drawable/background_gradient_button"
+                        android:enabled="false"
+                        android:text="发送信令"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="10dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="信令"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
-
-                <EditText
-                    android:id="@+id/et_command"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:enabled="false"
-                    android:hint="请输入信令内容"
-                    android:maxLines="1"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/send_command"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:enabled="false"
-                android:text="发送信令" />
-
+            <!-- 呼叫按钮 -->
             <Button
                 android:id="@+id/btn_start_call"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/background_gradient_button"
+                android:drawablePadding="12dp"
+                android:elevation="8dp"
                 android:enabled="false"
                 android:gravity="center"
-                android:text="呼叫" />
+                android:paddingHorizontal="24dp"
+                android:text="呼叫设备"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </ScrollView>
 
+    <!-- 通话界面 -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/call_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#1A1A2E"
         android:visibility="gone">
 
-        <TextureView
-            android:id="@+id/tv_remote_video"
+        <!-- 远程视频容器 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_remote_video"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_margin="0dp"
+            app:cardCornerRadius="0dp"
+            app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="H,16:9"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <TextureView
-            android:id="@+id/tv_local_video"
-            android:layout_width="120dp"
-            android:layout_height="160dp"
-            android:layout_margin="16dp"
-            app:layout_constraintDimensionRatio="H,4:3"
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/background_video_main" />
+
+            <TextureView
+                android:id="@+id/tv_remote_video"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- 本地视频小窗口 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_local_video"
+            android:layout_width="130dp"
+            android:layout_height="173dp"
+            android:layout_margin="20dp"
+            android:elevation="8dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/background_small_video_premium" />
+
+            <TextureView
+                android:id="@+id/tv_local_video"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="3dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:background="#80000000"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="本地"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- 呼叫提示文字 -->
         <TextView
             android:id="@+id/tip_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="正在呼叫设备"
-            android:textSize="32sp"
+            android:background="#CC000000"
+            android:paddingHorizontal="32dp"
+            android:paddingVertical="16dp"
+            android:text="正在呼叫设备..."
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:elevation="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-
-        <TextView
+        <!-- 挂断按钮 -->
+        <LinearLayout
             android:id="@+id/btn_call_hang_up"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="40dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="48dp"
+            android:background="@drawable/background_call_button_reject"
+            android:elevation="12dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="10dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:gravity="center"
-            android:text="@string/twe_call_hangup"
-            app:drawableTopCompat="@mipmap/icon_hang_up"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@mipmap/icon_hang_up"
+                app:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:text="@string/twe_call_hangup"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,117 +2,171 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/gray_100">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="24dp">
 
         <include
             android:id="@+id/title_layout"
             layout="@layout/menu_back_layout" />
 
-        <TextView
-            android:id="@+id/text_dev_info"
-            android:layout_width="wrap_content"
+        <!-- 设备信息标题卡片 -->
+        <FrameLayout
+            android:id="@+id/card_device_info"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="@string/text_device_info"
-            android:textAlignment="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-            android:textColor="@color/light_blue_900"
-            android:textSize="16sp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="20dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title_layout" />
+            app:layout_constraintTop_toBottomOf="@+id/title_layout">
 
+            <TextView
+                android:id="@+id/text_dev_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/text_device_info"
+                android:textColor="@color/blue_0052D9"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- 操作按钮区域 -->
         <LinearLayout
             android:id="@+id/ll_buttons"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:layout_marginBottom="16dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <Button
                 android:id="@+id/btn_twe_call_video_call"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:background="@drawable/background_blue_cell_btn"
+                android:background="@drawable/background_gradient_button"
+                android:elevation="4dp"
                 android:text="@string/twe_call_video_call"
-                android:textColor="@color/blue_0052D9"
-                android:textSize="16sp" />
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btn_twe_call_audio_call"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:background="@drawable/background_blue_cell_btn"
+                android:background="@drawable/background_gradient_button"
+                android:elevation="4dp"
                 android:text="@string/twe_call_audio_call"
-                android:textColor="@color/blue_0052D9"
-                android:textSize="16sp" />
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_user_list"
-            android:layout_width="wrap_content"
+        <!-- 用户列表卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_user_list"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="32dp"
-            android:text="@string/text_openid"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_user_list"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/background_blue_cell_btn"
-            android:padding="4dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="20dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_user_list" />
+            app:layout_constraintTop_toBottomOf="@+id/card_device_info">
 
-        <LinearLayout
-            android:id="@+id/ll_openid"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tv_user_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_openid"
+                    android:textColor="@color/on_surface"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_user_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/background_user_list"
+                    android:padding="8dp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- OpenID输入卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_openid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
             android:layout_marginTop="380dp"
+            android:layout_marginEnd="20dp"
             android:layout_marginBottom="16dp"
-            android:orientation="horizontal"
-            android:paddingHorizontal="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/white"
             app:layout_constraintBottom_toTopOf="@+id/ll_buttons"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/rv_user_list">
+            app:layout_constraintTop_toBottomOf="@+id/card_user_list">
 
-            <TextView
-                android:id="@+id/tv_openid"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/text_open_id"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/et_openid"
+            <LinearLayout
+                android:id="@+id/ll_openid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/text_open_id_tip"
-                android:text=""
-                android:textSize="14sp" />
-        </LinearLayout>
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tv_openid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_open_id"
+                    android:textColor="@color/on_surface"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_openid"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/background_input"
+                    android:hint="@string/text_open_id_tip"
+                    android:paddingHorizontal="12dp"
+                    android:text=""
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:id="@+id/text_twe_call_iv_dev_info"
@@ -181,25 +235,28 @@
 
         <View
             android:id="@+id/surfaceView_twe_call_bg"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="600dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"
-            android:background="@color/black_4D000000"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/background_video_container"
             android:gravity="center"
             android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/card_device_info" />
 
         <View
             android:id="@+id/textureView_call_bg"
             android:layout_width="140dp"
             android:layout_height="186dp"
             android:layout_marginTop="32dp"
-            android:layout_marginEnd="16dp"
-            android:background="@color/black"
+            android:layout_marginEnd="32dp"
+            android:background="@drawable/background_video_container"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
+            app:layout_constraintTop_toBottomOf="@+id/card_device_info" />
 
         <TextureView
             android:id="@+id/surfaceView_twe_call"
@@ -217,66 +274,101 @@
             android:layout_width="140dp"
             android:layout_height="186dp"
             android:layout_marginTop="32dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="32dp"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_dev_info" />
+            app:layout_constraintTop_toBottomOf="@+id/card_device_info" />
 
         <!-- region answer & hangup button -->
-        <TextView
-            android:id="@+id/btn_twe_call_answer"
+        <LinearLayout
+            android:id="@+id/ll_call_controls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp"
-            android:padding="8dp"
+            android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="@string/twe_call_answer"
-            android:textSize="16sp"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:drawablePadding="4dp"
-            app:drawableTopCompat="@mipmap/icon_answer"
+            android:orientation="horizontal"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btn_twe_call_busy"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
-            android:id="@+id/btn_twe_call_busy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp"
-            android:padding="8dp"
-            android:gravity="center"
-            android:text="@string/twe_call_busy"
-            android:textSize="16sp"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:drawablePadding="4dp"
-            app:drawableTopCompat="@mipmap/icon_hang_up"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/btn_twe_call_answer"
-            app:layout_constraintEnd_toStartOf="@id/btn_twe_call_hang_up"
-            app:layout_constraintEnd_toEndOf="parent" />
+            <LinearLayout
+                android:id="@+id/btn_twe_call_answer"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="32dp"
+                android:background="@drawable/background_answer_button"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="12dp">
 
-        <TextView
-            android:id="@+id/btn_twe_call_hang_up"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp"
-            android:padding="8dp"
-            android:gravity="center"
-            android:text="@string/twe_call_hangup"
-            android:textSize="16sp"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:drawablePadding="4dp"
-            app:drawableTopCompat="@mipmap/icon_hang_up"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/btn_twe_call_busy"
-            app:layout_constraintEnd_toEndOf="parent" />
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@mipmap/icon_answer" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/twe_call_answer"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_twe_call_busy"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="32dp"
+                android:background="@drawable/background_hangup_button"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@mipmap/icon_hang_up" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/twe_call_busy"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_twe_call_hang_up"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/background_hangup_button"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@mipmap/icon_hang_up" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/twe_call_hangup"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
         <!-- endregion answer & hangup button -->
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

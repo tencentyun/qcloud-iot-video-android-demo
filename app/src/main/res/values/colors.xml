@@ -18,4 +18,17 @@
     <color name="black_4D000000">#4D000000</color>
     <color name="blue_0052D9">#0052D9</color>
     <color name="white_0052D9">#AEAEAE</color>
+    
+    <!-- 新增颜色定义用于优化布局 -->
+    <color name="gray_600">#757575</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_100">#F5F5F5</color>
+    <color name="black_80">#CC000000</color>
+    <color name="primary_color">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="accent_color">#FF4081</color>
+    <color name="surface_color">#FFFFFF</color>
+    <color name="on_surface">#212121</color>
+    <color name="error_color">#F44336</color>
+    <color name="success_color">#4CAF50</color>
 </resources>
