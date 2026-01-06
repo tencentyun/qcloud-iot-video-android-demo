@@ -281,8 +281,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     private fun initTweCall() {
         checkDefaultThreadActiveAndExecuteTask {
             initStatus = initWxCloudTweCallV2()
-            if (initStatus == 19) {
-                //把device_key文件删掉
+            if (initStatus == 19 || initStatus == -379) {                //把device_key文件删掉
                 deleteDeviceKeyFile(DATA_PATH)
                 initStatus = initWxCloudTweCallV2()
             }
