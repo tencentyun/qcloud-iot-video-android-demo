@@ -52,8 +52,7 @@ public class AudioDecoder {
 
     public void startAudio(int type, int mode, int width, int sample_rate) throws IOException {
         audioChannelConfig = mode == 1 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
-        // 修正PCM格式判断：width=2表示16位，width=1表示8位
-        audioPcmFormat = width == 2 ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT;
+        audioPcmFormat = width == 1 ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT;
         audioSampleRate = getSampleRate(sample_rate);
         int channel = mode + 1;
         initAudio(type, channel);
@@ -74,20 +73,17 @@ public class AudioDecoder {
     private void initAudio(int type, int channel) throws IOException {
         mAudioExecutor = Executors.newSingleThreadExecutor();
         int minBufSize = AudioTrack.getMinBufferSize(audioSampleRate, audioChannelConfig, audioPcmFormat);
-        // 使用2倍缓冲区大小，避免缓冲区欠载导致噪音
-        int bufferSize = minBufSize * 2;
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioPcmFormat, bufferSize, AudioTrack.MODE_STREAM);
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, audioSampleRate, audioChannelConfig, audioPcmFormat, minBufSize, AudioTrack.MODE_STREAM);
         mAudioTrack.setVolume(1.5f);
         mAudioTrack.play();
-        Log.d(TAG, "start audio track with buffer size: " + bufferSize);
+        Log.d(TAG, "start audio track");
 
         // create audio decoder
         if (type == 4) {
             mAudioCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
             MediaFormat audioFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, audioSampleRate, channel);
             audioFormat.setInteger(MediaFormat.KEY_PCM_ENCODING, audioPcmFormat);
-            // 移除KEY_IS_ADTS配置，让解码器自动处理
-            // audioFormat.setInteger(MediaFormat.KEY_IS_ADTS, 1);
+            audioFormat.setInteger(MediaFormat.KEY_IS_ADTS, 1);
             audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 256 * 1024);
             int profile = MediaCodecInfo.CodecProfileLevel.AACObjectLC;
             audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, profile);
@@ -149,8 +145,7 @@ public class AudioDecoder {
                         ByteBuffer inputBuffer = mAudioCodec.getInputBuffer(inputBufferIndex);
                         inputBuffer.clear();
 //                  Log.d(TAG, "aac input: " + bytesToHex(data, len));
-                        inputBuffer.put(data, 0, len);
-                        // 不需要rewind，直接提交
+                        inputBuffer.put(data, 0, len).rewind();
                         mAudioCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
                     } else {
                         Log.e(TAG, "audio inputBufferIndex invalid: " + inputBufferIndex);

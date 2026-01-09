@@ -60,6 +60,20 @@
                 android:textColorHighlight="#CCCCCC"
                 android:textIsSelectable="true" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="解码器信息："
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/decoder_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColorHighlight="#CCCCCC"
+                android:textIsSelectable="true" />
+
             <Button
                 android:id="@+id/log"
                 android:layout_width="wrap_content"

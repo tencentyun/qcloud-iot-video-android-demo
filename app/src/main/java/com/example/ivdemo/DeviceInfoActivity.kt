@@ -52,9 +52,12 @@ class DeviceInfoActivity : AppCompatActivity() {
                     "Incremental: $versionIncremental"
             Log.d("DeviceInfoActivity", device)
             deviceInfo.text = device
-            val encoder = "support encoder:${selectCodec()}"
+            val encoder = "support encoder:${selectCodec(true)}"
             Log.d("DeviceInfoActivity", encoder)
             encoderInfo.text = encoder
+            val decoder = "support decoder:${selectCodec(false)}"
+            Log.d("DeviceInfoActivity", decoder)
+            decoderInfo.text = decoder
             val cpu = getCpuInfo() + "\n cpu架构：" + Build.SUPPORTED_ABIS[0]
             Log.d("DeviceInfoActivity", cpu)
             cpuInfo.text = cpu
@@ -64,15 +67,17 @@ class DeviceInfoActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectCodec(): String {
+    private fun selectCodec(isEncoder: Boolean): String {
         val str = StringBuilder()
         val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
         val codecInfos = codecList.codecInfos
         for (codecInfo in codecInfos) {
-            if (!codecInfo.isEncoder) continue
+            if (isEncoder && !codecInfo.isEncoder) continue
+            if (!isEncoder && codecInfo.isEncoder) continue
             val types = codecInfo.supportedTypes
             for (type in types) {
-                Log.d("DeviceInfoActivity", "Encoder name: " + codecInfo.name + ", type: " + type)
+                val codecType = if (isEncoder) "Encoder" else "Decoder"
+                Log.d("DeviceInfoActivity", "$codecType name: " + codecInfo.name + ", type: " + type)
                 if (type.startsWith("video/")) {
                     val capabilities = codecInfo.getCapabilitiesForType(type)
                     str.append("name:${codecInfo.name};  type:${type};  colorFormats:${capabilities.colorFormats.contentToString()} \n")

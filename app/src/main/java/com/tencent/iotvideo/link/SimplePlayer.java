@@ -24,7 +24,7 @@ public class SimplePlayer {
     private String receiveAacFilePath = "/sdcard/wx_audio.aac";
     private FileOutputStream h264Fos;
     private FileOutputStream aacFos;
-    private boolean isSaveReceiveRecord = false;
+    private boolean isSaveReceiveRecord = true;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static String bytesToHex(byte[] bytes, int length) {
@@ -40,6 +40,10 @@ public class SimplePlayer {
     private VideoDecoder videoDecoder;
 
     private AudioDecoder audioDecoder;
+
+    public SimplePlayer() {
+        isSaveReceiveRecord(false);
+    }
 
     public void setContext(Context context) {
         if (audioDecoder != null) {
