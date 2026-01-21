@@ -192,13 +192,19 @@ class DuplexVideoActivity : BaseIPCActivity<ActivityDuplexVideoBinding>() {
         sample_rate: Int,
         sample_num: Int
     ): Int {
-        return player.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num)
+       val res = player.startAudioPlay(visitor, type, option, mode, width, sample_rate, sample_num)
+//        cameraRecorder.setEnableGvoiceAEC(true)
+//        player.setOnDecodeListener { pcmData, _, _ ->
+//            cameraRecorder.setPlayerPcmData(pcmData)
+//        }
+        return res
     }
 
     override fun onStopRecvStream(visitor: Int, channel: Int, streamType: Int): Int {
         return if (streamType == StreamType.IV_AVT_STREAM_TYPE_VIDEO) {
             player.stopVideoPlay(visitor)
         } else {
+//            cameraRecorder.setEnableGvoiceAEC(false)
             player.stopAudioPlay(visitor)
         }
     }

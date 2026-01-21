@@ -191,6 +191,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         AudioEncodeParam audioEncodeParam = new AudioEncodeParam();
         audioEncodeParam.setBitRate(mAudioBitRate);
         mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
+//        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true, context);
         mAudioEncoder.setOnEncodeListener(this);
         mAudioEncoder.setMuted(isMuted);
         mAudioEncoder.start();
