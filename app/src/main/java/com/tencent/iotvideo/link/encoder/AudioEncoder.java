@@ -1,6 +1,7 @@
 package com.tencent.iotvideo.link.encoder;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -8,16 +9,32 @@ import android.media.MediaFormat;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AutomaticGainControl;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.iot.gvoice.interfaces.GvoiceJNIBridge;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.AudioEncodeParam;
 import com.tencent.iotvideo.link.param.MicParam;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class AudioEncoder {
 
@@ -59,6 +76,20 @@ public class AudioEncoder {
     private boolean enableAEC;
 
     private boolean enableAGC;
+    private Context context;
+    private boolean enableGvoiceAEC = false;
+    // 队列容量：1920 * 10 = 19200字节，可缓存约10帧（600ms音频数据）
+    // 足够应对解码器输出抖动和网络波动，同时避免过大延迟
+    private ArrayBlockingQueue<Byte> playPcmData = new ArrayBlockingQueue<>(1920 * 2);
+
+    private static final int SAVE_PCM_DATA = 1;
+    private boolean isRecordPcm = false;
+    private String speakPcmFilePath = "/storage/emulated/0/speak_pcm_";
+
+    private FileOutputStream fosNear;  // 保存麦克风原始数据
+    private FileOutputStream fosFar;   // 保存播放器参考数据
+    private FileOutputStream fosAec;   // 保存回声消除后数据
+    private final Handler mHandler = new SavePcmHandler();
 
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam) {
         this(micParam, audioEncodeParam, false, false);
@@ -66,14 +97,38 @@ public class AudioEncoder {
 
 
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC) {
+        this(micParam, audioEncodeParam, enableAEC, enableAGC, null);
+    }
+
+    /**
+     * 构造函数，支持gvoice回声消除
+     *
+     * @param micParam         麦克风参数
+     * @param audioEncodeParam 音频编码参数
+     * @param enableAEC        是否启用系统AEC
+     * @param enableAGC        是否启用系统AGC
+     */
+    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC, Context context) {
         this.micParam = micParam;
         this.audioEncodeParam = audioEncodeParam;
         this.enableAEC = enableAEC;
         this.enableAGC = enableAGC;
+        this.context = context;
+        if (context != null) {
+            GvoiceJNIBridge.init(context);
+            Log.d(TAG, "GvoiceJNIBridge initialized for AEC");
+            Log.i(TAG, "=== Gvoice AEC Configuration ===");
+            Log.i(TAG, "Mic Sample Rate: " + micParam.getSampleRateInHz() + " Hz");
+            Log.i(TAG, "Mic Channel Config: " + micParam.getChannelConfig());
+            Log.i(TAG, "Mic Audio Format: " + micParam.getAudioFormat());
+            Log.i(TAG, "Buffer Size: " + (2 * AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat())) + " bytes");
+            Log.i(TAG, "⚠️ IMPORTANT: Ensure AudioDecoder output format matches AudioEncoder input format!");
+            Log.i(TAG, "================================");
+        }
         init();
     }
 
-    private void init(){
+    private void init() {
         initAudio();
         int audioSessionId = audioRecord.getAudioSessionId();
         if (enableAEC && audioSessionId != 0) {
@@ -90,8 +145,16 @@ public class AudioEncoder {
 
     @SuppressLint("MissingPermission")
     private void initAudio() {
-        bufferSizeInBytes = 2 * AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat());
-        Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
+        // 计算基础缓冲区大小（20ms数据长度）
+        int baseBufferSize = (micParam.getSampleRateInHz() * micParam.getChannelConfig() * micParam.getAudioFormat() / 8) / 1000 * 20;
+
+        // 当启用Gvoice AEC时，必须使用640字节的倍数
+        if (context != null && !enableAEC && !enableAGC) {
+            bufferSizeInBytes = 1920;
+        } else {
+            bufferSizeInBytes = baseBufferSize;
+            Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
+        }
         audioRecord = new AudioRecord(micParam.getAudioSource(), micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat(), bufferSizeInBytes);
         try {
             audioCodec = MediaCodec.createEncoderByType(audioEncodeParam.getMime());
@@ -109,6 +172,12 @@ public class AudioEncoder {
 
     public void start() {
         init();
+        // 如果需要保存PCM数据，创建文件输出流
+        if (isRecordPcm) {
+            fosNear = createPcmFile("near");
+            fosFar = createPcmFile("far");
+            fosAec = createPcmFile("aec");
+        }
         new Thread(this::record).start();
     }
 
@@ -164,6 +233,155 @@ public class AudioEncoder {
         return isMuted;
     }
 
+    /**
+     * 设置是否保存PCM数据到文件
+     *
+     * @param isRecord 是否保存
+     */
+    public void setRecordPcm(boolean isRecord) {
+        this.isRecordPcm = isRecord;
+    }
+
+    /**
+     * 设置PCM文件保存路径
+     *
+     * @param path 文件路径前缀
+     */
+    public void setSpeakPcmFilePath(String path) {
+        Log.e(TAG, "setSpeakPcmFilePath is: " + path);
+        this.speakPcmFilePath = path;
+    }
+
+    /**
+     * 创建PCM文件输出流
+     *
+     * @param format 文件名后缀（near/far/aec）
+     * @return FileOutputStream
+     */
+    private FileOutputStream createPcmFile(String format) {
+        if (!TextUtils.isEmpty(speakPcmFilePath)) {
+            File file = new File(speakPcmFilePath + format + ".pcm");
+            Log.i(TAG, "speak cache pcm file path: " + file.getAbsolutePath());
+            if (file.exists()) {
+                file.delete();
+            }
+            try {
+                file.createNewFile();
+                return new FileOutputStream(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e(TAG, "创建PCM文件失败: " + e.getMessage());
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Handler用于异步保存PCM数据
+     */
+    private class SavePcmHandler extends Handler {
+        public SavePcmHandler() {
+            super(Looper.getMainLooper());
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            try {
+                if (msg.what == SAVE_PCM_DATA && fosNear != null && fosFar != null && fosAec != null) {
+                    JSONObject jsonObject = (JSONObject) msg.obj;
+                    byte[] nearBytesData = (byte[]) jsonObject.get("nearPcmBytes");
+                    fosNear.write(nearBytesData);
+                    fosNear.flush();
+
+                    byte[] farBytesData = (byte[]) jsonObject.get("farPcmBytes");
+                    fosFar.write(farBytesData);
+                    fosFar.flush();
+
+                    byte[] aecBytesData = (byte[]) jsonObject.get("aecPcmBytes");
+                    fosAec.write(aecBytesData);
+                    fosAec.flush();
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "IOException while saving PCM: " + e);
+                e.printStackTrace();
+            } catch (JSONException e) {
+                Log.e(TAG, "JSONException while saving PCM: " + e);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 写入PCM数据到文件
+     *
+     * @param nearPcmBytes 麦克风原始数据
+     * @param farPcmBytes  播放器参考数据
+     * @param aecPcmBytes  回声消除后数据
+     */
+    private void writePcmBytesToFile(byte[] nearPcmBytes, byte[] farPcmBytes, byte[] aecPcmBytes) {
+        if (isRecordPcm) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("nearPcmBytes", nearPcmBytes);
+                jsonObject.put("farPcmBytes", farPcmBytes);
+                jsonObject.put("aecPcmBytes", aecPcmBytes);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Message message = mHandler.obtainMessage(SAVE_PCM_DATA, jsonObject);
+            mHandler.sendMessage(message);
+        }
+    }
+
+    public void setEnableGvoiceAEC(boolean enableGvoiceAEC) {
+        this.enableGvoiceAEC = enableGvoiceAEC;
+    }
+
+    public void setPlayerPcmData(byte[] pcmData) {
+        if (pcmData == null) return;
+        for (byte b : pcmData) {
+            if (!playPcmData.offer(b)) {
+                // 队列满了，移除最旧的数据
+                playPcmData.poll();
+                playPcmData.offer(b);
+            }
+        }
+    }
+
+    /**
+     * 从播放器PCM队列中读取指定长度的数据
+     *
+     * @param length 需要读取的数据长度
+     * @return 播放器PCM数据，如果队列中数据不足则返回null
+     */
+    private byte[] onReadPlayerPlayPcm(int length) {
+        int queueSize = playPcmData.size();
+        if (queueSize >= length) {
+            byte[] res = new byte[length];
+            try {
+                for (int i = 0; i < length; i++) {
+                    res[i] = playPcmData.take();
+                }
+
+                int remainingSize = playPcmData.size();
+                // 简化日志，只在队列异常时输出
+                if (remainingSize > 10000 || remainingSize < 1000) {
+                    Log.w(TAG, "Queue size abnormal: " + remainingSize + "B (after reading " + length + "B)");
+                }
+                return res;
+            } catch (InterruptedException e) {
+                Log.e(TAG, "onReadPlayerPlayPcm interrupted: " + e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            Log.w(TAG, "⚠️ Queue underflow - requested: " + length + "B, available: " + queueSize + "B (insufficient!)");
+            return null;
+        }
+    }
+
     private void release() {
         if (audioRecord != null) {
             audioRecord.stop();
@@ -187,6 +405,30 @@ public class AudioEncoder {
             control.setEnabled(false);
             control.release();
             control = null;
+        }
+
+        // 清理gvoice相关资源
+        if (enableGvoiceAEC && !playPcmData.isEmpty()) {
+            playPcmData.clear();
+        }
+
+        // 关闭PCM文件输出流
+        try {
+            if (fosNear != null) {
+                fosNear.close();
+                fosNear = null;
+            }
+            if (fosFar != null) {
+                fosFar.close();
+                fosFar = null;
+            }
+            if (fosAec != null) {
+                fosAec.close();
+                fosAec = null;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "关闭PCM文件流失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -248,11 +490,50 @@ public class AudioEncoder {
                 }
                 int readSize = -1;
                 if (inputBuffer != null) {
-                    readSize = audioRecord.read(inputBuffer, bufferSizeInBytes);
-                    if (isMuted && readSize > 0) {
-                        for (int i = 0; i < readSize; i++) {
-                            inputBuffer.put(i, (byte) 0);
+                    // 先读取原始PCM数据到临时缓冲区
+                    byte[] tempBuffer = new byte[bufferSizeInBytes];
+                    readSize = audioRecord.read(tempBuffer, 0, bufferSizeInBytes);
+
+                    if (readSize > 0) {
+                        byte[] processedData = tempBuffer;
+                        byte[] playerPcmBytes = null;
+                        if (enableGvoiceAEC) {
+                            playerPcmBytes = onReadPlayerPlayPcm(readSize);
+                            // 验证播放器数据长度是否匹配
+                            if (playerPcmBytes != null && playerPcmBytes.length == readSize) {
+                                // 使用gvoice进行回声消除
+                                processedData = GvoiceJNIBridge.cancellation(tempBuffer, playerPcmBytes);
+                                Log.d(TAG, "Gvoice AEC: processedData length: " + processedData.length);
+                                if (isRecordPcm) {
+                                    writePcmBytesToFile(tempBuffer, playerPcmBytes, processedData);
+                                }
+                            } else {
+                                // 播放器数据不足或长度不匹配时，传入空数组进行降噪
+                                byte[] emptyPlayerPcm = new byte[readSize];
+                                processedData = GvoiceJNIBridge.cancellation(tempBuffer, emptyPlayerPcm);
+
+                                if (playerPcmBytes != null) {
+                                    Log.w(TAG, "Gvoice AEC: player data length mismatch! Expected: " + readSize + ", Got: " + playerPcmBytes.length + ", using empty reference");
+                                } else {
+                                    Log.d(TAG, "Gvoice AEC: no player data available (queue size: " + playPcmData.size() + "), using empty reference");
+                                }
+
+                                // 保存PCM数据到文件（使用空数组作为far）
+                                if (isRecordPcm) {
+                                    writePcmBytesToFile(tempBuffer, emptyPlayerPcm, processedData);
+                                }
+                            }
                         }
+
+                        // 如果静音，将数据置零
+                        if (isMuted) {
+                            Arrays.fill(processedData, (byte) 0);
+                        }
+
+                        // 将处理后的数据写入编码器输入缓冲区
+                        inputBuffer.clear();
+                        inputBuffer.put(processedData, 0, processedData.length);
+                        readSize = processedData.length;
                     }
                 }
                 if (readSize >= 0) {

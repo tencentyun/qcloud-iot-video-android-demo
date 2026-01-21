@@ -91,17 +91,17 @@ public class VideoEncoder {
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoEncodeParam.getiFrameInterval());
         //色彩格式，具体查看相关API，不同设备支持的色彩格式不尽相同
         mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, getColorFormat());
-        //设置编码器码率模式为可变
-        mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 0);
-        }
-        //设置压缩等级  默认是 baseline
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileMain);
-        }
+//        //设置编码器码率模式为可变
+//        mediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            mediaFormat.setInteger(MediaFormat.KEY_ROTATION, 0);
+//        }
+//        //设置压缩等级  默认是 baseline
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            mediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
+//        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            mediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileMain);
+//        }
         // 创建 MediaCodec 编码器
         if (mediaCodecInfo != null) {
             mediaCodec = MediaCodec.createByCodecName(mediaCodecInfo.getName());

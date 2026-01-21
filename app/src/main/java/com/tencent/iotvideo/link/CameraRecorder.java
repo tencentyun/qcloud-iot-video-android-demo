@@ -288,19 +288,31 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         mVideoEncoder.encoderH264(data, cameraId == Camera.CameraInfo.CAMERA_FACING_FRONT);
 
         /**
-        Camera.Parameters parameters = camera.getParameters();
-        Camera.Size size = parameters.getPreviewSize();
+         Camera.Parameters parameters = camera.getParameters();
+         Camera.Size size = parameters.getPreviewSize();
 
-        // 转换YUV数据为JPEG
-        YuvImage image = new YuvImage(data, parameters.getPreviewFormat(), size.width, size.height, null);
-        out.reset();
-        if (image.compressToJpeg(new Rect(0, 0, size.width, size.height), 100, out)){
-            // 得到JPEG数据
-            byte[] jpegData = out.toByteArray();
-            // 发送或处理 JPEG 数据，例如通过网络发送
-//            sendMjpegFrame(jpegData);
-        }
+         // 转换YUV数据为JPEG
+         YuvImage image = new YuvImage(data, parameters.getPreviewFormat(), size.width, size.height, null);
+         out.reset();
+         if (image.compressToJpeg(new Rect(0, 0, size.width, size.height), 100, out)){
+         // 得到JPEG数据
+         byte[] jpegData = out.toByteArray();
+         // 发送或处理 JPEG 数据，例如通过网络发送
+         //            sendMjpegFrame(jpegData);
+         }
          */
+    }
+
+    public void setEnableGvoiceAEC(boolean enable) {
+        if (mAudioEncoder != null) {
+            mAudioEncoder.setEnableGvoiceAEC(enable);
+        }
+    }
+
+    public void setPlayerPcmData(byte[] pcmData) {
+        if (mAudioEncoder != null) {
+            mAudioEncoder.setPlayerPcmData(pcmData);
+        }
     }
 
     private void startBitRateAdapter(int visitor, int channel, int res_type) {

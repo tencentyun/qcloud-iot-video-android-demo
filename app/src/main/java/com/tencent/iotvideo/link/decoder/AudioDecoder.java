@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
+import com.tencent.iotvideo.link.listener.OnDecodeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +31,7 @@ public class AudioDecoder {
     private long currentVideoPts;
     private AudioManager audioManager;
     private boolean isSpeakerOn = true;
+    private OnDecodeListener onDecodeListener;
 
     public void setContext(Context context) {
         audioManager = ContextCompat.getSystemService(context, AudioManager.class);
@@ -48,6 +50,14 @@ public class AudioDecoder {
 
     public boolean isSpeakerOn() {
         return isSpeakerOn;
+    }
+
+    /**
+     * 设置音频解码监听器
+     * @param listener 解码监听器
+     */
+    public void setOnDecodeListener(OnDecodeListener listener) {
+        this.onDecodeListener = listener;
     }
 
     public void startAudio(int type, int mode, int width, int sample_rate) throws IOException {
@@ -266,7 +276,15 @@ public class AudioDecoder {
                 Log.i(TAG, String.format("丢弃音频帧(pts: %d < 视频pts: %d)", audioPts, currentVideoPts));
                 return;
             }
-
+            // 回调解码后的PCM数据
+            if (onDecodeListener != null) {
+                try {
+                    Log.d(TAG, "audio playBuf: " + playBuf.length);
+                    onDecodeListener.onAudioDecoded(playBuf, playBuf.length, System.currentTimeMillis());
+                } catch (Exception e) {
+                    Log.e(TAG, "音频解码回调异常: " + e.getMessage(), e);
+                }
+            }
             playAudioData(playBuf);
         }
 

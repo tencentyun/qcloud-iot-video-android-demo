@@ -8,6 +8,7 @@ import android.view.Surface;
 
 import com.tencent.iotvideo.link.decoder.AudioDecoder;
 import com.tencent.iotvideo.link.decoder.VideoDecoder;
+import com.tencent.iotvideo.link.listener.OnDecodeListener;
 import com.tencent.iotvideo.link.util.UtilsKt;
 
 import java.io.File;
@@ -48,6 +49,12 @@ public class SimplePlayer {
     public void setContext(Context context) {
         if (audioDecoder != null) {
             audioDecoder.setContext(context);
+        }
+    }
+
+    public void setOnDecodeListener(OnDecodeListener listener) {
+        if (audioDecoder != null) {
+            audioDecoder.setOnDecodeListener(listener);
         }
     }
 
