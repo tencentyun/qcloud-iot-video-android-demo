@@ -53,9 +53,11 @@ public class SimplePlayer {
     }
 
     public void setOnDecodeListener(OnDecodeListener listener) {
-        if (audioDecoder != null) {
-            audioDecoder.setOnDecodeListener(listener);
+        if (audioDecoder == null){
+            Log.d(TAG, "audioDecoder is null");
+            audioDecoder = new AudioDecoder();
         }
+        audioDecoder.setOnDecodeListener(listener);
     }
 
     /**

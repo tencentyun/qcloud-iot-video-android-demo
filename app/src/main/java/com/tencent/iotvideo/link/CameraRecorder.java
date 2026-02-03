@@ -74,8 +74,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
 
     private String speakAacFilePath = "/sdcard/audio.aac";
 
-    private String speakPcmFilePath = "/sdcard/audio.pcm";
-
     private Activity context;
 
     private TextureView previewView;
@@ -199,7 +197,7 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         AudioEncodeParam audioEncodeParam = new AudioEncodeParam();
         audioEncodeParam.setBitRate(mAudioBitRate);
 //        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true);
-        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, true, true, context);
+        mAudioEncoder = new AudioEncoder(micParam, audioEncodeParam, false, false, context);
         mAudioEncoder.setOnEncodeListener(this);
         mAudioEncoder.setMuted(isMuted);
         mAudioEncoder.start();
@@ -322,7 +320,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         if (mAudioEncoder != null) {
             mAudioEncoder.setPlayerPcmData(pcmData);
         }
-        savePcm(pcmData);
     }
 
     private void startBitRateAdapter(int visitor, int channel, int res_type) {
@@ -350,7 +347,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         this.isSaveRecord = isSaveRecord;
         recordSpeakH264(isSaveRecord);
         recordSpeakAac(isSaveRecord);
-        recordSpeakPcm(isSaveRecord);
     }
 
     public void recordSpeakH264(boolean isRecord) {
@@ -381,20 +377,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
         }
     }
 
-    public void recordSpeakPcm(boolean isRecord) {
-        if (isRecord) {
-            if (!TextUtils.isEmpty(speakPcmFilePath)) {
-                try {
-                    File file = UtilsKt.getFile(speakPcmFilePath);
-                    pcmFos = new FileOutputStream(file);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.e(TAG, speakPcmFilePath + "临时缓存文件未找到");
-                }
-            }
-        }
-    }
-
     public void saveH264(byte[] datas) {
         if (isSaveRecord) {
             if (executor.isShutdown()) return;
@@ -419,22 +401,6 @@ public class CameraRecorder implements Camera.PreviewCallback, OnEncodeListener 
                     try {
                         aacFos.write(datas);
                         aacFos.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-    }
-
-    public void savePcm(byte[] datas) {
-        if (isSaveRecord) {
-            if (executor.isShutdown()) return;
-            executor.submit(() -> {
-                if (pcmFos != null) {
-                    try {
-                        pcmFos.write(datas);
-                        pcmFos.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
