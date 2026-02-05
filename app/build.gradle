@@ -81,5 +81,5 @@ dependencies {
     implementation libs.gson
     //后缀中有LP的为低功耗 sdk
     implementation 'com.tencent.iot.video:video-device-android:1.1.1'
-    implementation 'com.tencent.iot.thirdparty.android:iot-gvoice-android:1.0.5'
+    implementation 'com.tencent.iot.thirdparty.android:iot-gvoice-android:1.0.7.01-SNAPSHOT'
 }
