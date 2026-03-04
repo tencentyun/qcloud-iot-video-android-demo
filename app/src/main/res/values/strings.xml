@@ -29,6 +29,7 @@
 
     <string name="twe_call_video_call">视频通话</string>
     <string name="twe_call_audio_call">音频通话</string>
+    <string name="twe_talk_ai">AI地址查询</string>
     <string name="twe_call_hangup">挂断</string>
     <string name="twe_call_busy">占线</string>
     <string name="twe_call_answer">接听</string>

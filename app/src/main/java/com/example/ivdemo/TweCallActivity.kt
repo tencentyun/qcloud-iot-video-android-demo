@@ -11,6 +11,8 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.ivdemo.adapter.UserListAdapter
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.tencent.iot.twcall.R
 import com.tencent.iot.twcall.databinding.ActivityTweCallBinding
 import com.tencent.iot.video.device.VideoNativeInterface
@@ -23,6 +25,7 @@ import com.tencent.iot.video.device.annotations.VoipActivateType
 import com.tencent.iot.video.device.annotations.VoipCalledStatus
 import com.tencent.iot.video.device.annotations.VoipRecvVFpsType
 import com.tencent.iot.video.device.annotations.VoipRecvVRotateType
+import com.tencent.iot.video.device.callback.IvUCCallback
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.consts.CommandType
 import com.tencent.iot.video.device.consts.IvErrCode
@@ -45,7 +48,7 @@ private const val DATA_PATH = "/storage/emulated/0/"
 private const val INCOMING_CALL_TIMEOUT = 55 * 1000L
 private const val IS_DEBUG = true
 
-class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback {
+class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallback, IvUCCallback {
 
     @Volatile
     private var initStatus = -1 // 未初始化 -1， 初始化成功 0， 其他
@@ -240,6 +243,11 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
                 dialog = ProgressDialog.show(this@TweCallActivity, "", "正在加入通话", true)
                 replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_ACCEPT)
+            }
+
+            btnAiTalk.setOnClickListener {
+                showToast("查询 AI 连接 Url")
+                queryWebSocketUrl()
             }
 
             if (IS_DEBUG) {
@@ -546,6 +554,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 VideoNativeInterface.getInstance().exitWxCloudVoipV2()
                 Log.d(TAG, "exit twecall v2")
             }
+
+            VideoNativeInterface.getInstance().exitUc()
         }
         super.onDestroy()
     }
@@ -559,6 +569,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
     override fun onOnline(netDateTime: Long) {
         super.onOnline(netDateTime)
         initTweCall()
+        initUcModule()
     }
 
     override fun onGetAvEncInfo(visitor: Int, channel: Int, videoResType: Int): AvDataInfo {
@@ -830,5 +841,92 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         }
 
         return 0;
+    }
+
+    /*********** UC *************/
+
+    val serviceDownTopic: String? by lazy {
+        "\$twecall/down/service/$productId/$deviceName"
+    }
+
+    val serviceUpTopic: String? by lazy {
+        "\$twecall/up/service/$productId/$deviceName"
+    }
+
+    fun initUcModule() {
+        checkDefaultThreadActiveAndExecuteTask {
+            val status = VideoNativeInterface.getInstance().initUc(this)
+
+            if (status < 0) {
+                showToast("初始化自定义信令模块失败：$status")
+                Log.e(TAG, "initUcModule, init uc module error: $status")
+                return@checkDefaultThreadActiveAndExecuteTask
+            }
+
+            if (isOnline) {
+                val subscribeResCode =
+                    VideoNativeInterface.getInstance().ucMqttSubscribe(serviceDownTopic)
+
+                if (subscribeResCode != 0) {
+                    Log.e(TAG, "initUcModule, subscribe $serviceDownTopic error, res: $subscribeResCode")
+                }
+            }
+        }
+    }
+
+    fun queryWebSocketUrl() {
+        if (isOnline) {
+            val data = JsonObject().apply {
+                addProperty("method", "query_websocket_url")
+                addProperty("clientToken", "${productId}_${deviceName}")
+
+                val param = JsonObject()
+                param.addProperty("connect_type", "talk")
+
+                add("param", param)
+            }
+
+            val publishResCode = VideoNativeInterface.getInstance()
+                .ucMqttPublish(serviceUpTopic, Gson().toJson(data))
+
+            if (publishResCode != 0) {
+                Log.e(TAG, "queryWebSocketUrl, error: $publishResCode")
+            }
+        }
+    }
+
+    override fun onRecvMsg(data: ByteArray?, dataLen: Int) {
+        val dataStr = data?.let { String(it) }
+        Log.d(TAG, "onRecvMsg, dataStr: $dataStr, dataLen: $dataLen")
+    }
+
+    override fun onMqttMsg(payload: String?, payloadLen: Int) {
+        if (payload.isNullOrEmpty()) return
+
+        try {
+            val jsonObject = Gson().fromJson(payload, JsonObject::class.java)
+            val method = jsonObject.get("method")?.asString
+
+            if (method == "query_websocket_url_reply") {
+                val clientToken = jsonObject.get("clientToken")?.asString
+                val code = jsonObject.get("code")?.asInt
+                val status = jsonObject.get("status")?.asString
+
+                val params = jsonObject.getAsJsonObject("params")
+                val token = params?.get("token")?.asString
+                val websocketUrl = params?.get("websocket_url")?.asString
+                val websocketPort = params?.get("websocket_port")?.asInt
+
+                Log.d(TAG, "query_websocket_url_reply 返回结果:")
+                Log.d(TAG, "  clientToken: $clientToken")
+                Log.d(TAG, "  code: $code")
+                Log.d(TAG, "  status: $status")
+                Log.d(TAG, "  token: $token")
+                Log.d(TAG, "  websocket_url: $websocketUrl")
+                Log.d(TAG, "  websocket_port: $websocketPort")
+            }
+        } catch (e: Exception) {
+            // do nothing (其它消息类型)
+        }
     }
 }
