@@ -760,12 +760,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
                 tvBeCallStatus.text = getString(R.string.wx_voip_incoming_call)
                 surfaceViewTweCall.bringToFront()
                 textureViewTweCall.bringToFront()
-                btnTweCallHangUp.bringToFront()
-                btnTweCallAnswer.bringToFront()
-
-                if (IS_DEBUG) {
-                    btnTweCallBusy.bringToFront()
-                }
+                // bringToFront 需要对父容器操作，子按钮的 bringToFront 只改变父容器内顺序
+                llCallControls.bringToFront()
             }
 
             llButtons.isVisible = !isShow
@@ -776,6 +772,8 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
             surfaceViewTweCall.isVisible = isShow
             textureViewTweCall.isVisible = isShow
             tvBeCallStatus.isVisible = isShow
+            // 必须设置父容器 llCallControls 可见，否则子按钮即使 VISIBLE 也不会显示
+            llCallControls.isVisible = isShow
             btnTweCallAnswer.visibility = if (isShow) View.VISIBLE else View.GONE
             btnTweCallHangUp.isVisible = isShow
 
