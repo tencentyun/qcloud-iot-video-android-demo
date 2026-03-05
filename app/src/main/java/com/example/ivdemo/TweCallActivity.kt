@@ -26,6 +26,7 @@ import com.tencent.iot.video.device.annotations.VoipCalledStatus
 import com.tencent.iot.video.device.annotations.VoipRecvVFpsType
 import com.tencent.iot.video.device.annotations.VoipRecvVRotateType
 import com.tencent.iot.video.device.callback.IvUCCallback
+import com.tencent.iot.video.device.callback.IvUCMqttCallback
 import com.tencent.iot.video.device.callback.IvVoipCallback
 import com.tencent.iot.video.device.consts.CommandType
 import com.tencent.iot.video.device.consts.IvErrCode
@@ -853,6 +854,38 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         "\$twecall/up/service/$productId/$deviceName"
     }
 
+    private val mqttCallback = object : IvUCMqttCallback {
+        override fun onMqttMsg(payload: String?, payloadLen: Int) {
+            if (payload.isNullOrEmpty()) return
+
+            try {
+                val jsonObject = Gson().fromJson(payload, JsonObject::class.java)
+                val method = jsonObject.get("method")?.asString
+
+                if (method == "query_websocket_url_reply") {
+                    val clientToken = jsonObject.get("clientToken")?.asString
+                    val code = jsonObject.get("code")?.asInt
+                    val status = jsonObject.get("status")?.asString
+
+                    val params = jsonObject.getAsJsonObject("params")
+                    val token = params?.get("token")?.asString
+                    val websocketUrl = params?.get("websocket_url")?.asString
+                    val websocketPort = params?.get("websocket_port")?.asInt
+
+                    Log.d(TAG, "query_websocket_url_reply 返回结果:")
+                    Log.d(TAG, "  clientToken: $clientToken")
+                    Log.d(TAG, "  code: $code")
+                    Log.d(TAG, "  status: $status")
+                    Log.d(TAG, "  token: $token")
+                    Log.d(TAG, "  websocket_url: $websocketUrl")
+                    Log.d(TAG, "  websocket_port: $websocketPort")
+                }
+            } catch (e: Exception) {
+                // do nothing (其它消息类型)
+            }
+        }
+    }
+
     fun initUcModule() {
         checkDefaultThreadActiveAndExecuteTask {
             val status = VideoNativeInterface.getInstance().initUc(this)
@@ -865,7 +898,7 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
 
             if (isOnline) {
                 val subscribeResCode =
-                    VideoNativeInterface.getInstance().ucMqttSubscribe(serviceDownTopic)
+                    VideoNativeInterface.getInstance().ucMqttSubscribe(serviceDownTopic, mqttCallback)
 
                 if (subscribeResCode != 0) {
                     Log.e(TAG, "initUcModule, subscribe $serviceDownTopic error, res: $subscribeResCode")
@@ -900,33 +933,4 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         Log.d(TAG, "onRecvMsg, dataStr: $dataStr, dataLen: $dataLen")
     }
 
-    override fun onMqttMsg(payload: String?, payloadLen: Int) {
-        if (payload.isNullOrEmpty()) return
-
-        try {
-            val jsonObject = Gson().fromJson(payload, JsonObject::class.java)
-            val method = jsonObject.get("method")?.asString
-
-            if (method == "query_websocket_url_reply") {
-                val clientToken = jsonObject.get("clientToken")?.asString
-                val code = jsonObject.get("code")?.asInt
-                val status = jsonObject.get("status")?.asString
-
-                val params = jsonObject.getAsJsonObject("params")
-                val token = params?.get("token")?.asString
-                val websocketUrl = params?.get("websocket_url")?.asString
-                val websocketPort = params?.get("websocket_port")?.asInt
-
-                Log.d(TAG, "query_websocket_url_reply 返回结果:")
-                Log.d(TAG, "  clientToken: $clientToken")
-                Log.d(TAG, "  code: $code")
-                Log.d(TAG, "  status: $status")
-                Log.d(TAG, "  token: $token")
-                Log.d(TAG, "  websocket_url: $websocketUrl")
-                Log.d(TAG, "  websocket_port: $websocketPort")
-            }
-        } catch (e: Exception) {
-            // do nothing (其它消息类型)
-        }
-    }
 }
