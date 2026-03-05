@@ -82,7 +82,7 @@ public class AudioEncoder {
     private int frameBufferOffset = 0;  // 帧缓冲区当前偏移量
 
     private static final int SAVE_PCM_DATA = 1;
-    private boolean isRecordPcm = true;
+    private boolean isRecordPcm = false;
     private String speakPcmFilePath = "/storage/emulated/0/speak_pcm_";
 
     private FileOutputStream fosNear;  // 保存麦克风原始数据
@@ -164,7 +164,6 @@ public class AudioEncoder {
     }
 
     public void start() {
-        init();
         // 如果需要保存PCM数据，创建文件输出流
         if (isRecordPcm) {
             fosNear = createPcmFile("near");
@@ -403,15 +402,11 @@ public class AudioEncoder {
                 if (frame == null) {
                     queueUnderflowCount++;
                     if (queueUnderflowCount % 50 == 1) {
-                        Log.w(TAG, "⚠️ Queue underflow #" + queueUnderflowCount + " - requested: " + length + "B, got: " + offset + "B (frame size: 2048B)");
+                        Log.w(TAG, "⚠️ Queue underflow #" + queueUnderflowCount + " - requested: " + length + "B, got: " + offset + "B, padding " + (length - offset) + "B with silence");
                     }
-                    if (offset > 0) {
-                        frameBuffer = new byte[offset];
-                        System.arraycopy(result, 0, frameBuffer, 0, offset);
-                        frameBufferOffset = 0;
-                    }
-
-                    return null;
+                    // 剩余部分用静音（零值）填充，保持AEC参考信号连续性，避免算法状态被破坏
+                    // result 已由 new byte[length] 初始化为全零，无需额外操作，直接返回
+                    return result;
                 }
 
                 int remainingLength = length - offset;
@@ -429,7 +424,6 @@ public class AudioEncoder {
                     break;
                 }
             }
-            Log.d(TAG, "onReadPlayerPlayPcm result: " + Arrays.toString(result));
             return result;
         } catch (Exception e) {
             Log.e(TAG, "onReadPlayerPlayPcm error: " + e.getMessage());
