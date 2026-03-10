@@ -82,7 +82,7 @@ public class AudioEncoder {
     private int frameBufferOffset = 0;  // 帧缓冲区当前偏移量
 
     private static final int SAVE_PCM_DATA = 1;
-    private boolean isRecordPcm = false;
+    private boolean isRecordPcm = false;  // 已禁用PCM保存，避免IO影响音频实时性
     private String speakPcmFilePath = "/storage/emulated/0/speak_pcm_";
 
     private FileOutputStream fosNear;  // 保存麦克风原始数据
@@ -402,11 +402,10 @@ public class AudioEncoder {
                 if (frame == null) {
                     queueUnderflowCount++;
                     if (queueUnderflowCount % 50 == 1) {
-                        Log.w(TAG, "⚠️ Queue underflow #" + queueUnderflowCount + " - requested: " + length + "B, got: " + offset + "B, padding " + (length - offset) + "B with silence");
+                        Log.w(TAG, "⚠️ Queue underflow #" + queueUnderflowCount + " - requested: " + length + "B, got: " + offset + "B");
                     }
-                    // 剩余部分用静音（零值）填充，保持AEC参考信号连续性，避免算法状态被破坏
-                    // result 已由 new byte[length] 初始化为全零，无需额外操作，直接返回
-                    return result;
+                    // 队列数据不足，返回null让调用方跳过AEC，避免全零参考破坏算法状态
+                    return null;
                 }
 
                 int remainingLength = length - offset;
@@ -539,14 +538,55 @@ public class AudioEncoder {
         audioRecord.startRecording();
         audioCodec.start();
         MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
+        byte[] nearBuffer = new byte[bufferSizeInBytes];
         while (true) {
             if (stopEncode) {
                 release();
                 break;
             }
 
-            // 将 AudioRecord 获取的 PCM 原始数据送入编码器
-            int audioInputBufferId = audioCodec.dequeueInputBuffer(0);
+            // 第一步：先读取麦克风数据（必须在dequeueInputBuffer之前，避免编码器等待期间硬件缓冲区积压）
+            int readSize = audioRecord.read(nearBuffer, 0, bufferSizeInBytes);
+
+            // readSize < 0 表示AudioRecord发生错误，跳过本帧避免崩溃
+            if (readSize < 0) {
+                Log.e(TAG, "AudioRecord read error: " + readSize);
+                continue;
+            }
+
+            byte[] processedData;
+            if (readSize > 0) {
+                byte[] nearData = (readSize == nearBuffer.length) ? nearBuffer : Arrays.copyOf(nearBuffer, readSize);
+                processedData = nearData;
+                if (enableGvoiceAEC) {
+                    // 验证麦克风数据长度是否为640的倍数
+                    if (readSize % GVOICE_AEC_USAGE_CONDITION != 0) {
+                        Log.e(TAG, "❌ Mic data length not multiple of 640: " + readSize + ", AEC disabled for this frame");
+                    } else {
+                        byte[] playerPcmBytes = onReadPlayerPlayPcm(readSize);
+                        if (playerPcmBytes != null) {
+                            // 使用gvoice进行回声消除
+                            byte[] aecResult = GvoiceJNIBridge.cancellation(nearData, playerPcmBytes);
+                            // 校验返回长度，防止长度突变导致编码器异常
+                            if (aecResult != null && aecResult.length == readSize) {
+                                processedData = aecResult;
+                            } else if (aecResult != null) {
+                                Log.w(TAG, "⚠️ AEC result length mismatch: expected=" + readSize + ", got=" + aecResult.length + ", skip AEC");
+                            }
+                        }
+                        // playerPcmBytes为null（队列欠载）时直接跳过AEC，保持原始数据
+                    }
+                }
+                // 如果静音，将数据置零
+                if (isMuted) {
+                    Arrays.fill(processedData, (byte) 0);
+                }
+            } else {
+                processedData = nearBuffer;
+            }
+
+            // 超时设为50000us(50ms)：大于一帧时长(40ms)，确保即使编码器短暂繁忙也能等到缓冲区，
+            int audioInputBufferId = audioCodec.dequeueInputBuffer(50000);
             if (audioInputBufferId >= 0) {
                 ByteBuffer inputBuffer = null;
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
@@ -554,63 +594,14 @@ public class AudioEncoder {
                 } else {
                     inputBuffer = audioCodec.getInputBuffers()[audioInputBufferId];
                 }
-                int readSize = -1;
-                if (inputBuffer != null) {
-                    // 先读取原始PCM数据到临时缓冲区
-                    byte[] nearBuffer = new byte[bufferSizeInBytes];
-                    readSize = audioRecord.read(nearBuffer, 0, bufferSizeInBytes);
-
-                    if (readSize > 0) {
-                        byte[] processedData = nearBuffer;
-                        byte[] playerPcmBytes = null;
-                        if (enableGvoiceAEC) {
-                            // 验证麦克风数据长度是否为640的倍数
-                            if (readSize % GVOICE_AEC_USAGE_CONDITION != 0) {
-                                Log.e(TAG, "❌ Mic data length not multiple of 640: " + readSize + ", AEC disabled for this frame");
-                            } else {
-                                playerPcmBytes = onReadPlayerPlayPcm(readSize);
-                                // 验证播放器数据长度是否匹配
-                                if (playerPcmBytes != null && playerPcmBytes.length == readSize) {
-                                    Log.d(TAG, "Gvoice AEC: player data length matched! Expected: " + readSize + ", Got: " + playerPcmBytes.length);
-                                    // 保存nearBuffer副本，防止被GvoiceJNIBridge.cancellation修改
-                                    byte[] nearBufferCopy = Arrays.copyOf(nearBuffer, nearBuffer.length);
-                                    // 使用gvoice进行回声消除
-                                    processedData = GvoiceJNIBridge.cancellation(nearBuffer, playerPcmBytes);
-                                    if (isRecordPcm) {
-                                        writePcmBytesToFile(nearBufferCopy, playerPcmBytes, processedData);
-                                    }
-                                } else {
-                                    // 播放器数据不足或长度不匹配时，传入空数组进行降噪
-                                    byte[] emptyPlayerPcm = new byte[readSize];
-                                    // 保存nearBuffer副本，防止被GvoiceJNIBridge.cancellation修改
-                                    byte[] nearBufferCopy = Arrays.copyOf(nearBuffer, nearBuffer.length);
-                                    processedData = GvoiceJNIBridge.cancellation(nearBuffer, emptyPlayerPcm);
-
-                                    if (playerPcmBytes != null) {
-                                        Log.d(TAG, "⚠️ Gvoice AEC: player data length mismatch! Expected: " + readSize + ", Got: " + playerPcmBytes.length + ", using empty reference");
-                                    }
-
-                                    // 保存PCM数据到文件（使用空数组作为far）
-                                    if (isRecordPcm) {
-                                        writePcmBytesToFile(nearBufferCopy, emptyPlayerPcm, processedData);
-                                    }
-                                }
-                            }
-                        }
-                        // 如果静音，将数据置零
-                        if (isMuted) {
-                            Arrays.fill(processedData, (byte) 0);
-                        }
-
-                        // 将处理后的数据写入编码器输入缓冲区
-                        inputBuffer.clear();
-                        inputBuffer.put(processedData, 0, processedData.length);
-                        readSize = processedData.length;
-                    }
+                if (inputBuffer != null && readSize > 0) {
+                    inputBuffer.clear();
+                    inputBuffer.put(processedData, 0, readSize);
                 }
-                if (readSize >= 0) {
-                    audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, System.nanoTime() / 1000, 0);
-                }
+                audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, System.nanoTime() / 1000, 0);
+            } else {
+                // 超时50ms仍未获取到缓冲区，说明编码器严重阻塞，记录日志
+                Log.w(TAG, "⚠️ dequeueInputBuffer timeout after 50ms, encoder may be overloaded");
             }
 
             int audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
