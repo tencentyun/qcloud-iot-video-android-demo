@@ -1,20 +1,15 @@
 package com.tencent.iotvideo.link.encoder;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.media.audiofx.AcousticEchoCanceler;
-import android.media.audiofx.AutomaticGainControl;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.iot.gvoice.interfaces.GvoiceJNIBridge;
 import com.tencent.iotvideo.link.listener.OnEncodeListener;
 import com.tencent.iotvideo.link.param.AudioEncodeParam;
 import com.tencent.iotvideo.link.param.MicParam;
@@ -26,11 +21,29 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * 音频编码器（协调器）
+ *
+ * <p>职责：
+ * <ul>
+ *   <li>协调 {@link AudioCapturer}（采集）、{@link AecProcessor}（回声消除）和 MediaCodec（编码）</li>
+ *   <li>将编码后的 AAC 数据通过 {@link OnEncodeListener} 回调给上层</li>
+ * </ul>
+ *
+ * <p>线程模型：
+ * <pre>
+ *   AudioCapturer ──► [AecProcessor] ──► encodeQueue ──► 编码线程 ──► OnEncodeListener
+ * </pre>
+ */
 public class AudioEncoder {
 
     /**
@@ -56,78 +69,89 @@ public class AudioEncoder {
     }
 
     private final String TAG = AudioEncoder.class.getSimpleName();
-    private MediaCodec audioCodec;
-    private AudioRecord audioRecord;
-    private AcousticEchoCanceler canceler;
-    private AutomaticGainControl control;
 
+    private MediaCodec audioCodec;
     private final MicParam micParam;
     private final AudioEncodeParam audioEncodeParam;
     private OnEncodeListener encodeListener;
 
     private volatile boolean stopEncode = false;
     private long seq = 0L;
-    private int bufferSizeInBytes;
-    private boolean isMuted = false;
 
-    private boolean enableAEC;
+    /** 编码队列：采集/AEC线程投入，编码线程消费 */
+    private final LinkedBlockingQueue<byte[]> encodeQueue = new LinkedBlockingQueue<>(40);
 
-    private boolean enableAGC;
-    private Context context;
+    // ===== 远端PCM（setPlayerPcmData）统计 =====
+    private long farTotalBytesReceived = 0;
+    private long farFrameCount = 0;
+
+    // ===== 发送PTS统计 =====
+    private long lastSendPts = 0;
+    private long sendFrameCount = 0;
+
     private boolean enableGvoiceAEC = false;
-    private LinkedBlockingQueue<byte[]> playPcmData = new LinkedBlockingQueue<>(1920 * 5);
-    private long queueOverflowCount = 0;  // 队列溢出计数
-    private long queueUnderflowCount = 0;  // 队列欠载计数
-    private byte[] frameBuffer = null;  // 帧缓冲区，用于处理不完整的帧
-    private int frameBufferOffset = 0;  // 帧缓冲区当前偏移量
+    /** AEC 独立线程处理器，enableGvoiceAEC=true 时使用 */
+    private AecProcessor aecProcessor = null;
+
+    /** 音频采集器 */
+    private final AudioCapturer audioCapturer;
 
     private static final int SAVE_PCM_DATA = 1;
-    private boolean isRecordPcm = false;  // 已禁用PCM保存，避免IO影响音频实时性
+    private boolean isRecordPcm = false;
     private String speakPcmFilePath = "/storage/emulated/0/speak_pcm_";
 
-    private FileOutputStream fosNear;  // 保存麦克风原始数据
-    private FileOutputStream fosFar;   // 保存播放器参考数据
-    private FileOutputStream fosAec;   // 保存回声消除后数据
+    private FileOutputStream fosNear;
+    private FileOutputStream fosFar;
+    private FileOutputStream fosAec;
     private final Handler mHandler = new SavePcmHandler();
+
+    /** 获取当前时间戳字符串，格式：HH:mm:ss.SSS */
+    private static String ts() {
+        return new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(new Date());
+    }
 
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam) {
         this(micParam, audioEncodeParam, false, false);
     }
-
 
     public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC) {
         this(micParam, audioEncodeParam, enableAEC, enableAGC, null);
     }
 
     /**
-     * 构造函数，支持gvoice回声消除
+     * 构造函数，支持 gvoice 回声消除
      *
      * @param micParam         麦克风参数
      * @param audioEncodeParam 音频编码参数
-     * @param enableAEC        是否启用系统AEC
-     * @param enableAGC        是否启用系统AGC
+     * @param enableAEC        是否启用系统 AEC
+     * @param enableAGC        是否启用系统 AGC
+     * @param context          Context，非空时初始化 GVoice
      */
-    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam, boolean enableAEC, boolean enableAGC, Context context) {
+    public AudioEncoder(MicParam micParam, AudioEncodeParam audioEncodeParam,
+                        boolean enableAEC, boolean enableAGC, Context context) {
         this.micParam = micParam;
         this.audioEncodeParam = audioEncodeParam;
-        this.enableAEC = enableAEC;
-        this.enableAGC = enableAGC;
-        this.context = context;
-        init();
+        // 初始化采集器
+        this.audioCapturer = new AudioCapturer(micParam, enableAEC, enableAGC);
+        // 初始化编码器
+        initCodec();
+        if (context != null) {
+            com.iot.gvoice.interfaces.GvoiceJNIBridge.init(context);
+        }
     }
 
-    private void init() {
-        initAudio();
-        int audioSessionId = audioRecord.getAudioSessionId();
-        if (enableAEC && audioSessionId != 0) {
-            Log.e(TAG, "=====initAEC result: " + initAEC(audioSessionId));
-        }
-        if (enableAGC && audioSessionId != 0) {
-            Log.e(TAG, "=====initAGC result: " + initAGC(audioSessionId));
-        }
-        if (context != null) {
-            Log.d(TAG, "GvoiceJNIBridge initialized for AEC");
-            GvoiceJNIBridge.init(context);
+    private void initCodec() {
+        try {
+            audioCodec = MediaCodec.createEncoderByType(audioEncodeParam.getMime());
+            MediaFormat format = MediaFormat.createAudioFormat(
+                    audioEncodeParam.getMime(), micParam.getSampleRateInHz(), 1);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, audioEncodeParam.getBitRate());
+            format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioEncodeParam.getMaxInputSize());
+            audioCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        } catch (IOException e) {
+            e.printStackTrace();
+            audioCodec = null;
         }
     }
 
@@ -135,125 +159,42 @@ public class AudioEncoder {
         this.encodeListener = listener;
     }
 
-    @SuppressLint("MissingPermission")
-    private void initAudio() {
-        // 计算基础缓冲区大小（20ms数据长度）
-        int baseBufferSize = (micParam.getSampleRateInHz() * micParam.getChannelConfig() * micParam.getAudioFormat() / 8) / 1000 * 20;
-
-        // 当启用Gvoice AEC时，必须使用640字节的倍数
-        if (!enableAGC) {
-            // 确保是640的倍数（1280 = 640 * 2）
-            bufferSizeInBytes = GVOICE_AEC_USAGE_CONDITION * 2;
-        } else {
-            bufferSizeInBytes = baseBufferSize;
-            Log.d(TAG, "=====bufferSizeInBytes: " + bufferSizeInBytes);
-        }
-        audioRecord = new AudioRecord(micParam.getAudioSource(), micParam.getSampleRateInHz(), micParam.getChannelConfig(), micParam.getAudioFormat(), bufferSizeInBytes);
-        try {
-            audioCodec = MediaCodec.createEncoderByType(audioEncodeParam.getMime());
-            MediaFormat format = MediaFormat.createAudioFormat(audioEncodeParam.getMime(), micParam.getSampleRateInHz(), 1);
-            format.setInteger(MediaFormat.KEY_BIT_RATE, audioEncodeParam.getBitRate());
-            format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioEncodeParam.getMaxInputSize());
-            audioCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        } catch (IOException e) {
-            e.printStackTrace();
-            audioRecord = null;
-            audioCodec = null;
-        }
-    }
-
-    public void start() {
-        // 如果需要保存PCM数据，创建文件输出流
-        if (isRecordPcm) {
-            fosNear = createPcmFile("near");
-            fosFar = createPcmFile("far");
-            fosAec = createPcmFile("aec");
-        }
-        new Thread(this::record).start();
-    }
-
-    public void stop() {
-        stopEncode = true;
-    }
-
-    public boolean isDevicesSupportAEC() {
-        return AcousticEchoCanceler.isAvailable();
-    }
-
-    private boolean initAEC(int audioSession) {
-
-        boolean isDevicesSupportAEC = isDevicesSupportAEC();
-        Log.e(TAG, "isDevicesSupportAEC: " + isDevicesSupportAEC);
-        if (!isDevicesSupportAEC) {
-            return false;
-        }
-        if (canceler != null) {
-            return false;
-        }
-        canceler = AcousticEchoCanceler.create(audioSession);
-        if (canceler == null) return false;
-        canceler.setEnabled(true);
-        return canceler.getEnabled();
-    }
-
-    public boolean isDevicesSupportAGC() {
-        return AutomaticGainControl.isAvailable();
-    }
-
-    private boolean initAGC(int audioSession) {
-
-        boolean isDevicesSupportAGC = isDevicesSupportAGC();
-        Log.e(TAG, "isDevicesSupportAGC: " + isDevicesSupportAGC);
-        if (!isDevicesSupportAGC) {
-            return false;
-        }
-        if (control != null) {
-            return false;
-        }
-        control = AutomaticGainControl.create(audioSession);
-        if (control == null) return false;
-        control.setEnabled(true);
-        return control.getEnabled();
-    }
-
     public void setMuted(boolean muted) {
-        isMuted = muted;
+        audioCapturer.setMuted(muted);
     }
 
     public boolean isMuted() {
-        return isMuted;
+        return audioCapturer.isMuted();
+    }
+
+    public boolean isDevicesSupportAEC() {
+        return audioCapturer.isDevicesSupportAEC();
+    }
+
+    public boolean isDevicesSupportAGC() {
+        return audioCapturer.isDevicesSupportAGC();
     }
 
     /**
-     * 设置是否保存PCM数据到文件
-     *
-     * @param isRecord 是否保存
+     * 设置是否保存 PCM 数据到文件
      */
     public void setRecordPcm(boolean isRecord) {
         this.isRecordPcm = isRecord;
     }
 
     /**
-     * 设置PCM文件保存路径
-     *
-     * @param path 文件路径前缀
+     * 设置 PCM 文件保存路径
      */
     public void setSpeakPcmFilePath(String path) {
-        Log.e(TAG, "setSpeakPcmFilePath is: " + path);
         this.speakPcmFilePath = path;
     }
 
     /**
-     * 创建PCM文件输出流
-     *
-     * @param format 文件名后缀（near/far/aec）
-     * @return FileOutputStream
+     * 创建 PCM 文件输出流
      */
     private FileOutputStream createPcmFile(String format) {
         if (!TextUtils.isEmpty(speakPcmFilePath)) {
             File file = new File(speakPcmFilePath + format + ".pcm");
-            Log.i(TAG, "speak cache pcm file path: " + file.getAbsolutePath());
             if (file.exists()) {
                 file.delete();
             }
@@ -262,7 +203,6 @@ public class AudioEncoder {
                 return new FileOutputStream(file);
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.e(TAG, "创建PCM文件失败: " + e.getMessage());
                 return null;
             }
         }
@@ -270,7 +210,7 @@ public class AudioEncoder {
     }
 
     /**
-     * Handler用于异步保存PCM数据
+     * Handler 用于异步保存 PCM 数据
      */
     private class SavePcmHandler extends Handler {
         public SavePcmHandler() {
@@ -295,22 +235,14 @@ public class AudioEncoder {
                     fosAec.write(aecBytesData);
                     fosAec.flush();
                 }
-            } catch (IOException e) {
-                Log.e(TAG, "IOException while saving PCM: " + e);
-                e.printStackTrace();
-            } catch (JSONException e) {
-                Log.e(TAG, "JSONException while saving PCM: " + e);
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * 写入PCM数据到文件
-     *
-     * @param nearPcmBytes 麦克风原始数据
-     * @param farPcmBytes  播放器参考数据
-     * @param aecPcmBytes  回声消除后数据
+     * 写入 PCM 数据到文件
      */
     private void writePcmBytesToFile(byte[] nearPcmBytes, byte[] farPcmBytes, byte[] aecPcmBytes) {
         if (isRecordPcm) {
@@ -327,125 +259,127 @@ public class AudioEncoder {
         }
     }
 
-    public void setEnableGvoiceAEC(boolean enableGvoiceAEC) {
-        this.enableGvoiceAEC = enableGvoiceAEC;
+    /**
+     * 动态开关 GVoice AEC
+     * <p>
+     * - 开启时：若编码器已启动且 AEC 尚未运行，则立即创建并启动 {@link AecProcessor} 和转发线程
+     * - 关闭时：停止 {@link AecProcessor}，采集数据切换为直通模式（直接入编码队列）
+     *
+     * @param enable 是否开启 AEC
+     */
+    public void setEnableGvoiceAEC(boolean enable) {
+        if (this.enableGvoiceAEC == enable) return;
+        this.enableGvoiceAEC = enable;
+
+        if (enable) {
+            // 开启 AEC：若编码器已在运行且 AecProcessor 尚未启动，则立即启动
+            if (!stopEncode && aecProcessor == null) {
+                aecProcessor = new AecProcessor();
+                aecProcessor.start();
+                // 启动 AEC 转发线程
+                new Thread(this::aecForwardLoop, "AecForwardThread").start();
+                Log.i(TAG, "[" + ts() + "][AEC] 动态开启 AEC");
+            }
+        } else {
+            // 关闭 AEC：停止 AecProcessor，采集回调会自动切换为直通模式
+            if (aecProcessor != null) {
+                aecProcessor.stop();
+                aecProcessor = null;
+                Log.i(TAG, "[" + ts() + "][AEC] 动态关闭 AEC");
+            }
+        }
     }
 
     /**
-     * 设置播放器PCM数据（用于AEC参考）
-     * 采用完整帧存储策略，避免逐字节装箱开销
+     * 设置播放器 PCM 数据（用于 AEC 参考）
      *
-     * @param pcmData 播放器输出的PCM数据
+     * @param pcmData 播放器输出的 PCM 数据
      */
     public void setPlayerPcmData(byte[] pcmData) {
         if (pcmData == null || pcmData.length == 0) return;
 
-        // 尝试将完整帧加入队列
-        if (!playPcmData.offer(pcmData)) {
-            // 队列满时丢弃新数据，避免破坏正在读取的旧帧
-            queueOverflowCount++;
-            if (queueOverflowCount % 100 == 1) {  // 每100次溢出输出一次日志
-                Log.w(TAG, "⚠️ Player PCM queue overflow! Dropped " + queueOverflowCount + " frames. Consider increasing queue size or reducing latency.");
-            }
+        farTotalBytesReceived += pcmData.length;
+        farFrameCount++;
+        Log.i(TAG, "[" + ts() + "][FAR-IN] 远端PCM接收"
+                + " 本帧=" + pcmData.length + "B"
+                + " 累计=" + farTotalBytesReceived + "B"
+                + " 帧数=" + farFrameCount);
+
+        if (aecProcessor != null) {
+            aecProcessor.putFarData(pcmData);
         }
     }
 
     /**
-     * 从播放器PCM队列中读取指定长度的数据
-     * <p>
-     * 核心问题：AudioDecoder 输出 2048 字节/帧，AudioEncoder 需要 1920 字节（640*3）
-     * 解决方案：使用帧缓冲区，支持跨帧读取和数据重组
-     * <p>
-     * 工作原理：
-     * 1. 维护一个帧缓冲区 frameBuffer，存储上次读取后的剩余数据
-     * 2. 每次读取时，先从缓冲区取数据，不足时再从队列取新帧
-     * 3. 如果新帧有剩余，保存到缓冲区供下次使用
-     * 4. 确保数据连续性，避免丢帧和卡顿
-     *
-     * @param length 需要读取的数据长度（必须是640的倍数）
-     * @return 播放器PCM数据，如果队列数据不足则返回null
+     * 启动采集、AEC（可选）和编码线程
      */
-    private byte[] onReadPlayerPlayPcm(int length) {
-        // 验证长度是否为640的倍数
-        if (length % 640 != 0) {
-            Log.e(TAG, "Invalid length for Gvoice AEC: " + length + " (must be multiple of 640)");
-            return null;
+    public void start() {
+        if (audioCodec == null) {
+            Log.e(TAG, "[" + ts() + "] MediaCodec 未初始化，无法启动");
+            return;
+        }
+        stopEncode = false;
+
+        if (isRecordPcm) {
+            fosNear = createPcmFile("near");
+            fosFar = createPcmFile("far");
+            fosAec = createPcmFile("aec");
         }
 
-        byte[] result = new byte[length];
-        int offset = 0;
+        // 注意：AEC 在 start() 时不再预先启动，由 setEnableGvoiceAEC(true) 动态启动
+        // 若调用 start() 前已调用 setEnableGvoiceAEC(true)，则在此处启动
+        if (enableGvoiceAEC && aecProcessor == null) {
+            aecProcessor = new AecProcessor();
+            aecProcessor.start();
+            // 启动 AEC 转发线程：将 AEC 输出结果转发到编码队列
+            new Thread(this::aecForwardLoop, "AecForwardThread").start();
+        }
 
-        try {
-            // 第一步：从帧缓冲区读取剩余数据
-            if (frameBuffer != null && frameBufferOffset < frameBuffer.length) {
-                int availableInBuffer = frameBuffer.length - frameBufferOffset;
-                int copyFromBuffer = Math.min(availableInBuffer, length);
-
-                System.arraycopy(frameBuffer, frameBufferOffset, result, offset, copyFromBuffer);
-                offset += copyFromBuffer;
-                frameBufferOffset += copyFromBuffer;
-
-                if (frameBufferOffset >= frameBuffer.length) {
-                    frameBuffer = null;
-                    frameBufferOffset = 0;
-                }
-
-                if (offset >= length) {
-                    return result;
-                }
-            }
-
-            // 第二步：从队列中读取新帧并拼接
-            while (offset < length) {
-                byte[] frame = playPcmData.poll();
-
-                if (frame == null) {
-                    queueUnderflowCount++;
-                    if (queueUnderflowCount % 50 == 1) {
-                        Log.w(TAG, "⚠️ Queue underflow #" + queueUnderflowCount + " - requested: " + length + "B, got: " + offset + "B");
-                    }
-                    // 队列数据不足，返回null让调用方跳过AEC，避免全零参考破坏算法状态
-                    return null;
-                }
-
-                int remainingLength = length - offset;
-
-                if (frame.length <= remainingLength) {
-                    System.arraycopy(frame, 0, result, offset, frame.length);
-                    offset += frame.length;
+        // 设置采集回调：将采集到的数据路由到 AEC 或直接入编码队列
+        // 注意：enableGvoiceAEC 和 aecProcessor 均为 volatile/动态判断，支持运行时切换
+        audioCapturer.setCaptureCallback(new AudioCapturer.CaptureCallback() {
+            @Override
+            public void onCaptured(byte[] pcmData, int readSize) {
+                AecProcessor currentAec = aecProcessor;
+                if (enableGvoiceAEC && currentAec != null
+                        && readSize % GVOICE_AEC_USAGE_CONDITION == 0) {
+                    // 将近端数据投入 AEC 处理器（非阻塞）
+                    currentAec.putNearData(pcmData);
+                    // AEC 结果由 AEC 转发线程写入 encodeQueue
                 } else {
-                    System.arraycopy(frame, 0, result, offset, remainingLength);
-                    offset += remainingLength;
-                    int remainingInFrame = frame.length - remainingLength;
-                    frameBuffer = new byte[remainingInFrame];
-                    System.arraycopy(frame, remainingLength, frameBuffer, 0, remainingInFrame);
-                    frameBufferOffset = 0;
-                    break;
+                    // 直接入编码队列（直通模式）
+                    if (!encodeQueue.offer(pcmData)) {
+                        Log.w(TAG, "[" + ts() + "][CAPTURE] 编码队列已满，丢弃本帧 size=" + pcmData.length);
+                    }
                 }
             }
-            return result;
-        } catch (Exception e) {
-            Log.e(TAG, "onReadPlayerPlayPcm error: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
+
+            @Override
+            public void onStopped() {
+                // AEC 模式下，由 AEC 转发线程负责投入空标记帧
+                // 非 AEC 模式下，由采集线程退出时投入空标记帧通知编码线程退出
+                if (!enableGvoiceAEC || aecProcessor == null) {
+                    encodeQueue.offer(new byte[0]);
+                }
+            }
+        });
+
+        // 启动编码线程
+        new Thread(this::encodeLoop, "AudioEncodeThread").start();
+        // 启动采集线程
+        audioCapturer.start();
+    }
+
+    /**
+     * 停止编码和采集
+     */
+    public void stop() {
+        stopEncode = true;
+        audioCapturer.stop();
     }
 
     private void release() {
-        // 输出队列统计信息
-        if (queueOverflowCount > 0 || queueUnderflowCount > 0) {
-            Log.i(TAG, "=== Player PCM Queue Statistics ===");
-            Log.i(TAG, "Overflow count: " + queueOverflowCount + " (frames dropped due to queue full)");
-            Log.i(TAG, "Underflow count: " + queueUnderflowCount + " (frames reused due to queue empty)");
-            Log.i(TAG, "Final queue size: " + playPcmData.size() + " frames");
-            Log.i(TAG, "===================================");
-        }
-
-        if (audioRecord != null) {
-            audioRecord.stop();
-            audioRecord.release();
-            audioRecord = null;
-        }
+        audioCapturer.release();
 
         if (audioCodec != null) {
             audioCodec.stop();
@@ -453,31 +387,11 @@ public class AudioEncoder {
             audioCodec = null;
         }
 
-        if (canceler != null) {
-            canceler.setEnabled(false);
-            canceler.release();
-            canceler = null;
+        if (aecProcessor != null) {
+            aecProcessor.stop();
+            aecProcessor = null;
         }
 
-        if (control != null) {
-            control.setEnabled(false);
-            control.release();
-            control = null;
-        }
-
-        // 清理gvoice相关资源
-        if (enableGvoiceAEC && !playPcmData.isEmpty()) {
-            playPcmData.clear();
-        }
-
-        // 清理帧缓冲区
-        frameBuffer = null;
-        frameBufferOffset = 0;
-
-        queueOverflowCount = 0;
-        queueUnderflowCount = 0;
-
-        // 关闭PCM文件输出流
         try {
             if (fosNear != null) {
                 fosNear.close();
@@ -492,7 +406,6 @@ public class AudioEncoder {
                 fosAec = null;
             }
         } catch (IOException e) {
-            Log.e(TAG, "关闭PCM文件流失败: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -509,18 +422,13 @@ public class AudioEncoder {
         if (encodeListener != null) {
             encodeListener.onAudioEncoded(dataBytes, System.currentTimeMillis(), seq);
             seq++;
-        } else {
-            Log.e(TAG, "Encode listener is null, please set encode listener.");
         }
     }
 
     private void addADTStoPacket(byte[] packet, int packetLen) {
-        // AAC LC
         int profile = 2;
-        // CPE
         int chanCfg = 1;
         int freqIdx = samplingFrequencyIndexMap.get(micParam.getSampleRateInHz());
-        // filled in ADTS data
         packet[0] = (byte) 0xFF;
         packet[1] = (byte) 0xF9;
         packet[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
@@ -530,83 +438,119 @@ public class AudioEncoder {
         packet[6] = (byte) 0xFC;
     }
 
-    private void record() {
+    /**
+     * AEC 转发线程：将 AEC 输出队列的数据转发到编码队列
+     * 仅在 enableGvoiceAEC=true 时运行。
+     * <p>
+     * 退出条件：
+     * 1. 编码器停止（stopEncode=true）
+     * 2. AEC 被动态关闭（aecProcessor 被置为 null）
+     */
+    private void aecForwardLoop() {
+        // 记录本次转发线程绑定的 AecProcessor 实例，避免被动态替换后错误操作
+        AecProcessor boundAec = aecProcessor;
+        Log.i(TAG, "[" + ts() + "][AEC-FWD] AEC转发线程已启动");
+        while (!stopEncode && aecProcessor == boundAec && boundAec != null) {
+            byte[] aecOutput = boundAec.pollOutput(20);
+            if (aecOutput != null && aecOutput.length > 0) {
+                if (audioCapturer.isMuted()) {
+                    Arrays.fill(aecOutput, (byte) 0);
+                }
+                if (!encodeQueue.offer(aecOutput)) {
+                    Log.w(TAG, "[" + ts() + "][AEC-FWD] 编码队列已满，丢弃AEC帧 size=" + aecOutput.length);
+                }
+            }
+        }
+        // 将剩余 AEC 输出全部转发（仅在编码器停止时才投入结束标记帧）
+        byte[] remaining;
+        while ((remaining = boundAec.pollOutput()) != null) {
+            if (remaining.length > 0) {
+                encodeQueue.offer(remaining);
+            }
+        }
+        // 仅在编码器停止时投入空标记帧，通知编码线程退出
+        // 若是 AEC 被动态关闭，采集线程的直通模式会继续供数据，不需要投入结束标记
+        if (stopEncode) {
+            encodeQueue.offer(new byte[0]);
+        }
+        Log.i(TAG, "[" + ts() + "][AEC-FWD] AEC转发线程已退出 stopEncode=" + stopEncode);
+    }
+
+    /**
+     * 编码线程主循环：从编码队列取数据，送入 MediaCodec 编码，回调输出
+     */
+    private void encodeLoop() {
         if (audioCodec == null) {
             return;
         }
-        stopEncode = false;
-        audioRecord.startRecording();
         audioCodec.start();
         MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-        byte[] nearBuffer = new byte[bufferSizeInBytes];
+        int bufferSizeInBytes = audioCapturer.getBufferSizeInBytes();
+
         while (true) {
-            if (stopEncode) {
+            if (stopEncode && encodeQueue.isEmpty()) {
                 release();
                 break;
             }
 
-            // 第一步：先读取麦克风数据（必须在dequeueInputBuffer之前，避免编码器等待期间硬件缓冲区积压）
-            int readSize = audioRecord.read(nearBuffer, 0, bufferSizeInBytes);
+            // 从编码队列取数据（最多等待 50ms）
+            byte[] processedData;
+            try {
+                processedData = encodeQueue.poll(50, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
 
-            // readSize < 0 表示AudioRecord发生错误，跳过本帧避免崩溃
-            if (readSize < 0) {
-                Log.e(TAG, "AudioRecord read error: " + readSize);
+            // 空标记帧或 null 均表示无数据，继续循环检查退出条件
+            if (processedData == null || processedData.length == 0) {
+                if (stopEncode) {
+                    release();
+                    break;
+                }
                 continue;
             }
 
-            byte[] processedData;
-            if (readSize > 0) {
-                byte[] nearData = (readSize == nearBuffer.length) ? nearBuffer : Arrays.copyOf(nearBuffer, readSize);
-                processedData = nearData;
-                if (enableGvoiceAEC) {
-                    // 验证麦克风数据长度是否为640的倍数
-                    if (readSize % GVOICE_AEC_USAGE_CONDITION != 0) {
-                        Log.e(TAG, "❌ Mic data length not multiple of 640: " + readSize + ", AEC disabled for this frame");
-                    } else {
-                        byte[] playerPcmBytes = onReadPlayerPlayPcm(readSize);
-                        if (playerPcmBytes != null) {
-                            // 使用gvoice进行回声消除
-                            byte[] aecResult = GvoiceJNIBridge.cancellation(nearData, playerPcmBytes);
-                            // 校验返回长度，防止长度突变导致编码器异常
-                            if (aecResult != null && aecResult.length == readSize) {
-                                processedData = aecResult;
-                            } else if (aecResult != null) {
-                                Log.w(TAG, "⚠️ AEC result length mismatch: expected=" + readSize + ", got=" + aecResult.length + ", skip AEC");
-                            }
-                        }
-                        // playerPcmBytes为null（队列欠载）时直接跳过AEC，保持原始数据
-                    }
-                }
-                // 如果静音，将数据置零
-                if (isMuted) {
-                    Arrays.fill(processedData, (byte) 0);
-                }
-            } else {
-                processedData = nearBuffer;
-            }
+            int readSize = processedData.length;
 
-            // 超时设为50000us(50ms)：大于一帧时长(40ms)，确保即使编码器短暂繁忙也能等到缓冲区，
+            // ===== 编码入队 =====
             int audioInputBufferId = audioCodec.dequeueInputBuffer(50000);
             if (audioInputBufferId >= 0) {
-                ByteBuffer inputBuffer = null;
+                ByteBuffer inputBuffer;
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     inputBuffer = audioCodec.getInputBuffer(audioInputBufferId);
                 } else {
                     inputBuffer = audioCodec.getInputBuffers()[audioInputBufferId];
                 }
-                if (inputBuffer != null && readSize > 0) {
+                if (inputBuffer != null) {
                     inputBuffer.clear();
                     inputBuffer.put(processedData, 0, readSize);
                 }
-                audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, System.nanoTime() / 1000, 0);
-            } else {
-                // 超时50ms仍未获取到缓冲区，说明编码器严重阻塞，记录日志
-                Log.w(TAG, "⚠️ dequeueInputBuffer timeout after 50ms, encoder may be overloaded");
+                long pts = System.nanoTime() / 1000;
+
+                // ===== PTS 信息打印（仅当 PTS 间隔偏差超过预期的 50% 时打印）=====
+                if (lastSendPts > 0) {
+                    long ptsGapUs = pts - lastSendPts;
+                    long expectedPtsGapUs = (long) bufferSizeInBytes * 1_000_000L
+                            / (micParam.getSampleRateInHz() * 2);
+                    long deviation = ptsGapUs - expectedPtsGapUs;
+                    if (Math.abs(deviation) > expectedPtsGapUs / 2) {
+                        Log.w(TAG, "[" + ts() + "][PTS] ⚠️ PTS间隔异常!"
+                                + " seq=" + seq
+                                + " pts=" + pts + "us"
+                                + " ptsGap=" + ptsGapUs + "us"
+                                + " expected=" + expectedPtsGapUs + "us"
+                                + " deviation=" + deviation + "us"
+                                + " frameSize=" + readSize + "B");
+                    }
+                }
+                lastSendPts = pts;
+                audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, pts, 0);
             }
 
             int audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
             while (audioOutputBufferId >= 0) {
-                ByteBuffer outputBuffer = null;
+                ByteBuffer outputBuffer;
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     outputBuffer = audioCodec.getOutputBuffer(audioOutputBufferId);
                 } else {
@@ -615,7 +559,16 @@ public class AudioEncoder {
                 if (audioInfo.size > 2) {
                     outputBuffer.position(audioInfo.offset);
                     outputBuffer.limit(audioInfo.offset + audioInfo.size);
+                    int aacFrameSize = audioInfo.size + 7;
+                    // ===== 发送 PTS 详细信息（每帧打印）=====
+                    Log.d(TAG, "[" + ts() + "][SEND-PTS]"
+                            + " seq=" + seq
+                            + " pts=" + audioInfo.presentationTimeUs + "us"
+                            + " aacSize=" + aacFrameSize + "B"
+                            + " flags=" + audioInfo.flags
+                            + " sendFrames=" + sendFrameCount);
                     addADTStoPacket(outputBuffer);
+                    sendFrameCount++;
                 }
                 audioCodec.releaseOutputBuffer(audioOutputBufferId, false);
                 audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
