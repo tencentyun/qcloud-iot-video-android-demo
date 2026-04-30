@@ -794,15 +794,16 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         return 0
     }
 
-    override fun onJoinNotify(roomId: String?): Int {
-        Log.d(TAG, "onJoinNotify: roomId: $roomId")
+    override fun onJoinNotify(data: String?): Int {
+        Log.d(TAG, "onJoinNotify: data: $data")
 
         if (callState != CallState.IDLE) {
             replyRoomCall(VoipCalledStatus.VOIP_CALLED_STATUS_BUSY)
             return 0
         }
 
-        this.roomId = roomId
+        val jsonObject = Gson().fromJson(data, JsonObject::class.java)
+        this.roomId = jsonObject.get("roomId")?.asString
 
         mIncomingCallJob = lifecycleScope.launch {
             callState = CallState.INCOMING_CALL
@@ -822,8 +823,10 @@ class TweCallActivity : BaseIPCActivity<ActivityTweCallBinding>(), IvVoipCallbac
         return 0
     }
 
-    override fun onCancelNotify(roomId: String?): Int {
-        Log.d(TAG, "onCancelNotify: roomId: $roomId")
+    override fun onCancelNotify(data: String?): Int {
+        Log.d(TAG, "onCancelNotify: data: $data")
+        val jsonObject = Gson().fromJson(data, JsonObject::class.java)
+        val roomId = jsonObject.get("roomId")?.asString
 
         lifecycleScope.launch {
             if (this@TweCallActivity.roomId == roomId) {
