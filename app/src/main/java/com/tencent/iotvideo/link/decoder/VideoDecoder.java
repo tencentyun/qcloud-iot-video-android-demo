@@ -22,6 +22,9 @@ public class VideoDecoder {
     private static final String TAG = "VideoDecoder";
 
     private final Object codecLock = new Object();
+    /** 保证 start/stop 串行化，避免并发导致 codec 双重 release */
+    private final Object lifecycleLock = new Object();
+    private volatile boolean running = false;
     private MediaCodec mVideoCodec;
     private ExecutorService mVideoExecutor;
     private long currentVideoPts = 0;
@@ -41,15 +44,9 @@ public class VideoDecoder {
     }
 
     public void startVideo(int width, int height, Surface surface) throws IOException {
-        synchronized (codecLock) {
-            if (mVideoCodec != null) {
-                mVideoCodec.stop();
-                mVideoCodec.release();
-                mVideoCodec = null;
-            }
-            if (mVideoExecutor != null && !mVideoExecutor.isShutdown()) {
-                mVideoExecutor.shutdownNow();
-            }
+        synchronized (lifecycleLock) {
+            // 先完整地 stop（含 executor 终止等待），避免旧线程任务与新 codec 交叉
+            stopVideoLocked();
             initVideo(width, height, surface);
         }
     }
@@ -81,38 +78,55 @@ public class VideoDecoder {
             Log.d(TAG, "mVideoCodec configure flags 0" + ", model:" + Build.MODEL);
         }
         mVideoCodec.start();
+        running = true;
     }
 
     public int decoderH264(byte[] data, int len, long pts) {
         currentVideoPts = pts;
-        if (mVideoExecutor == null || mVideoExecutor.isShutdown()) return -1;
-        if (mVideoCodec == null) return -2;
+        // 快照，避免与 stopVideo 并发时读到 null
+        final ExecutorService executor = mVideoExecutor;
+        if (executor == null || executor.isShutdown()) return -1;
+        if (!running) return -2;
 
-        mVideoExecutor.submit(() -> {
-            try {
-                ByteBuffer[] inputBuffers = mVideoCodec.getInputBuffers();
-                // queue and decode
-                int inputBufferIndex = mVideoCodec.dequeueInputBuffer(10000);
-                if (inputBufferIndex >= 0) {
-                    ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
-                    inputBuffer.clear();
-                    inputBuffer.put(data, 0, len);
-                    mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
-                } else {
-                    Log.e(TAG, "video inputBufferIndex invalid: " + inputBufferIndex);
-                }
+        try {
+            executor.submit(() -> {
+                synchronized (codecLock) {
+                    if (!running || mVideoCodec == null) {
+                        return;
+                    }
+                    try {
+                        ByteBuffer[] inputBuffers = mVideoCodec.getInputBuffers();
+                        // queue and decode
+                        int inputBufferIndex = mVideoCodec.dequeueInputBuffer(10000);
+                        if (inputBufferIndex >= 0) {
+                            ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
+                            inputBuffer.clear();
+                            inputBuffer.put(data, 0, len);
+                            mVideoCodec.queueInputBuffer(inputBufferIndex, 0, len, pts * 1000, 0);
+                        } else {
+                            Log.e(TAG, "video inputBufferIndex invalid: " + inputBufferIndex);
+                        }
 
-                // dequeue and render
-                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-                int outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 10000);
-                while (outputBufferIndex >= 0) {
-                    mVideoCodec.releaseOutputBuffer(outputBufferIndex, true);
-                    outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 10000);
+                        // dequeue and render
+                        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                        int outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 10000);
+                        while (outputBufferIndex >= 0) {
+                            if (!running || mVideoCodec == null) break;
+                            mVideoCodec.releaseOutputBuffer(outputBufferIndex, true);
+                            if (!running || mVideoCodec == null) break;
+                            outputBufferIndex = mVideoCodec.dequeueOutputBuffer(bufferInfo, 10000);
+                        }
+                    } catch (IllegalStateException ise) {
+                        Log.w(TAG, "video codec state invalid: " + ise.getMessage());
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
                 }
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-        });
+            });
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // executor 已在两步检查之间被关闭，忽略即可
+            return -1;
+        }
         if (isRecord) {
             saveRawDataStream(data);
         }
@@ -136,15 +150,58 @@ public class VideoDecoder {
     }
 
     public void stopVideo() {
-        if (mVideoExecutor != null) {
-            mVideoExecutor.shutdown();
-            mVideoExecutor = null;
+        synchronized (lifecycleLock) {
+            stopVideoLocked();
+        }
+    }
+
+    /**
+     * 实际的停止逻辑，调用方需已持有 lifecycleLock。
+     * <p>
+     * 顺序：先 running=false → shutdownNow executor 并 awaitTermination →
+     * 再在 codecLock 内 stop+release codec。保证旧任务完全退出后才 release codec，
+     * 避免 native use-after-free（RefBase::decStrong）。
+     */
+    private void stopVideoLocked() {
+        running = false;
+
+        // 1) 先终止 executor，并等待旧任务退出（它们可能正在持 codecLock 操作 codec）
+        ExecutorService executor = mVideoExecutor;
+        mVideoExecutor = null;
+        if (executor != null) {
+            executor.shutdownNow();
+            try {
+                executor.awaitTermination(1000, java.util.concurrent.TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
-        if (mVideoCodec != null) {
-            mVideoCodec.stop();
-            mVideoCodec.release();
-            mVideoCodec = null;
+        // 2) executor 已终止，现在安全地 release codec
+        synchronized (codecLock) {
+            if (mVideoCodec != null) {
+                try {
+                    mVideoCodec.stop();
+                } catch (Exception ignore) {
+                }
+                try {
+                    mVideoCodec.release();
+                } catch (Exception ignore) {
+                }
+                mVideoCodec = null;
+            }
+        }
+
+        // 3) 顺带关闭录制 executor 与文件流，避免线程与句柄泄漏
+        if (decoderH264executor != null && !decoderH264executor.isShutdown()) {
+            decoderH264executor.shutdownNow();
+        }
+        if (fos != null) {
+            try {
+                fos.close();
+            } catch (IOException ignore) {
+            }
+            fos = null;
         }
     }
 

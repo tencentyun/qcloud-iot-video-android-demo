@@ -70,6 +70,8 @@ public class AudioEncoder {
 
     private final String TAG = AudioEncoder.class.getSimpleName();
 
+    private final Object codecLock = new Object();
+    private volatile boolean running = false;
     private MediaCodec audioCodec;
     private final MicParam micParam;
     private final AudioEncodeParam audioEncodeParam;
@@ -77,6 +79,11 @@ public class AudioEncoder {
 
     private volatile boolean stopEncode = false;
     private long seq = 0L;
+
+    /** 编码线程引用，用于 stop() 时 join 等待其真正退出，避免与新的 start() 并发操作同一 codec */
+    private Thread encodeThread;
+    /** 保证 start/stop 串行化，避免并发 stop() 导致多次 release */
+    private final Object lifecycleLock = new Object();
 
     /** 编码队列：采集/AEC线程投入，编码线程消费 */
     private final LinkedBlockingQueue<byte[]> encodeQueue = new LinkedBlockingQueue<>(40);
@@ -264,28 +271,32 @@ public class AudioEncoder {
      * <p>
      * - 开启时：若编码器已启动且 AEC 尚未运行，则立即创建并启动 {@link AecProcessor} 和转发线程
      * - 关闭时：停止 {@link AecProcessor}，采集数据切换为直通模式（直接入编码队列）
+     * <p>
+     * 使用 lifecycleLock 串行化，避免并发调用产生多个 AecProcessor / 转发线程
      *
      * @param enable 是否开启 AEC
      */
     public void setEnableGvoiceAEC(boolean enable) {
-        if (this.enableGvoiceAEC == enable) return;
-        this.enableGvoiceAEC = enable;
+        synchronized (lifecycleLock) {
+            if (this.enableGvoiceAEC == enable) return;
+            this.enableGvoiceAEC = enable;
 
-        if (enable) {
-            // 开启 AEC：若编码器已在运行且 AecProcessor 尚未启动，则立即启动
-            if (!stopEncode && aecProcessor == null) {
-                aecProcessor = new AecProcessor();
-                aecProcessor.start();
-                // 启动 AEC 转发线程
-                new Thread(this::aecForwardLoop, "AecForwardThread").start();
-                Log.i(TAG, "[" + ts() + "][AEC] 动态开启 AEC");
-            }
-        } else {
-            // 关闭 AEC：停止 AecProcessor，采集回调会自动切换为直通模式
-            if (aecProcessor != null) {
-                aecProcessor.stop();
-                aecProcessor = null;
-                Log.i(TAG, "[" + ts() + "][AEC] 动态关闭 AEC");
+            if (enable) {
+                // 开启 AEC：若编码器已在运行且 AecProcessor 尚未启动，则立即启动
+                if (!stopEncode && aecProcessor == null) {
+                    aecProcessor = new AecProcessor();
+                    aecProcessor.start();
+                    // 启动 AEC 转发线程
+                    new Thread(this::aecForwardLoop, "AecForwardThread").start();
+                    Log.i(TAG, "[" + ts() + "][AEC] 动态开启 AEC");
+                }
+            } else {
+                // 关闭 AEC：停止 AecProcessor，采集回调会自动切换为直通模式
+                if (aecProcessor != null) {
+                    aecProcessor.stop();
+                    aecProcessor = null;
+                    Log.i(TAG, "[" + ts() + "][AEC] 动态关闭 AEC");
+                }
             }
         }
     }
@@ -305,20 +316,42 @@ public class AudioEncoder {
                 + " 累计=" + farTotalBytesReceived + "B"
                 + " 帧数=" + farFrameCount);
 
-        if (aecProcessor != null) {
-            aecProcessor.putFarData(pcmData);
+        // 快照，避免与 setEnableGvoiceAEC(false) 并发时读到已 stop 的 processor
+        AecProcessor snapshot = aecProcessor;
+        if (snapshot != null) {
+            snapshot.putFarData(pcmData);
         }
     }
 
     /**
      * 启动采集、AEC（可选）和编码线程
+     * <p>
+     * 支持在 stop() 之后重新调用 start()：会等待上一次的编码线程完全退出，并重建 MediaCodec。
      */
     public void start() {
-        if (audioCodec == null) {
-            Log.e(TAG, "[" + ts() + "] MediaCodec 未初始化，无法启动");
-            return;
-        }
-        stopEncode = false;
+        synchronized (lifecycleLock) {
+            // 若上一次的编码线程仍在运行，先等待其退出，避免两条编码线程并发操作同一 MediaCodec
+            if (encodeThread != null && encodeThread.isAlive()) {
+                Log.w(TAG, "[" + ts() + "] 上次编码线程仍在运行，等待其退出后再启动");
+                try {
+                    encodeThread.join(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            encodeThread = null;
+
+            // 若 codec 已在上次 release 中置 null，则重新初始化，支持实例复用
+            synchronized (codecLock) {
+                if (audioCodec == null) {
+                    initCodec();
+                }
+            }
+            if (audioCodec == null) {
+                Log.e(TAG, "[" + ts() + "] MediaCodec 未初始化，无法启动");
+                return;
+            }
+            stopEncode = false;
 
         if (isRecordPcm) {
             fosNear = createPcmFile("near");
@@ -364,32 +397,86 @@ public class AudioEncoder {
             }
         });
 
-        // 启动编码线程
-        new Thread(this::encodeLoop, "AudioEncodeThread").start();
-        // 启动采集线程
-        audioCapturer.start();
+            // 启动编码线程（保存引用以便 stop() 时 join）
+            encodeThread = new Thread(this::encodeLoop, "AudioEncodeThread");
+            encodeThread.start();
+            // 启动采集线程
+            audioCapturer.start();
+        }
     }
 
     /**
      * 停止编码和采集
+     * <p>
+     * 该方法会阻塞等待编码线程完全退出后再返回，以保证：
+     * 1) MediaCodec 的 release 只发生一次；
+     * 2) 返回后再次 start() 时不会与旧线程并发操作同一 codec，避免 native use-after-free
+     *    导致 RefBase::decStrong 崩溃。
      */
     public void stop() {
-        stopEncode = true;
-        audioCapturer.stop();
+        synchronized (lifecycleLock) {
+            stopEncode = true;
+            audioCapturer.stop();
+            // 投入一个空标记帧，唤醒可能在 encodeQueue.poll 上等待的编码线程，加速退出
+            encodeQueue.offer(new byte[0]);
+
+            Thread t = encodeThread;
+            if (t != null && t != Thread.currentThread()) {
+                try {
+                    t.join(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                if (t.isAlive()) {
+                    Log.w(TAG, "[" + ts() + "] 编码线程未在 2s 内退出，强制中断");
+                    t.interrupt();
+                }
+            }
+            encodeThread = null;
+
+            // 兜底：若编码线程未成功执行到 release()，此处强制释放 codec，保证 stop() 语义
+            synchronized (codecLock) {
+                if (audioCodec != null) {
+                    try {
+                        audioCodec.stop();
+                    } catch (Exception ignore) {
+                    }
+                    try {
+                        audioCodec.release();
+                    } catch (Exception ignore) {
+                    }
+                    audioCodec = null;
+                }
+            }
+        }
     }
 
     private void release() {
+        running = false;
         audioCapturer.release();
 
-        if (audioCodec != null) {
-            audioCodec.stop();
-            audioCodec.release();
-            audioCodec = null;
+        synchronized (codecLock) {
+            if (audioCodec != null) {
+                try {
+                    audioCodec.stop();
+                } catch (Exception ignore) {
+                }
+                try {
+                    audioCodec.release();
+                } catch (Exception ignore) {
+                }
+                audioCodec = null;
+            }
         }
 
-        if (aecProcessor != null) {
-            aecProcessor.stop();
-            aecProcessor = null;
+        // aecProcessor 使用快照方式释放，避免与 setEnableGvoiceAEC 并发时二次释放
+        AecProcessor aecSnapshot = aecProcessor;
+        aecProcessor = null;
+        if (aecSnapshot != null) {
+            try {
+                aecSnapshot.stop();
+            } catch (Exception ignore) {
+            }
         }
 
         try {
@@ -449,8 +536,12 @@ public class AudioEncoder {
     private void aecForwardLoop() {
         // 记录本次转发线程绑定的 AecProcessor 实例，避免被动态替换后错误操作
         AecProcessor boundAec = aecProcessor;
+        if (boundAec == null) {
+            Log.w(TAG, "[" + ts() + "][AEC-FWD] boundAec 为空，转发线程直接退出");
+            return;
+        }
         Log.i(TAG, "[" + ts() + "][AEC-FWD] AEC转发线程已启动");
-        while (!stopEncode && aecProcessor == boundAec && boundAec != null) {
+        while (!stopEncode && aecProcessor == boundAec) {
             byte[] aecOutput = boundAec.pollOutput(20);
             if (aecOutput != null && aecOutput.length > 0) {
                 if (audioCapturer.isMuted()) {
@@ -478,12 +569,23 @@ public class AudioEncoder {
 
     /**
      * 编码线程主循环：从编码队列取数据，送入 MediaCodec 编码，回调输出
+     * <p>
+     * 所有对 audioCodec 的调用均在 codecLock 内进行，并在锁内二次判 null，
+     * 避免与 stop()/release() 并发导致 native use-after-free（RefBase::decStrong 崩溃）。
      */
     private void encodeLoop() {
-        if (audioCodec == null) {
-            return;
+        synchronized (codecLock) {
+            if (audioCodec == null) {
+                return;
+            }
+            try {
+                audioCodec.start();
+            } catch (Exception e) {
+                Log.e(TAG, "[" + ts() + "] audioCodec.start 失败: " + e.getMessage(), e);
+                return;
+            }
+            running = true;
         }
-        audioCodec.start();
         MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
         int bufferSizeInBytes = audioCapturer.getBufferSizeInBytes();
 
@@ -513,66 +615,86 @@ public class AudioEncoder {
 
             int readSize = processedData.length;
 
-            // ===== 编码入队 =====
-            int audioInputBufferId = audioCodec.dequeueInputBuffer(50000);
-            if (audioInputBufferId >= 0) {
-                ByteBuffer inputBuffer;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    inputBuffer = audioCodec.getInputBuffer(audioInputBufferId);
-                } else {
-                    inputBuffer = audioCodec.getInputBuffers()[audioInputBufferId];
+            // ===== 编码入队与取出：全部在 codecLock 内进行，二次判 null =====
+            synchronized (codecLock) {
+                if (!running || audioCodec == null) {
+                    // codec 已被并发释放，直接退出循环
+                    break;
                 }
-                if (inputBuffer != null) {
-                    inputBuffer.clear();
-                    inputBuffer.put(processedData, 0, readSize);
-                }
-                long pts = System.nanoTime() / 1000;
+                try {
+                    int audioInputBufferId = audioCodec.dequeueInputBuffer(50000);
+                    if (audioInputBufferId >= 0) {
+                        ByteBuffer inputBuffer;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            inputBuffer = audioCodec.getInputBuffer(audioInputBufferId);
+                        } else {
+                            inputBuffer = audioCodec.getInputBuffers()[audioInputBufferId];
+                        }
+                        if (inputBuffer != null) {
+                            inputBuffer.clear();
+                            inputBuffer.put(processedData, 0, readSize);
+                        }
+                        long pts = System.nanoTime() / 1000;
 
-                // ===== PTS 信息打印（仅当 PTS 间隔偏差超过预期的 50% 时打印）=====
-                if (lastSendPts > 0) {
-                    long ptsGapUs = pts - lastSendPts;
-                    long expectedPtsGapUs = (long) bufferSizeInBytes * 1_000_000L
-                            / (micParam.getSampleRateInHz() * 2);
-                    long deviation = ptsGapUs - expectedPtsGapUs;
-                    if (Math.abs(deviation) > expectedPtsGapUs / 2) {
-                        Log.w(TAG, "[" + ts() + "][PTS] ⚠️ PTS间隔异常!"
-                                + " seq=" + seq
-                                + " pts=" + pts + "us"
-                                + " ptsGap=" + ptsGapUs + "us"
-                                + " expected=" + expectedPtsGapUs + "us"
-                                + " deviation=" + deviation + "us"
-                                + " frameSize=" + readSize + "B");
+                        // ===== PTS 信息打印（仅当 PTS 间隔偏差超过预期的 50% 时打印）=====
+                        if (lastSendPts > 0) {
+                            long ptsGapUs = pts - lastSendPts;
+                            long expectedPtsGapUs = (long) bufferSizeInBytes * 1_000_000L
+                                    / (micParam.getSampleRateInHz() * 2);
+                            long deviation = ptsGapUs - expectedPtsGapUs;
+                            if (Math.abs(deviation) > expectedPtsGapUs / 2) {
+                                Log.w(TAG, "[" + ts() + "][PTS] ⚠️ PTS间隔异常!"
+                                        + " seq=" + seq
+                                        + " pts=" + pts + "us"
+                                        + " ptsGap=" + ptsGapUs + "us"
+                                        + " expected=" + expectedPtsGapUs + "us"
+                                        + " deviation=" + deviation + "us"
+                                        + " frameSize=" + readSize + "B");
+                            }
+                        }
+                        lastSendPts = pts;
+                        audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, pts, 0);
                     }
-                }
-                lastSendPts = pts;
-                audioCodec.queueInputBuffer(audioInputBufferId, 0, readSize, pts, 0);
-            }
 
-            int audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
-            while (audioOutputBufferId >= 0) {
-                ByteBuffer outputBuffer;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    outputBuffer = audioCodec.getOutputBuffer(audioOutputBufferId);
-                } else {
-                    outputBuffer = audioCodec.getOutputBuffers()[audioOutputBufferId];
+                    int audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
+                    while (audioOutputBufferId >= 0) {
+                        ByteBuffer outputBuffer;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            outputBuffer = audioCodec.getOutputBuffer(audioOutputBufferId);
+                        } else {
+                            outputBuffer = audioCodec.getOutputBuffers()[audioOutputBufferId];
+                        }
+                        if (outputBuffer != null && audioInfo.size > 2) {
+                            outputBuffer.position(audioInfo.offset);
+                            outputBuffer.limit(audioInfo.offset + audioInfo.size);
+                            int aacFrameSize = audioInfo.size + 7;
+                            // ===== 发送 PTS 详细信息（每帧打印）=====
+                            Log.d(TAG, "[" + ts() + "][SEND-PTS]"
+                                    + " seq=" + seq
+                                    + " pts=" + audioInfo.presentationTimeUs + "us"
+                                    + " aacSize=" + aacFrameSize + "B"
+                                    + " flags=" + audioInfo.flags
+                                    + " sendFrames=" + sendFrameCount);
+                            addADTStoPacket(outputBuffer);
+                            sendFrameCount++;
+                        }
+                        audioCodec.releaseOutputBuffer(audioOutputBufferId, false);
+                        // 再次判 null 后继续 dequeue
+                        if (audioCodec == null) break;
+                        audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
+                    }
+                } catch (IllegalStateException ise) {
+                    // codec 已被释放或处于非法状态，退出循环
+                    Log.w(TAG, "[" + ts() + "] audioCodec 状态异常，退出编码循环: " + ise.getMessage());
+                    break;
+                } catch (Exception e) {
+                    Log.e(TAG, "[" + ts() + "] 编码循环异常: " + e.getMessage(), e);
+                    break;
                 }
-                if (audioInfo.size > 2) {
-                    outputBuffer.position(audioInfo.offset);
-                    outputBuffer.limit(audioInfo.offset + audioInfo.size);
-                    int aacFrameSize = audioInfo.size + 7;
-                    // ===== 发送 PTS 详细信息（每帧打印）=====
-                    Log.d(TAG, "[" + ts() + "][SEND-PTS]"
-                            + " seq=" + seq
-                            + " pts=" + audioInfo.presentationTimeUs + "us"
-                            + " aacSize=" + aacFrameSize + "B"
-                            + " flags=" + audioInfo.flags
-                            + " sendFrames=" + sendFrameCount);
-                    addADTStoPacket(outputBuffer);
-                    sendFrameCount++;
-                }
-                audioCodec.releaseOutputBuffer(audioOutputBufferId, false);
-                audioOutputBufferId = audioCodec.dequeueOutputBuffer(audioInfo, 0);
             }
         }
+
+        // 兜底：无论从哪种途径退出，都保证 release 被调用一次
+        release();
     }
 }

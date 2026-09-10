@@ -38,6 +38,10 @@ public class VideoEncoder {
     private final VideoEncodeParam videoEncodeParam;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private MediaCodec mediaCodec;
+    private final Object codecLock = new Object();
+    /** 保证 start/stop 串行化，避免并发 stop 导致 codec 双重 release */
+    private final Object lifecycleLock = new Object();
+    private volatile boolean running = false;
     private OnEncodeListener encoderListener;
     private Range<Double> bitRateInterval;
     private long seq = 0L;
@@ -51,11 +55,20 @@ public class VideoEncoder {
     }
 
     public void start() {
-        try {
-            bitRateInterval = getBitRateIntervalByPixel(videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
-            initMediaCodec();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        synchronized (lifecycleLock) {
+            try {
+                // 若 executor 已关闭（上一次 stop 后），重建以支持实例复用
+                if (executor == null || executor.isShutdown()) {
+                    executor = Executors.newSingleThreadExecutor();
+                }
+                synchronized (codecLock) {
+                    bitRateInterval = getBitRateIntervalByPixel(videoEncodeParam.getWidth(), videoEncodeParam.getHeight());
+                    initMediaCodec();
+                    running = true;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -121,7 +134,11 @@ public class VideoEncoder {
         videoEncodeParam.setBitRate(bitRate);
         Bundle params = new Bundle();
         params.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bitRate);
-        mediaCodec.setParameters(params);
+        synchronized (codecLock) {
+            if (running && mediaCodec != null) {
+                mediaCodec.setParameters(params);
+            }
+        }
     }
 
     public int getVideoBitRate() {
@@ -136,7 +153,11 @@ public class VideoEncoder {
         videoEncodeParam.setFrameRate(frameRate);
         Bundle params = new Bundle();
         params.putInt(MediaFormat.KEY_FRAME_RATE, frameRate);
-        mediaCodec.setParameters(params);
+        synchronized (codecLock) {
+            if (running && mediaCodec != null) {
+                mediaCodec.setParameters(params);
+            }
+        }
     }
 
     public int getVideoFrameRate() {
@@ -151,59 +172,78 @@ public class VideoEncoder {
      * 将NV21编码成H264
      */
     public void encoderH264(byte[] data, boolean mirror) {
-        if (executor.isShutdown()) return;
-        executor.submit(() -> {
-            byte[] readyToProcessBytes = convertData(data);
-            // 获取输入缓冲区
-            ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
-            ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
+        // 快照，避免与 stop() 中置换 executor 并发
+        final ExecutorService exec = executor;
+        if (exec == null || exec.isShutdown()) return;
+        if (!running) return;
+        try {
+            exec.submit(() -> {
+                byte[] readyToProcessBytes = convertData(data);
+                synchronized (codecLock) {
+                    if (!running || mediaCodec == null) {
+                        return;
+                    }
+                    try {
+                        // 获取输入缓冲区
+                        ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
+                        ByteBuffer[] outputBuffers = mediaCodec.getOutputBuffers();
 
-            int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
-            if (inputBufferIndex >= 0) {
-                ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
-                inputBuffer.clear();
-                inputBuffer.put(readyToProcessBytes);
+                        int inputBufferIndex = mediaCodec.dequeueInputBuffer(10000);
+                        if (inputBufferIndex >= 0) {
+                            ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
+                            inputBuffer.clear();
+                            inputBuffer.put(readyToProcessBytes);
 
-                // 将数据传递给编码器
-                mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
-            }
+                            // 将数据传递给编码器
+                            mediaCodec.queueInputBuffer(inputBufferIndex, 0, readyToProcessBytes.length, System.nanoTime() / 1000, 0);
+                        }
 
-            // 获取输出缓冲区
-            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-            int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
+                        // 获取输出缓冲区
+                        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                        int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
 
+                        while (outputBufferIndex >= 0) {
+                            if (!running || mediaCodec == null) break;
+                            ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
 
-            while (outputBufferIndex >= 0) {
-                ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
+                            // 处理编码后的数据
+                            byte[] outData = new byte[bufferInfo.size];
+                            outputBuffer.get(outData);
+                            boolean isKeyFrame = false;
 
-                // 处理编码后的数据
-                byte[] outData = new byte[bufferInfo.size];
-                outputBuffer.get(outData);
-                boolean isKeyFrame = false;
+                            if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
+                                isKeyFrame = true;
+                                ByteBuffer spsb = mediaCodec.getOutputFormat().getByteBuffer("csd-0");
+                                byte[] sps = new byte[spsb.remaining()];
+                                spsb.get(sps, 0, sps.length);
+                                ByteBuffer ppsb = mediaCodec.getOutputFormat().getByteBuffer("csd-1");
+                                byte[] pps = new byte[ppsb.remaining()];
+                                ppsb.get(pps, 0, pps.length);
+                                byte[] dataBytes = new byte[sps.length + pps.length + outData.length];
+                                System.arraycopy(sps, 0, dataBytes, 0, sps.length);
+                                System.arraycopy(pps, 0, dataBytes, sps.length, pps.length);
+                                System.arraycopy(outData, 0, dataBytes, pps.length + sps.length, outData.length);
+                                notifyEncoded(dataBytes, isKeyFrame);
+                            } else {
+                                // 打印编码后的数据大小
+                                notifyEncoded(outData, isKeyFrame);
+                            }
 
-                if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
-                    isKeyFrame = true;
-                    ByteBuffer spsb = mediaCodec.getOutputFormat().getByteBuffer("csd-0");
-                    byte[] sps = new byte[spsb.remaining()];
-                    spsb.get(sps, 0, sps.length);
-                    ByteBuffer ppsb = mediaCodec.getOutputFormat().getByteBuffer("csd-1");
-                    byte[] pps = new byte[ppsb.remaining()];
-                    ppsb.get(pps, 0, pps.length);
-                    byte[] dataBytes = new byte[sps.length + pps.length + outData.length];
-                    System.arraycopy(sps, 0, dataBytes, 0, sps.length);
-                    System.arraycopy(pps, 0, dataBytes, sps.length, pps.length);
-                    System.arraycopy(outData, 0, dataBytes, pps.length + sps.length, outData.length);
-                    notifyEncoded(dataBytes, isKeyFrame);
-                } else {
-                    // 打印编码后的数据大小
-                    notifyEncoded(outData, isKeyFrame);
+                            // 释放输出缓冲区
+                            mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
+                            if (!running || mediaCodec == null) break;
+                            outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
+                        }
+                    } catch (IllegalStateException ise) {
+                        Log.w(TAG, "video encoder state invalid: " + ise.getMessage());
+                    } catch (Exception e) {
+                        Log.e(TAG, "encode error: " + e.getMessage(), e);
+                    }
                 }
-
-                // 释放输出缓冲区
-                mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
-                outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
-            }
-        });
+            });
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // executor 已在两步检查之间被关闭，忽略即可
+        }
     }
 
     private void notifyEncoded(byte[] outData, boolean isKeyFrame) {
@@ -230,16 +270,38 @@ public class VideoEncoder {
     }
 
     public void stop() {
-        try {
-            if (mediaCodec != null) {
-                mediaCodec.stop();
-                mediaCodec.release();
-                mediaCodec = null;
+        synchronized (lifecycleLock) {
+            running = false;
+
+            // 1) 先终止 executor，等待已提交任务退出，避免其与 release 并发
+            ExecutorService old = executor;
+            if (old != null) {
+                old.shutdownNow();
+                try {
+                    old.awaitTermination(1000, java.util.concurrent.TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
 
-            executor.shutdown();
-        } catch (Exception e) {
-            e.printStackTrace();
+            // 2) executor 完全退出后再 release codec
+            synchronized (codecLock) {
+                try {
+                    if (mediaCodec != null) {
+                        try {
+                            mediaCodec.stop();
+                        } catch (Exception ignore) {
+                        }
+                        try {
+                            mediaCodec.release();
+                        } catch (Exception ignore) {
+                        }
+                        mediaCodec = null;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
